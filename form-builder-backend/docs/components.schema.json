@@ -1,0 +1,69 @@
+{
+  "base": {
+    "id": "string",
+    "type": "string",
+    "order": "number",
+    "label": "string | null",
+    "placeholder": "string | null",
+    "description": "string | null",
+    "required": "boolean",
+    "hidden": "boolean",
+    "disabled": "boolean",
+    "defaultValue": "any | null",
+    "validation": "object | null",
+    "props": "object"
+  },
+
+  "validation": {
+    "requiredMessage": "string | null",
+    "minLength": "number | null",
+    "maxLength": "number | null",
+    "min": "number | null",
+    "max": "number | null",
+    "regex": "string | null",
+    "regexMessage": "string | null",
+    "allowedFileTypes": "string[] | null",
+    "maxFileSizeMB": "number | null",
+    "minSelections": "number | null",
+    "maxSelections": "number | null",
+    "errorMessage": "string | null",
+    "crossField": [
+      {
+        "ruleId": "string",
+        "referencedFieldId": "string",
+        "operator": "greaterThan | lessThan | equals | notEquals | greaterThanOrEquals | lessThanOrEquals",
+        "message": "string"
+      }
+    ]
+  },
+
+  "props": {
+
+    "text_input":      { "variant": "single_line | multi_line", "rows": "number | null" },
+    "email_input":     {},
+    "phone_input":     { "defaultCountryCode": "string" },
+    "url_input":       {},
+    "number_input":    { "variant": "integer | decimal", "step": "number" },
+
+    "date_input":      { "format": "DD/MM/YYYY | MM/DD/YYYY | YYYY-MM-DD", "disablePastDates": "boolean", "disableFutureDates": "boolean" },
+    "time_input":      { "format": "12h | 24h" },
+
+    "dropdown":        { "options": [{ "id": "string", "label": "string", "value": "string" }], "multiple": "boolean", "searchable": "boolean" },
+    "radio_group":     { "options": [{ "id": "string", "label": "string", "value": "string" }], "layout": "vertical | horizontal", "shuffle": "boolean" },
+    "checkbox_group":  { "options": [{ "id": "string", "label": "string", "value": "string" }], "layout": "vertical | horizontal", "shuffle": "boolean" },
+
+    "rating":          { "maxRating": "number", "shape": "star | number" },
+    "linear_scale":    { "min": "number", "max": "number", "minLabel": "string", "maxLabel": "string", "step": "number" },
+    "slider":          { "min": "number", "max": "number", "step": "number", "showValue": "boolean" },
+
+    "file_upload":     { "multiple": "boolean" },
+    "image_upload":    { "multiple": "boolean", "previewEnabled": "boolean" },
+
+    "section_divider": { "title": "string | null", "showLine": "boolean" },
+    "rich_text":       { "content": "string", "format": "plain | html" },
+    "signature_input": { "outputFormat": "base64_png" },
+    "captcha":         { "provider": "recaptcha_v2 | hcaptcha" },
+    "calculated_field":{ "formula": "string", "outputType": "number | string", "prefix": "string | null", "suffix": "string | null" }
+
+  }
+}

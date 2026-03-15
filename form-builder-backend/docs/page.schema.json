@@ -1,0 +1,27 @@
+"pages": [
+  {
+    "pageId": "page-uuid-1",
+    "order": 1,
+    "title": "Personal Information",
+    "description": "Tell us about yourself",
+    "themeOverride": {             // FR-22: page-level theme
+      "backgroundColor": "#F3F4F6"
+    },
+    "settings": {
+      "showTitle": true,
+      "showDescription": true,
+      "nextButtonLabel": "Continue",
+      "backButtonLabel": "Back"
+    },
+    "components": [ ... ]         // array of component objects (section 5)
+  },
+  {
+    "pageId": "page-uuid-2",
+    "order": 2,
+    "title": "Leave Details",
+    "description": null,
+    "themeOverride": null,
+    "settings": { ... },
+    "components": [ ... ]
+  }
+]
