@@ -1,27 +1,33 @@
-"pages": [
-  {
-    "pageId": "page-uuid-1",
-    "order": 1,
-    "title": "Personal Information",
-    "description": "Tell us about yourself",
-    "themeOverride": {             // FR-22: page-level theme
-      "backgroundColor": "#F3F4F6"
+{
+  "type": "object",
+  "required": [
+    "id",
+    "children"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
     },
-    "settings": {
-      "showTitle": true,
-      "showDescription": true,
-      "nextButtonLabel": "Continue",
-      "backButtonLabel": "Back"
+    "children": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     },
-    "components": [ ... ]         // array of component objects (section 5)
-  },
-  {
-    "pageId": "page-uuid-2",
-    "order": 2,
-    "title": "Leave Details",
-    "description": null,
-    "themeOverride": null,
-    "settings": { ... },
-    "components": [ ... ]
+    "isTerminal": {
+      "type": "boolean"
+    },
+    "nextPageId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "previousPageId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
   }
-]
+}

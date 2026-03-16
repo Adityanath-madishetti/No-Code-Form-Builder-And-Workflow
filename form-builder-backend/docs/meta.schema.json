@@ -1,14 +1,26 @@
 {
-"meta": {
-  "title": "Leave Request Form",
-  "description": "Submit a leave application",
-  "tags": ["HR", "leave"],
-  "status": "draft",           // draft | published | archived
-  "createdBy": "user-uuid",
-  "createdAt": "2025-01-01T00:00:00Z",
-  "updatedAt": "2025-01-10T00:00:00Z",
-  "publishedAt": null,
-  "language": "en",
-  "isTemplate": false,
-  "templateCategory": null     // "feedback" | "quiz" | "application" | null
-}}
+  "type": "object",
+
+  "required": ["createdAt", "updatedAt"],
+
+  "properties": {
+
+    "title": { "type": "string" },
+
+    "description": { "type": "string" },
+
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+
+    "authorId": {
+      "type": "string"
+    }
+  }
+}

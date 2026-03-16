@@ -4,64 +4,115 @@ const { Schema } = mongoose;
 
 /* ---------------- COMPONENT ---------------- */
 
+// const ComponentSchema = new Schema(
+//     {
+//         // basically it decides what it is i.e is it checkbox or input box and all
+        // id: {
+        //     type: String,
+        //     required: true
+        // },
+
+//         type: {
+//             type: String,
+//             required: true
+//         },
+
+//         label: String,
+
+//         placeholder: String,
+
+//         defaultValue: Schema.Types.Mixed,
+
+//         options: [
+//             {
+//                 label: String,
+//                 value: Schema.Types.Mixed
+//             }
+//         ],
+
+//         validation: {
+//             required: Boolean,
+//             min: Number,
+//             max: Number,
+//             minLength: Number,
+//             maxLength: Number,
+//             regex: String,
+//             customMessage: String
+//         },
+
+//         settings: Schema.Types.Mixed
+//     },
+//     { _id: false }
+// );
+
+
+// [|]
 const ComponentSchema = new Schema(
     {
-        id: {
-            type: String,
-            required: true
+
+
+        componentId:{
+            type:String,
+            required:true,
         },
 
-        type: {
-            type: String,
-            required: true
-        },
+        componentType:{
+            type: {
+                type: String,
+                required: true,
+                enum: ["input-box", "paragraph", "number", "checkbox", "radio", "MCQ", "email", "date", "custom"]
+            },
 
-        label: String,
-
-        placeholder: String,
-
-        defaultValue: Schema.Types.Mixed,
-
-        options: [
-            {
-                label: String,
-                value: Schema.Types.Mixed
+            customKey: {
+                type: String // e.g. "rating-stars"
             }
-        ],
-
-        validation: {
-            required: Boolean,
-            min: Number,
-            max: Number,
-            minLength: Number,
-            maxLength: Number,
-            regex: String,
-            customMessage: String
+        },
+        // should u fill it or not
+        required:{
+            type:Boolean,
+            default:false
         },
 
-        settings: Schema.Types.Mixed
+        props: {
+            type: Schema.Types.Mixed,
+            default:{}
+        },
+        // like regex or min max or something taht is based on component
+        validation:{
+            type:Schema.Types.Mixed,
+        }
     },
     { _id: false }
 );
 
+// [|]
 /* ---------------- PAGE ---------------- */
-
 const PageSchema = new Schema(
     {
-        pageId: {
-            type: String,
+        pageNo: {
+            type: Number,
             required: true
         },
 
-        title: String,
+        title: {
+            type: String,
+            trim: true
+        },
 
-        description: String,
+        description: {
+            type: String,
+            trim: true
+        },
 
-        components: [ComponentSchema]
+        components: {
+            type: [ComponentSchema],
+            default: []
+        }
     },
     { _id: false }
 );
 
+// [|]
 /* ---------------- LOGIC ---------------- */
 
 const LogicRuleSchema = new Schema(
@@ -132,66 +183,89 @@ const AccessSchema = new Schema(
     { _id: false }
 );
 
+
+// [|]
 /* ---------------- SETTINGS ---------------- */
 
 const SettingsSchema = new Schema(
     {
-        allowMultipleSubmissions: Boolean,
-        requireLogin: Boolean,
-        collectEmail: Boolean,
+        allowMultipleSubmissions: {
+            type: Boolean,
+            default: false
+        },
+        requireLogin:   {
+            type:Boolean,
+            default:false
+        },
+        // so anonymity should be explicit at frontend 
+        collectEmail: {
+            type: Boolean,
+            default: false,
+        },
         saveDraft: Boolean,
-        showProgressBar: Boolean,
-        submissionLimit: Number
+
+        showProgressBar: {
+            type: Boolean,
+            default: false,
+        },
+        submissionLimit : Number, // it will be presnet in only
+
     },
     { _id: false }
 );
 
-/* ---------------- THEME ---------------- */
+/**************** */
 
 const ThemeSchema = new Schema(
     {
-        mode: {
-            type: String,
-            enum: ["light", "dark"],
-            default: "light"
-        },
-
-        primaryColor: String,
-
-        backgroundColor: String,
-
-        font: String,
-
-        logoUrl: String
-    },
-    { _id: false }
+            themeId : {
+                type: String,
+                required : true,
+            }
+    }
 );
 
+
+// [|]
 /* ---------------- META ---------------- */
 
 const MetaSchema = new Schema(
     {
-        title: {
-            type: String,
-            required: true
+        createdBy: {
+            type: String, // id of author
+            required: true,
         },
 
-        description: String,
-
-        ownerId: {
+        //title
+        name: {
             type: String,
-            required: true
+            required: true,
         },
 
-        tags: [String],
-
-        status: {
+        description: {
             type: String,
-            enum: ["draft", "published", "archived"],
-            default: "draft"
+            required: true,
+        },
+
+        theme: ThemeSchema,
+
+        version: {
+            type: Number,
+            validate: {
+                validator: Number.isInteger,
+                message: "Age must be an integer"
+            }
+        },
+
+        isMultiPage: Boolean, // idk whats the use of it 
+
+        is_it_quiz: {
+            type: Boolean,
+            default: false,
         }
     },
     { timestamps: true, _id: false }
+
 );
 
 /* ---------------- MAIN FORM ---------------- */
@@ -213,10 +287,11 @@ const FormSchema = new Schema({
 
     meta: MetaSchema,
 
-    settings: SettingsSchema,
-
-    theme: ThemeSchema,
-
+    settings: {
+        type:SettingsSchema,
+        required : true,
+    },
+        
     pages: [PageSchema],
 
     logic: {
@@ -229,5 +304,6 @@ const FormSchema = new Schema({
 
 },
     { timestamps: true });
+
 
 export default mongoose.model("Form", FormSchema);
