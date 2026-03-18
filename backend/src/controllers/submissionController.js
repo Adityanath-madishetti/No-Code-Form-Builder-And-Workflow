@@ -1,0 +1,142 @@
+import crypto from "crypto";
+import Form from "../models/Form.js";
+import FormVersion from "../models/FormVersion.js";
+import Submission from "../models/Submission.js";
+import { createError } from "../middleware/errorHandler.js";
+
+/**
+ * POST /api/forms/:formId/submissions
+ * Submit a form response. Auth is optional (depends on form settings).
+ */
+export const submitForm = async (req, res, next) => {
+    try {
+        const { formId } = req.params;
+
+        // Check that the form exists and is active
+        const form = await Form.findOne({ formId, isDeleted: false });
+        if (!form) throw createError(404, "Form not found");
+        if (!form.isActive) throw createError(400, "Form is not accepting submissions");
+
+        // Get the currently published version
+        const formVersion = await FormVersion.findOne({
+            formId,
+            version: form.currentVersion,
+            "meta.isDraft": false,
+        });
+
+        if (!formVersion) {
+            throw createError(400, "No published version available");
+        }
+
+        const { settings } = formVersion;
+
+        // Check if login is required
+        if (settings.requireLogin && !req.user) {
+            throw createError(401, "Authentication required to submit this form");
+        }
+
+        // Check submission limit
+        if (settings.submissionLimit) {
+            const count = await Submission.countDocuments({ formId });
+            if (count >= settings.submissionLimit) {
+                throw createError(400, "Submission limit reached");
+            }
+        }
+
+        // Check close date
+        if (settings.closeDate && new Date() > new Date(settings.closeDate)) {
+            throw createError(400, "Form submissions are closed");
+        }
+
+        // Check multiple submissions
+        if (!settings.allowMultipleSubmissions && req.user) {
+            const existing = await Submission.findOne({
+                formId,
+                submittedBy: req.user.uid,
+                status: { $ne: "draft" },
+            });
+            if (existing) {
+                throw createError(400, "You have already submitted this form");
+            }
+        }
+
+        const submission = await Submission.create({
+            submissionId: crypto.randomUUID(),
+            formId,
+            version: form.currentVersion,
+            submittedBy: req.user?.uid || null,
+            email: req.body.email || null,
+            status: req.body.status || "submitted",
+            meta: {
+                isQuiz: formVersion.meta.isQuiz || false,
+            },
+            pages: req.body.pages || [],
+        });
+
+        res.status(201).json({
+            message: settings.confirmationMessage || "Thank you for your response!",
+            submission,
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+/**
+ * GET /api/forms/:formId/submissions
+ * List submissions for a form (owner only).
+ */
+export const listSubmissions = async (req, res, next) => {
+    try {
+        const { formId } = req.params;
+
+        const form = await Form.findOne({ formId, isDeleted: false });
+        if (!form) throw createError(404, "Form not found");
+        if (form.createdBy !== req.user.uid) throw createError(403, "Access denied");
+
+        const page = parseInt(req.query.page, 10) || 1;
+        const limit = parseInt(req.query.limit, 10) || 20;
+        const skip = (page - 1) * limit;
+
+        const [submissions, total] = await Promise.all([
+            Submission.find({ formId })
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit),
+            Submission.countDocuments({ formId }),
+        ]);
+
+        res.status(200).json({
+            submissions,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit),
+            },
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+/**
+ * GET /api/forms/:formId/submissions/:submissionId
+ * Get a single submission (owner only).
+ */
+export const getSubmission = async (req, res, next) => {
+    try {
+        const { formId, submissionId } = req.params;
+
+        const form = await Form.findOne({ formId, isDeleted: false });
+        if (!form) throw createError(404, "Form not found");
+        if (form.createdBy !== req.user.uid) throw createError(403, "Access denied");
+
+        const submission = await Submission.findOne({ formId, submissionId });
+        if (!submission) throw createError(404, "Submission not found");
+
+        res.status(200).json({ submission });
+    } catch (err) {
+        next(err);
+    }
+};

@@ -1,16 +1,33 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import helmet from "helmet";
 
-dotenv.config({debug: true});
+import userRoutes from "./routes/userRoutes.js";
+import formRoutes from "./routes/formRoutes.js";
+import { errorHandler } from "./middleware/errorHandler.js";
+
+dotenv.config({ debug: true });
 
 const app = express();
-app.use(express.json())
-app.use(cors())
 
-// here routes shoudl be registered
+// ── Global Middleware ──
+app.use(express.json({ limit: "10mb" }));
+app.use(cors());
+app.use(helmet());
+
+// ── Health Check ──
+app.get("/api/health", (_req, res) => {
+    res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+// ── Routes ──
+app.use("/api/users", userRoutes);
+app.use("/api/forms", formRoutes);
+// Note: formVersionRoutes and submissionRoutes are nested under formRoutes
+//       at /api/forms/:formId/versions and /api/forms/:formId/submissions
+
+// ── Error Handling (must be last) ──
+app.use(errorHandler);
 
 export default app;
-
-
-

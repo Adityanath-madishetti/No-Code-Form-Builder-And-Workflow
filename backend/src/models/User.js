@@ -1,47 +1,50 @@
 import mongoose from "mongoose";
 
-// uid comes from Firebase Auth
+const { Schema } = mongoose;
 
-const UserSchema = new mongoose.Schema(
+const UserSchema = new Schema(
     {
         uid: {
             type: String,
             required: true,
             unique: true,
-            index: true
+            index: true,
         },
 
         email: {
             type: String,
             required: true,
             lowercase: true,
-            trim: true
+            trim: true,
         },
 
+        displayName: {
+            type: String,
+            trim: true,
+            default: "",
+        },
 
         avatarUrl: {
-            type: String
+            type: String,
+            default: "",
         },
 
         roles: {
             type: [String],
-            default: ["user"]
+            default: ["user"],
         },
-        
+
         accountStatus: {
             type: String,
             enum: ["active", "suspended"],
-            default: "active"
+            default: "active",
         },
 
         lastLogin: {
-            type: Date
-        }
+            type: Date,
+        },
     },
-    // gives created at and updated at automatically any time u touch the document in mongodb
-    {
-        timestamps: true
-    }
+    { timestamps: true }
 );
 
 export default mongoose.model("User", UserSchema);
