@@ -125,7 +125,7 @@ export const updateForm = async (req, res, next) => {
                 isDeleted: false,
             },
             { $set: updates },
-            { new: true, runValidators: true }
+            { returnDocument: "after", runValidators: true }
         );
 
         if (!form) {
@@ -151,7 +151,7 @@ export const deleteForm = async (req, res, next) => {
                 isDeleted: false,
             },
             { $set: { isDeleted: true, isActive: false } },
-            { new: true }
+            { returnDocument: "after" }
         );
 
         if (!form) {

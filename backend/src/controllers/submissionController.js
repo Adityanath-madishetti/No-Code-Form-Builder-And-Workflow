@@ -17,15 +17,15 @@ export const submitForm = async (req, res, next) => {
         if (!form) throw createError(404, "Form not found");
         if (!form.isActive) throw createError(400, "Form is not accepting submissions");
 
-        // Get the currently published version
+        // Get the latest published version (not necessarily currentVersion,
+        // since currentVersion may point to a newer draft after cloning)
         const formVersion = await FormVersion.findOne({
             formId,
-            version: form.currentVersion,
             "meta.isDraft": false,
-        });
+        }).sort({ version: -1 });
 
         if (!formVersion) {
-            throw createError(400, "No published version available");
+            throw createError(400, "No published version available. Publish the form first.");
         }
 
         const { settings } = formVersion;

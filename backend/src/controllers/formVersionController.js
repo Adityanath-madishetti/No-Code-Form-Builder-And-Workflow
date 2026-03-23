@@ -91,14 +91,19 @@ export const createVersion = async (req, res, next) => {
 
         const newVersionNum = latest.version + 1;
 
-        // Clone the latest version
+        // Clone the latest version, stripping all Mongoose internals
         const cloned = latest.toObject();
         delete cloned._id;
+        delete cloned.__v;
+        delete cloned.id;
         delete cloned.createdAt;
         delete cloned.updatedAt;
 
         cloned.version = newVersionNum;
-        cloned.meta.isDraft = true;
+        cloned.meta = {
+            ...cloned.meta,
+            isDraft: true,
+        };
 
         // Add to version history
         cloned.versionHistory = [
@@ -107,14 +112,18 @@ export const createVersion = async (req, res, next) => {
                 version: newVersionNum,
                 createdBy: uid,
                 createdAt: new Date(),
-                message: req.body.message || `Created version ${newVersionNum}`,
+                message: (req.body && req.body.message) || `Created version ${newVersionNum}`,
             },
         ];
 
         const newVersion = await FormVersion.create(cloned);
 
         // Update form header
-        await Form.findOneAndUpdate({ formId }, { currentVersion: newVersionNum });
+        await Form.findOneAndUpdate(
+            { formId },
+            { currentVersion: newVersionNum },
+            { returnDocument: "after" }
+        );
 
         res.status(201).json({ version: newVersion });
     } catch (err) {
@@ -162,7 +171,7 @@ export const updateVersion = async (req, res, next) => {
         const version = await FormVersion.findOneAndUpdate(
             { formId, version: versionNum },
             { $set: updates },
-            { new: true, runValidators: true }
+            { returnDocument: "after", runValidators: true }
         );
 
         if (!version) throw createError(404, "Version not found");
@@ -200,13 +209,13 @@ export const publishVersion = async (req, res, next) => {
                     },
                 },
             },
-            { new: true }
+            { returnDocument: "after" }
         );
 
         if (!version) throw createError(404, "Version not found");
 
         // Activate the form
-        await Form.findOneAndUpdate({ formId }, { isActive: true });
+        await Form.findOneAndUpdate({ formId }, { isActive: true }, { returnDocument: "after" });
 
         res.status(200).json({ message: "Form published", version });
     } catch (err) {
