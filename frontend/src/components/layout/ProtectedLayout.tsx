@@ -1,15 +1,11 @@
 // src/components/layout/ProtectedLayout.tsx
-import { Navigate, Outlet, useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
+import { Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
-import { Loader2 } from "lucide-react";
-
-
+import { Loader2 } from 'lucide-react';
 
 export default function ProtectedLayout() {
-  const { user, loading, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -23,15 +19,9 @@ export default function ProtectedLayout() {
     return <Navigate to="/login" replace />;
   }
 
-  const handleLogout = async () => {
-    await logout();
-    navigate("/login");
-  };
-
-
+  
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      {/* Minimal Header */}
+    <div className="flex min-h-screen flex-col bg-background">
       {/* <header className="flex items-center justify-between px-6 py-4 border-b">
         <h1 className="text-lg font-semibold tracking-tight">App Name</h1>
 
@@ -45,7 +35,6 @@ export default function ProtectedLayout() {
         </div>
       </header> */}
 
-      {/* Main Content Area */}
       {/* <main className="flex-1 p-4 md:p-6"> */}
       <Outlet />
       {/* </main> */}

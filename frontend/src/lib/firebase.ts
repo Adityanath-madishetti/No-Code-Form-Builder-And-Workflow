@@ -17,12 +17,3 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 
 export const googleAuth = new GoogleAuthProvider();
-
-// export const logout = async () => {
-//   try {
-//     await signOut(auth);
-//   } catch (error) {
-//     console.error("Failed to log out:", error);
-//     throw error;
-//   }
-// };

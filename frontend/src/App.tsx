@@ -1,21 +1,10 @@
-// import Home from "./pages/Home"
-
-// export function App() {
-//   return (
-//     <Home />
-//   )
-// }
-
-// export default App
-
-
-
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedLayout from "./components/layout/ProtectedLayout";
-import Login from "./pages/Login/Login";
-import Home from "./pages/Home"; // Your protected home page
-// import Dashboard from "./pages/Dashboard"; // Another protected page
+import Login from "./pages/Login/page";
+import Home from "./pages/Home";
+import FormEditor from "./pages/FormEditor/page";
+import FormTest from "./pages/FormTest";
 
 const router = createBrowserRouter([
   {
@@ -27,14 +16,19 @@ const router = createBrowserRouter([
     element: <ProtectedLayout />,
     children: [
       {
-        index: true, // Matches the "/" path
+        index: true,
         element: <Home />,
       },
-      // {
-      //   path: "dashboard",
-      //   element: <Dashboard />,
-      // },
-      // ... add all other protected routes here
+      {
+        index: false,
+        path: "form-builder",
+        element: <FormEditor />,
+      },
+      {
+        index: false,
+        path: "form-test",
+        element: <FormTest />,
+      }
     ],
   },
 ]);
