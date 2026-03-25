@@ -22,7 +22,7 @@
 
 import type { ComponentMetadata } from './base';
 import { ComponentIDs } from './base';
-import type { FormComponent } from '../registry/componentRegistry';
+import type { FormComponent } from '@/form/components/base';
 
 export interface DropdownOption {
   id: string;
@@ -41,10 +41,9 @@ export const createDropdownComponent = (
   instanceId: string,
   metadata: ComponentMetadata,
   props: DropdownProps
-): FormComponent => ({
+): FormComponent<'Dropdown', DropdownProps> => ({
   id: ComponentIDs.Dropdown,
   instanceId,
-  name: 'DropdownComponent',
   metadata,
   children: [],
   props,

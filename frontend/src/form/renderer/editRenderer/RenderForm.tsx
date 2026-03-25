@@ -23,10 +23,8 @@ import { TEMP_PAGE_PLACEHOLDER_ID } from '@/form/utils/DndUtils';
 
 import {
   DRAG_CATALOG_COMPONENT_ID,
-  DRAG_CATALOG_PAGE_ID,
   DRAG_COMPONENT_ID,
   DRAG_PAGE_ID,
-  DRAG_PAGE_GROUP_ID,
 } from '@/form/utils/DndUtils';
 
 type RenderableComponent =
@@ -64,8 +62,8 @@ export const RenderComponent = ({
   const rendered = (
     <Renderer
       metadata={validComponent.metadata}
-      // @ts-expect-error - forget for now
       // Note - some type safety issue
+      // @ts-expect-error - forget for now
       props={validComponent.props}
       instanceId={validComponent.instanceId}
     />

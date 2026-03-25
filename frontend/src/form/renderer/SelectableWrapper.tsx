@@ -13,7 +13,7 @@ import {
   DRAG_CATALOG_PAGE_ID,
   DRAG_COMPONENT_ID,
   DRAG_PAGE_ID,
-  DRAG_PAGE_GROUP_ID
+  DRAG_PAGE_GROUP_ID,
 } from '@/form/utils/DndUtils';
 
 interface Props {

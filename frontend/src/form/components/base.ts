@@ -53,8 +53,7 @@
  * Acts as the canonical source of truth for component type IDs.
  */
 export const ComponentIDs = {
-  Dummy: 'Dummy',
-  TextBox: 'TextBox',
+  TextBox: 'Textbox',
   Input: 'Input',
   Radio: 'Radio',
   Checkbox: 'Checkbox',
@@ -95,7 +94,7 @@ export interface FormComponent<
 > {
   id: T;
   instanceId: InstanceID;
-  name: string;
+  // name: string;
   metadata: ComponentMetadata;
   props: P;
   children: InstanceID[];
@@ -110,7 +109,7 @@ export interface SerializedComponent<
 > {
   id: T;
   instanceId: InstanceID;
-  name: string;
+  // name: string;
   metadata: ComponentMetadata;
   props: P;
 }

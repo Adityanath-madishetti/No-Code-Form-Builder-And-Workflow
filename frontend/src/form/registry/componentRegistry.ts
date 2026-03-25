@@ -36,20 +36,10 @@
 
 import type { ComponentType } from 'react';
 import { ComponentIDs } from '../components/base';
-import type {
-  ComponentID,
-  RendererProps,
-} from '../components/base';
+import type { ComponentID, RendererProps } from '../components/base';
 import type { FormComponent, SerializedComponent } from '../components/base';
 
 // ------------------------------------------------------------------------------------------------
-import { createDummyComponent } from '../components/dummy';
-import type { DummyProps } from '../components/dummy';
-import {
-  DummyComponentPropsRenderer,
-  DummyComponentRenderer,
-} from '../components/DummyComponentRenderer';
-
 import { createTextBoxComponent } from '../components/textBox';
 import type { TextBoxProps } from '../components/textBox';
 import {
@@ -87,7 +77,6 @@ import {
 // ------------------------------------------------------------------------------------------------
 
 export type ComponentPropsMap = {
-  [ComponentIDs.Dummy]: DummyProps;
   [ComponentIDs.TextBox]: TextBoxProps;
   [ComponentIDs.Input]: InputProps;
   [ComponentIDs.Radio]: RadioProps;
@@ -150,7 +139,9 @@ export interface ComponentRegistryEntry<T extends ComponentID> {
   /**
    * Reconstructs a component from serialized JSON.
    */
-  deserialize: (json: SerializedComponent<T, ComponentPropsMap[T]>) => FormComponent<T, ComponentPropsMap[T]>;
+  deserialize: (
+    json: SerializedComponent<T, ComponentPropsMap[T]>
+  ) => FormComponent<T, ComponentPropsMap[T]>;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -169,22 +160,6 @@ type Registry = {
  * This is the core lookup table used throughout the system.
  */
 const registry: Registry = {
-  [ComponentIDs.Dummy]: {
-    id: ComponentIDs.Dummy,
-    catalog: {
-      label: 'Dummy',
-      description: 'A placeholder component.',
-    },
-    renderers: {
-      main: DummyComponentRenderer,
-      settings: DummyComponentPropsRenderer,
-    },
-    create: (instanceId) =>
-      createDummyComponent(instanceId, { label: 'Dummy Field' }, { text: '' }),
-    deserialize: (json) =>
-      createDummyComponent(json.instanceId, json.metadata, json.props),
-  },
-
   [ComponentIDs.TextBox]: {
     id: ComponentIDs.TextBox,
     catalog: {
@@ -327,7 +302,6 @@ export function serializeComponent<T extends ComponentID>(
   return {
     id: component.id as T,
     instanceId: component.instanceId,
-    name: component.name,
     metadata: component.metadata,
     props: component.props as ComponentPropsMap[T],
   };
@@ -336,8 +310,7 @@ export function serializeComponent<T extends ComponentID>(
 export function deserializeComponent<T extends ComponentID>(
   json: SerializedComponent<T>
 ): FormComponent {
-  // NOTE
-  // @ts-expect-error - TypeScript struggles to infer the mapped exact union here, but it is safe at runtime
+  // @ts-expect-error - // we trust the JSON structure
   return registry[json.id].deserialize(json);
 }
 
@@ -345,7 +318,6 @@ export function deserializeComponent<T extends ComponentID>(
  * Flat map of componentID -> main renderer.
  */
 export const componentRenderers = {
-  [ComponentIDs.Dummy]: registry[ComponentIDs.Dummy].renderers.main,
   [ComponentIDs.TextBox]: registry[ComponentIDs.TextBox].renderers.main,
   [ComponentIDs.Input]: registry[ComponentIDs.Input].renderers.main,
   [ComponentIDs.Radio]: registry[ComponentIDs.Radio].renderers.main,

@@ -21,7 +21,7 @@
 
 import type { ComponentMetadata } from './base';
 import { ComponentIDs } from './base';
-import type { FormComponent } from '../registry/componentRegistry';
+import type { FormComponent } from '@/form/components/base';
 
 export interface TextBoxProps {
   text: string;
@@ -31,10 +31,9 @@ export const createTextBoxComponent = (
   instanceId: string,
   metadata: ComponentMetadata,
   props: TextBoxProps
-): FormComponent => ({
+): FormComponent<'Textbox', TextBoxProps> => ({
   id: ComponentIDs.TextBox,
   instanceId,
-  name: 'TextBoxComponent',
   metadata,
   children: [],
   props,

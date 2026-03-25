@@ -21,7 +21,7 @@
  * ------------------------------------------------------------------------------------------------
  */
 
-import type { FormComponent } from '../registry/componentRegistry';
+import type { FormComponent } from '@/form/components/base';
 import type { ComponentMetadata } from './base';
 import { ComponentIDs } from './base';
 
@@ -42,10 +42,9 @@ export const createRadioComponent = (
   instanceId: string,
   metadata: ComponentMetadata,
   props: RadioProps
-): FormComponent => ({
+): FormComponent<'Radio', RadioProps> => ({
     id: ComponentIDs.Radio,
     instanceId,
-    name:'RadioComponent',
     metadata,
     children: [],
     props

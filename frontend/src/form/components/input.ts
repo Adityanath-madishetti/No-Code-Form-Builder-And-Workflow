@@ -21,7 +21,7 @@
 
 import type { ComponentMetadata } from './base';
 import { ComponentIDs } from './base';
-import type { FormComponent } from '../registry/componentRegistry';
+import type { FormComponent } from '@/form/components/base';
 
 export interface InputProps {
   placeholder?: string;
@@ -33,10 +33,9 @@ export const createInputComponent = (
   instanceId: string,
   metadata: ComponentMetadata,
   props: InputProps
-): FormComponent => ({
+): FormComponent<'Input', InputProps> => ({
   id: ComponentIDs.Input,
   instanceId,
-  name: 'InputComponent',
   metadata,
   children: [],
   props,

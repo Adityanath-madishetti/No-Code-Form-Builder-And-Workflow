@@ -20,7 +20,7 @@
  * ------------------------------------------------------------------------------------------------
  */
 
-import type { FormComponent } from '../registry/componentRegistry';
+import type { FormComponent } from '@/form/components/base';
 import type { ComponentMetadata } from './base';
 import { ComponentIDs } from './base';
 
@@ -41,10 +41,9 @@ export const createCheckboxComponent = (
   instanceId: string,
   metadata: ComponentMetadata,
   props: CheckboxProps
-): FormComponent => ({
+): FormComponent<'Checkbox', CheckboxProps> => ({
   id: ComponentIDs.Checkbox,
   instanceId,
-  name: 'CheckboxComponent',
   metadata,
   children: [],
   props,

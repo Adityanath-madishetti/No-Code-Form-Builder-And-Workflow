@@ -30,7 +30,7 @@ loadFromJSON({
       children: ['text-box-instance-1', 'input-instance-1'],
       isTerminal: false,
     },
-    { id: 'page-2', children: ['instance-1'], isTerminal: false },
+    { id: 'page-2', children: [], isTerminal: false },
     { id: 'page-3', children: [], isTerminal: false },
     { id: 'page-4', children: [], isTerminal: false },
     { id: 'page-5', children: [], isTerminal: false },
@@ -42,15 +42,7 @@ loadFromJSON({
   ],
   components: [
     {
-      id: 'Dummy',
-      instanceId: 'instance-1',
-      name: 'DummyComponent',
-      metadata: { label: 'Hello World', description: 'A dummy field.' },
-      props: { text: 'This is a dummy component.' },
-      // children: [],
-    },
-    {
-      id: 'TextBox',
+      id: 'Textbox',
       instanceId: 'text-box-instance-1',
       name: 'TextBoxComponent',
       metadata: { label: 'Static Text', description: 'A static text box.' },
