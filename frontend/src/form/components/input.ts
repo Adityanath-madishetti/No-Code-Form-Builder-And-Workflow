@@ -30,16 +30,24 @@ export interface InputProps {
   // Add more props as needed (e.g., min/max length, validation rules)
 }
 
+export interface InputValidation {
+  required: boolean;
+  minLength: number;
+  maxLength?: number;
+}
+
 export const createInputComponent = (
   instanceId: string,
   metadata: ComponentMetadata,
-  props: InputProps
-): FormComponent<'Input', InputProps> => ({
+  props: InputProps,
+  validation: InputValidation
+): FormComponent<'Input', InputProps, InputValidation> => ({
   id: ComponentIDs.Input,
   instanceId,
   metadata,
   children: [],
   props,
+  validation,
 });
 
 export type InputComponent = ReturnType<typeof createInputComponent>;

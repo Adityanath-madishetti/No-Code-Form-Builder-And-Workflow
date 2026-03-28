@@ -37,16 +37,22 @@ export interface DropdownProps {
   defaultValue?: string;
 }
 
+export interface DropdownValidation {
+  requred: boolean;
+}
+
 export const createDropdownComponent = (
   instanceId: string,
   metadata: ComponentMetadata,
-  props: DropdownProps
-): FormComponent<'Dropdown', DropdownProps> => ({
+  props: DropdownProps,
+  validation: DropdownValidation
+): FormComponent<'Dropdown', DropdownProps, DropdownValidation> => ({
   id: ComponentIDs.Dropdown,
   instanceId,
   metadata,
   children: [],
   props,
+  validation
 });
 
 export type DropdownComponent = ReturnType<typeof createDropdownComponent>;

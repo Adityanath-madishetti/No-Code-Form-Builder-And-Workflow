@@ -37,16 +37,22 @@ export interface CheckboxProps {
   layout?: 'vertical' | 'horizontal';
 }
 
+export interface CheckboxValidation {
+  required: boolean;
+}
+
 export const createCheckboxComponent = (
   instanceId: string,
   metadata: ComponentMetadata,
-  props: CheckboxProps
-): FormComponent<'Checkbox', CheckboxProps> => ({
+  props: CheckboxProps,
+  validation: CheckboxValidation
+): FormComponent<'Checkbox', CheckboxProps, CheckboxValidation> => ({
   id: ComponentIDs.Checkbox,
   instanceId,
   metadata,
   children: [],
   props,
+  validation,
 });
 
 export type CheckboxComponent = ReturnType<typeof createCheckboxComponent>;

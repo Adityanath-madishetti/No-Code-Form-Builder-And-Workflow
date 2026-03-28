@@ -41,35 +41,35 @@ import type { FormComponent, SerializedComponent } from '../components/base';
 
 // ------------------------------------------------------------------------------------------------
 import { createTextBoxComponent } from '../components/textBox';
-import type { TextBoxProps } from '../components/textBox';
+import type { TextBoxProps, TextBoxValidation } from '../components/textBox';
 import {
   TextBoxComponentPropsRenderer,
   TextBoxComponentRenderer,
 } from '../components/TextBoxRenderer';
 
 import { createInputComponent } from '../components/input';
-import type { InputProps } from '../components/input';
+import type { InputProps, InputValidation } from '../components/input';
 import {
   InputComponentPropsRenderer,
   InputComponentRenderer,
 } from '../components/InputRenderer';
 
 import { createRadioComponent } from '../components/radio';
-import type { RadioProps } from '../components/radio';
+import type { RadioProps, RadioValidation } from '../components/radio';
 import {
   RadioComponentPropsRenderer,
   RadioComponentRenderer,
 } from '../components/RadioRenderer';
 
 import { createCheckboxComponent } from '../components/checkbox';
-import type { CheckboxProps } from '../components/checkbox';
+import type { CheckboxProps, CheckboxValidation } from '../components/checkbox';
 import {
   CheckboxComponentPropsRenderer,
   CheckboxComponentRenderer,
 } from '../components/CheckboxRenderer';
 
 import { createDropdownComponent } from '../components/dropdown';
-import type { DropdownProps } from '../components/dropdown';
+import type { DropdownProps, DropdownValidation } from '../components/dropdown';
 import {
   DropdownComponentPropsRenderer,
   DropdownComponentRenderer,
@@ -84,12 +84,28 @@ export type ComponentPropsMap = {
   [ComponentIDs.Dropdown]: DropdownProps;
 };
 
+export type ComponentValidationMap = {
+  [ComponentIDs.TextBox]: TextBoxValidation;
+  [ComponentIDs.Input]: InputValidation;
+  [ComponentIDs.Radio]: RadioValidation;
+  [ComponentIDs.Checkbox]: CheckboxValidation;
+  [ComponentIDs.Dropdown]: DropdownValidation;
+};
+
 export type AnyFormComponent = {
-  [K in ComponentID]: FormComponent<K, ComponentPropsMap[K]>;
+  [K in ComponentID]: FormComponent<
+    K,
+    ComponentPropsMap[K],
+    ComponentValidationMap[K]
+  >;
 }[ComponentID];
 
 export type AnySerializedComponent = {
-  [K in ComponentID]: SerializedComponent<K, ComponentPropsMap[K]>;
+  [K in ComponentID]: SerializedComponent<
+    K,
+    ComponentPropsMap[K],
+    ComponentValidationMap[K]
+  >;
 }[ComponentID];
 
 /**
@@ -97,8 +113,8 @@ export type AnySerializedComponent = {
  *
  * Accepts `RendererProps<TProps>` and returns JSX.
  */
-export type ComponentRenderer<TProps = unknown> = ComponentType<
-  RendererProps<TProps>
+export type ComponentRenderer<TProps = unknown, TValidation = unknown> = ComponentType<
+  RendererProps<TProps, TValidation>
 >;
 
 /**
@@ -127,8 +143,8 @@ export interface ComponentRegistryEntry<T extends ComponentID> {
    * - `settings`: renders inside the editor panel
    */
   renderers: {
-    main: ComponentRenderer<ComponentPropsMap[T]> | null;
-    settings: ComponentRenderer<ComponentPropsMap[T]> | null;
+    main: ComponentRenderer<ComponentPropsMap[T], ComponentValidationMap[T]> | null;
+    settings: ComponentRenderer<ComponentPropsMap[T], ComponentValidationMap[T]> | null;
   };
 
   /**
@@ -140,8 +156,12 @@ export interface ComponentRegistryEntry<T extends ComponentID> {
    * Reconstructs a component from serialized JSON.
    */
   deserialize: (
-    json: SerializedComponent<T, ComponentPropsMap[T]>
-  ) => FormComponent<T, ComponentPropsMap[T]>;
+    json: SerializedComponent<
+      T,
+      ComponentPropsMap[T],
+      ComponentValidationMap[T]
+    >
+  ) => FormComponent<T, ComponentPropsMap[T], ComponentValidationMap[T]>;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -171,9 +191,19 @@ const registry: Registry = {
       settings: TextBoxComponentPropsRenderer,
     },
     create: (instanceId) =>
-      createTextBoxComponent(instanceId, { label: 'Text Box' }, { text: '' }),
+      createTextBoxComponent(
+        instanceId,
+        { label: 'Text Box' },
+        { text: '' },
+        { proxy: 0 }
+      ),
     deserialize: (json) =>
-      createTextBoxComponent(json.instanceId, json.metadata, json.props),
+      createTextBoxComponent(
+        json.instanceId,
+        json.metadata,
+        json.props,
+        json.validation
+      ),
   },
 
   [ComponentIDs.Input]: {
@@ -194,10 +224,19 @@ const registry: Registry = {
           questionText: '<p>Write the answer...</p>',
           placeholder: '',
           defaultValue: '',
+        },
+        {
+          required: false,
+          minLength: 0,
         }
       ),
     deserialize: (json) =>
-      createInputComponent(json.instanceId, json.metadata, json.props),
+      createInputComponent(
+        json.instanceId,
+        json.metadata,
+        json.props,
+        json.validation
+      ),
   },
 
   [ComponentIDs.Radio]: {
@@ -220,10 +259,18 @@ const registry: Registry = {
           options: [
             { id: crypto.randomUUID(), label: 'Option 1', value: 'option-1' },
           ],
+        },
+        {
+          required: false,
         }
       ),
     deserialize: (json) =>
-      createRadioComponent(json.instanceId, json.metadata, json.props),
+      createRadioComponent(
+        json.instanceId,
+        json.metadata,
+        json.props,
+        json.validation
+      ),
   },
 
   [ComponentIDs.Checkbox]: {
@@ -248,10 +295,18 @@ const registry: Registry = {
             { id: crypto.randomUUID(), label: 'Option 1', value: 'option-1' },
             { id: crypto.randomUUID(), label: 'Option 2', value: 'option-2' },
           ],
+        },
+        {
+          required: false,
         }
       ),
     deserialize: (json) =>
-      createCheckboxComponent(json.instanceId, json.metadata, json.props),
+      createCheckboxComponent(
+        json.instanceId,
+        json.metadata,
+        json.props,
+        json.validation
+      ),
   },
 
   [ComponentIDs.Dropdown]: {
@@ -275,10 +330,18 @@ const registry: Registry = {
             { id: crypto.randomUUID(), label: 'Option 1', value: 'option-1' },
             { id: crypto.randomUUID(), label: 'Option 2', value: 'option-2' },
           ],
+        },
+        {
+          requred: false,
         }
       ),
     deserialize: (json) =>
-      createDropdownComponent(json.instanceId, json.metadata, json.props),
+      createDropdownComponent(
+        json.instanceId,
+        json.metadata,
+        json.props,
+        json.validation
+      ),
   },
 };
 
@@ -290,13 +353,13 @@ const registry: Registry = {
 
 export function getComponentRenderer<T extends ComponentID>(
   id: T
-): ComponentRenderer<ComponentPropsMap[T]> | null {
+): ComponentRenderer<ComponentPropsMap[T], ComponentValidationMap[T]> | null {
   return registry[id]?.renderers.main || null;
 }
 
 export function getComponentPropsRenderer<T extends ComponentID>(
   id: T
-): ComponentRenderer<ComponentPropsMap[T]> | null {
+): ComponentRenderer<ComponentPropsMap[T], ComponentValidationMap[T]> | null {
   return registry[id]?.renderers.settings || null;
 }
 
@@ -308,13 +371,13 @@ export function serializeComponent<T extends ComponentID>(
     instanceId: component.instanceId,
     metadata: component.metadata,
     props: component.props as ComponentPropsMap[T],
+    validation: component.validation as ComponentValidationMap[T],
   };
 }
 
 export function deserializeComponent<T extends ComponentID>(
-  json: SerializedComponent<T>
-): FormComponent {
-  // @ts-expect-error - // we trust the JSON structure
+  json: SerializedComponent<T, ComponentPropsMap[T], ComponentValidationMap[T]>
+): FormComponent<T, ComponentPropsMap[T], ComponentValidationMap[T]> {
   return registry[json.id].deserialize(json);
 }
 

@@ -1,7 +1,7 @@
 // src/form/components/CheckboxRenderer.tsx
 import { useFormStore } from '../store/formStore';
 import type { RendererProps } from './base';
-import type { CheckboxProps, CheckboxOption } from './checkbox';
+import type { CheckboxProps, CheckboxOption, CheckboxValidation } from './checkbox';
 import { ComponentPropTitle } from './ComponentRender.Helper';
 import {
   RichTextEditor,
@@ -27,7 +27,7 @@ export const CheckboxComponentRenderer = ({
   // metadata,
   props,
   instanceId,
-}: RendererProps<CheckboxProps>) => {
+}: RendererProps<CheckboxProps, CheckboxValidation>) => {
   const isHorizontal = props.layout === 'horizontal';
 
   return (
@@ -96,7 +96,7 @@ export const CheckboxComponentRenderer = ({
 export const CheckboxComponentPropsRenderer = ({
   props,
   instanceId,
-}: RendererProps<CheckboxProps>) => {
+}: RendererProps<CheckboxProps, CheckboxValidation>) => {
   const updateComponentProps = useFormStore((s) => s.updateComponentProps);
 
   const handleAddOption = () => {

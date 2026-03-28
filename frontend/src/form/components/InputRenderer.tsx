@@ -1,6 +1,6 @@
 // src/form/components/InputRenderer.tsx
 import type { RendererProps } from './base';
-import type { InputProps } from './input';
+import type { InputProps, InputValidation } from './input';
 import { useFormStore } from '../store/formStore';
 import { Input as ShadInput } from '@/components/ui/input';
 import { Input as HeroInput } from '@heroui/react';
@@ -15,7 +15,7 @@ import {
 export const InputComponentRenderer = ({
   props,
   instanceId,
-}: RendererProps<InputProps>) => {
+}: RendererProps<InputProps, InputValidation>) => {
   return (
     <FormThemeProvider>
       <HeroCard className="w-full">
@@ -42,7 +42,7 @@ export const InputComponentRenderer = ({
 export const InputComponentPropsRenderer = ({
   props,
   instanceId,
-}: RendererProps<InputProps>) => {
+}: RendererProps<InputProps, InputValidation>) => {
   const updateComponentProps = useFormStore((s) => s.updateComponentProps);
 
   return (

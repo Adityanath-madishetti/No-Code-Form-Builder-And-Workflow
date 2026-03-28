@@ -27,15 +27,21 @@ export interface TextBoxProps {
   text: string;
 }
 
+export interface TextBoxValidation {
+  proxy: number
+}
+
 export const createTextBoxComponent = (
   instanceId: string,
   metadata: ComponentMetadata,
-  props: TextBoxProps
-): FormComponent<'Textbox', TextBoxProps> => ({
+  props: TextBoxProps,
+  validation: TextBoxValidation
+): FormComponent<'Textbox', TextBoxProps, TextBoxValidation> => ({
   id: ComponentIDs.TextBox,
   instanceId,
   metadata,
   children: [],
   props,
+  validation,
 });
 export type TextBoxComponent = ReturnType<typeof createTextBoxComponent>;

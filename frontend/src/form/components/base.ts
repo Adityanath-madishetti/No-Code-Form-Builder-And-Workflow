@@ -78,9 +78,10 @@ export interface ComponentMetadata {
  *
  * Separates rendering concerns from the underlying data model.
  */
-export interface RendererProps<P> {
+export interface RendererProps<P, V> {
   metadata: ComponentMetadata;
   props: P;
+  validation: V;
   instanceId: InstanceID;
 }
 
@@ -91,11 +92,13 @@ export interface RendererProps<P> {
 export interface FormComponent<
   T extends ComponentID = ComponentID,
   P = unknown,
+  V = unknown,
 > {
   id: T;
   instanceId: InstanceID;
   metadata: ComponentMetadata;
   props: P;
+  validation: V;
   children: InstanceID[];
 }
 
@@ -105,11 +108,13 @@ export interface FormComponent<
 export interface SerializedComponent<
   T extends ComponentID = ComponentID,
   P = unknown,
+  V = unknown,
 > {
   id: T;
   instanceId: InstanceID;
   metadata: ComponentMetadata;
   props: P;
+  validation: V;
 }
 
 export interface FormPage {
@@ -141,7 +146,7 @@ export interface FormMetadata {
 export interface Form {
   readonly id: FormID;
   name: string;
-  themeID: ThemeID | null;
+  theme: ThemeID | null;
   metadata: FormMetadata;
   pages: PageID[];
 }

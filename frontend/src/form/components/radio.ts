@@ -38,16 +38,22 @@ export interface RadioProps {
   layout?: 'vertical' | 'horizontal';
 }
 
+export interface RadioValidation {
+  required: boolean;
+}
+
 export const createRadioComponent = (
   instanceId: string,
   metadata: ComponentMetadata,
-  props: RadioProps
-): FormComponent<'Radio', RadioProps> => ({
-    id: ComponentIDs.Radio,
-    instanceId,
-    metadata,
-    children: [],
-    props
+  props: RadioProps,
+  validation: RadioValidation
+): FormComponent<'Radio', RadioProps, RadioValidation> => ({
+  id: ComponentIDs.Radio,
+  instanceId,
+  metadata,
+  children: [],
+  props,
+  validation,
 });
 
 export type RadioComponent = ReturnType<typeof createRadioComponent>;

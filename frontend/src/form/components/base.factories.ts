@@ -51,13 +51,13 @@ export function createForm(
   id: FormID,
   name: string,
   metadata?: Partial<FormMetadata>,
-  themeID: string | null = null
+  theme: string | null = null
 ) {
   const now = new Date().toISOString();
   return {
     id,
     name,
-    themeID,
+    theme,
     pages: [] as PageID[],
     metadata: {
       createdAt: now,
