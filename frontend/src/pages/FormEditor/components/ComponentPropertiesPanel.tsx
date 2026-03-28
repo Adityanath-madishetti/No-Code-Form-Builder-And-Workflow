@@ -21,10 +21,10 @@ export function ComponentPropertiesPanel() {
   }
 
   return (
-    <div className="space-y-4">
-      <h3 className="border-b pb-2 text-lg font-semibold">
+    <div className="">
+      {/* <h3 className="border-b pb-2 text-lg font-semibold">
         Editing: {selectedComponent.id}
-      </h3>
+      </h3> */}
 
       {PropsRenderer ? (
         // eslint-disable-next-line react-hooks/static-components

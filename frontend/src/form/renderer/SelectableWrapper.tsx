@@ -1,6 +1,6 @@
 // src/form/renderer/SelectableWrapper.tsx
 import { useFormStore } from '@/form/store/formStore';
-import { Card } from '@/components/ui/card';
+// import { Card } from '@/components/ui/card';
 import type { PageID } from '@/form/components/base';
 import { TEMP_PAGE_PLACEHOLDER_ID } from '@/form/utils/DndUtils';
 
@@ -15,7 +15,6 @@ import {
   DRAG_PAGE_ID,
   DRAG_PAGE_GROUP_ID,
 } from '@/form/utils/DndUtils';
-import { useShallow } from 'zustand/react/shallow';
 
 interface Props {
   component: AnyFormComponent;
@@ -57,15 +56,15 @@ export const SelectableComponent = ({
         selectComponent(component.instanceId);
         setActiveSidePanelTab('properties');
       }}
-      className={`form-component group relative cursor-pointer rounded-xl transition-all duration-200 ease-in-out ${isDragging ? 'opacity-50' : 'opacity-100'} `}
+      className={`form-component group relative cursor-pointer rounded-xl ${isDragging ? 'opacity-50' : 'opacity-100'} `}
     >
       <div
-        className={`pointer-events-none h-full w-full transition-all duration-200 ${isSelected ? '[&>div]:pr-5' : ''}`}
+        className={`pointer-events-none h-full w-full transition-all duration-200 ${isSelected ? '' : ''}`}
       >
         {children}
       </div>
 
-      <div className="absolute top-[1px] -right-[6px] bottom-[1px] z-10 flex w-12 flex-col items-center justify-start rounded-r-[calc(var(--radius)-1px)]">
+      <div className="absolute top-[1px] -right-12 bottom-[1px] z-10 flex w-12 flex-col items-center justify-start">
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -74,7 +73,7 @@ export const SelectableComponent = ({
           className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground/60 transition-all hover:text-destructive"
           aria-label="Remove component"
         >
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="h-5 w-5" />
         </button>
       </div>
     </div>
@@ -112,12 +111,8 @@ export const SelectablePage = ({
     },
   });
 
-  const pageTitle = useFormStore(
-    useShallow((s) => s.pages[pageId]?.title ?? '')
-  );
-
   return (
-    <Card
+    <div
       ref={ref}
       onClick={(e) => {
         e.stopPropagation();
@@ -127,20 +122,14 @@ export const SelectablePage = ({
       className={`group relative cursor-pointer !overflow-visible transition-all duration-200 ease-in-out ${isDragging ? 'opacity-50' : 'opacity-100'} `}
     >
       <div
-        className="absolute -top-3 left-1/2 z-20 -translate-x-1/2 cursor-grab rounded-full border bg-background p-1 opacity-0 transition-opacity group-hover:opacity-100 hover:opacity-100 [&:has(.form-component:group-hover)]:opacity-0 [&:has(.form-component:hover)]:opacity-0"
+        className={`absolute -top-3 left-1/2 z-20 -translate-x-1/2 cursor-grab rounded-full border bg-background p-1 opacity-0 transition-opacity group-hover:opacity-100 hover:opacity-100 [&:has(.form-component:group-hover)]:opacity-0 [&:has(.form-component:hover)]:opacity-0`}
         data-dnd-kit-drag-handle
       >
         <GripHorizontal className="h-4 w-4 text-gray-400" />
       </div>
 
       {pageId !== TEMP_PAGE_PLACEHOLDER_ID && (
-        <div className="pointer-events-none absolute top-4 left-6 z-20">
-          <span className="text-sm text-muted-foreground/60">{pageTitle}</span>
-        </div>
-      )}
-
-      {pageId !== TEMP_PAGE_PLACEHOLDER_ID && (
-        <div className="absolute top-3.5 right-5 z-20">
+        <div className="absolute top-2 -right-10 z-20">
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -149,12 +138,12 @@ export const SelectablePage = ({
             className="rounded-md p-1.5 text-muted-foreground/60 transition-colors hover:text-destructive"
             aria-label="Remove page"
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="h-5 w-5" />
           </button>
         </div>
       )}
 
       {children}
-    </Card>
+    </div>
   );
 };

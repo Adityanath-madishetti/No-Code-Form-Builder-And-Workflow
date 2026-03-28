@@ -4,10 +4,11 @@ loadFromJSON({
   form: {
     id: 'form-1',
     name: 'My Form',
-    themeID: null,
+    theme: null,
     pages: ['page-1', 'page-2', 'page-3'],
     metadata: {
-      description: 'A sample form loaded from JSON.',
+      description:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
       createdAt: '2024-01-01T00:00:00.000Z',
       updatedAt: '2024-01-01T00:00:00.000Z',
       version: 1,
@@ -45,6 +46,90 @@ loadFromJSON({
         defaultValue: '',
       },
       // children: [],
+    },
+  ],
+});
+
+loadFromJSON({
+  form: {
+    id: 'form-1',
+    name: 'My Form',
+    theme: null,
+    pages: ['page-1', 'page-2', 'page-3'],
+    metadata: {
+      description:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T00:00:00.000Z',
+      version: 1,
+    },
+  },
+  pages: [
+    {
+      id: 'page-1',
+      title: 'some shit?',
+      children: ['text-box-instance-1', 'input-instance-1'],
+      isTerminal: false,
+    },
+    {
+      id: 'page-2',
+      children: ['instance-b0ce6b23-0ebc-412b-b706-2f35b2632040'],
+      isTerminal: false,
+    },
+    {
+      id: 'page-3',
+      children: [],
+      isTerminal: true,
+    },
+  ],
+  components: [
+    {
+      id: 'Textbox',
+      instanceId: 'text-box-instance-1',
+      metadata: {
+        label: 'Static Text',
+        description: 'A static text box.',
+      },
+      props: {
+        text: '<h1>Lorem Ipsum</h1><p></p><p><strong><em>Lorem ipsum</em></strong> dolor sit amet, consectetur adipiscing elit, <em>sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam</em>, quis nostrud <u>exercitation ullamco laboris</u> nisi ut aliquip ex ea commodo consequat. </p><p>Duis <mark>aute irure dolor</mark> in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint <s>occaecat cupidatat non proident</s>, sunt in culpa qui officia deserunt mollit anim id est laborum.</p><p></p><p>And as always, x<sup>2</sup> is not the answer lol.</p><blockquote><p>Those who die, die.</p><p>~ Kǒng Fūzǐ, probably</p></blockquote><p></p>',
+      },
+    },
+    {
+      id: 'Input',
+      instanceId: 'input-instance-1',
+      metadata: {
+        label: 'Input Fieldfdsf',
+        description: 'A simple text input field for user input.',
+      },
+      props: {
+        questionText: '<p>Write the answer...</p>',
+        placeholder: 'Thou, O Queen, art the fairest in the land.',
+        defaultValue: '',
+      },
+    },
+    {
+      id: 'Checkbox',
+      instanceId: 'instance-b0ce6b23-0ebc-412b-b706-2f35b2632040',
+      metadata: {
+        label: 'Multiple Choice Question',
+      },
+      props: {
+        questionText: '<p>Select all that apply...</p>',
+        layout: 'vertical',
+        defaultValues: [],
+        options: [
+          {
+            id: '1962533f-5c1b-4ec9-acd4-5f2c23c2d66f',
+            label: 'Option 1',
+            value: 'option-1',
+          },
+          {
+            id: '8e0dd932-304f-41a8-a90a-11ac01fd3d6f',
+            label: 'Option 2',
+            value: 'option-2',
+          },
+        ],
+      },
     },
   ],
 });
@@ -98,7 +183,7 @@ export default function FormEditor() {
           className="flex min-h-0 flex-col"
         >
           <div
-            className="relative w-full flex-1 overflow-y-auto pt-10 pb-20"
+            className="relative h-auto w-full flex-1 overflow-y-auto"
             onClick={() => {
               selectComponent(null);
               selectPage(null);

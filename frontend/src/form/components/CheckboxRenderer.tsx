@@ -3,24 +3,35 @@ import { useFormStore } from '../store/formStore';
 import type { RendererProps } from './base';
 import type { CheckboxProps, CheckboxOption } from './checkbox';
 import { ComponentPropTitle } from './ComponentRender.Helper';
-import { RichTextEditor, sharedProseClasses } from '@/components/RichTextEditor';
+import {
+  RichTextEditor,
+  sharedProseClasses,
+} from '@/components/RichTextEditor';
 
-import { Card, CardContent } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Card as HeroCard } from '@heroui/react';
+import { Checkbox as ShadCheckbox } from '@/components/ui/checkbox';
+// import { Checkbox as HeroCheckbox } from '@heroui/react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Plus, Trash2 } from 'lucide-react';
 
 export const CheckboxComponentRenderer = ({
   // metadata,
   props,
+  instanceId,
 }: RendererProps<CheckboxProps>) => {
   const isHorizontal = props.layout === 'horizontal';
 
   return (
-    <Card className="w-full">
+    <HeroCard className="w-full">
       {/* <CardHeader>
         <CardTitle>{metadata.label}</CardTitle>
         {metadata.description && (
@@ -28,7 +39,7 @@ export const CheckboxComponentRenderer = ({
         )}
       </CardHeader> */}
 
-      <CardContent className="space-y-6">
+      <HeroCard.Content className="space-y-6">
         {props.questionText && (
           <div
             className={sharedProseClasses}
@@ -43,19 +54,42 @@ export const CheckboxComponentRenderer = ({
         >
           {(props.options || []).map((option) => (
             <div key={option.id} className="flex items-center space-x-2">
-              <Checkbox
+              <ShadCheckbox
                 id={`cb-${option.id}`}
+                name={instanceId}
                 value={option.value}
-                defaultChecked={(props.defaultValues || []).includes(option.value)}
+                defaultChecked={(props.defaultValues || []).includes(
+                  option.value
+                )}
               />
-              <Label htmlFor={`cb-${option.id}`} className="cursor-pointer font-normal">
+              <Label
+                htmlFor={`cb-${option.id}`}
+                className="cursor-pointer font-normal"
+              >
                 {option.label}
               </Label>
             </div>
           ))}
+
+          {/* {(props.options || []).map((option) => (
+            <HeroCheckbox
+              key={option.id}
+              value={option.value}
+              // classNames={{
+              //   label: "text-foreground font-normal",
+              // }}
+            >
+              <HeroCheckbox.Control>
+                <HeroCheckbox.Indicator />
+              </HeroCheckbox.Control>
+              <HeroCheckbox.Content>
+                <Label>{option.label}</Label>
+              </HeroCheckbox.Content>
+            </HeroCheckbox>
+          ))} */}
         </div>
-      </CardContent>
-    </Card>
+      </HeroCard.Content>
+    </HeroCard>
   );
 };
 
@@ -76,7 +110,11 @@ export const CheckboxComponentPropsRenderer = ({
     });
   };
 
-  const handleUpdateOption = (id: string, key: keyof CheckboxOption, val: string) => {
+  const handleUpdateOption = (
+    id: string,
+    key: keyof CheckboxOption,
+    val: string
+  ) => {
     const updated = (props.options || []).map((opt) =>
       opt.id === id ? { ...opt, [key]: val } : opt
     );
@@ -85,10 +123,17 @@ export const CheckboxComponentPropsRenderer = ({
 
   const handleRemoveOption = (id: string) => {
     const updated = (props.options || []).filter((opt) => opt.id !== id);
-    const removedValue = (props.options || []).find((opt) => opt.id === id)?.value;
-    const newDefaults = (props.defaultValues || []).filter((v) => v !== removedValue);
-    
-    updateComponentProps(instanceId, { options: updated, defaultValues: newDefaults });
+    const removedValue = (props.options || []).find(
+      (opt) => opt.id === id
+    )?.value;
+    const newDefaults = (props.defaultValues || []).filter(
+      (v) => v !== removedValue
+    );
+
+    updateComponentProps(instanceId, {
+      options: updated,
+      defaultValues: newDefaults,
+    });
   };
 
   const toggleDefaultValue = (value: string) => {
@@ -105,20 +150,30 @@ export const CheckboxComponentPropsRenderer = ({
         <ComponentPropTitle title="Question Text" />
         <RichTextEditor
           value={props.questionText || ''}
-          onChange={(html) => updateComponentProps(instanceId, { questionText: html })}
+          onChange={(html) =>
+            updateComponentProps(instanceId, { questionText: html })
+          }
         />
       </div>
 
       <div className="space-y-3">
-        {/* <div className="flex items-center justify-between"> */}
+        <div className="flex items-center justify-between">
           <ComponentPropTitle title="Checkboxes" />
-        {/* </div> */}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleAddOption}
+          >
+            <Plus className="mr-1 h-4 w-4" /> Add Option
+          </Button>
+        </div>
 
         <div className="space-y-2">
           {(props.options || []).map((option) => (
             <div key={option.id} className="flex items-center gap-2">
               {/* Checkbox to toggle if this option is selected by default */}
-              <Checkbox
+              <ShadCheckbox
                 checked={(props.defaultValues || []).includes(option.value)}
                 onCheckedChange={() => toggleDefaultValue(option.value)}
                 title="Set as default selected"
@@ -126,17 +181,23 @@ export const CheckboxComponentPropsRenderer = ({
               <Input
                 placeholder="Label"
                 value={option.label}
-                onChange={(e) => handleUpdateOption(option.id, 'label', e.target.value)}
+                onChange={(e) =>
+                  handleUpdateOption(option.id, 'label', e.target.value)
+                }
                 className="flex-1"
               />
               <Input
                 placeholder="Value"
                 value={option.value}
-                onChange={(e) => handleUpdateOption(option.id, 'value', e.target.value)}
+                onChange={(e) =>
+                  handleUpdateOption(option.id, 'value', e.target.value)
+                }
                 className="flex-1"
               />
               <Button
-                type="button" variant="ghost" size="icon"
+                type="button"
+                variant="ghost"
+                size="icon"
                 className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                 onClick={() => handleRemoveOption(option.id)}
               >
@@ -150,18 +211,19 @@ export const CheckboxComponentPropsRenderer = ({
             </div>
           )}
         </div>
-        <Button type="button" variant="outline" size="sm" onClick={handleAddOption}>
-            <Plus className="mr-1 h-4 w-4" /> Add Option
-          </Button>
       </div>
 
       <div className="space-y-2">
         <ComponentPropTitle title="Layout" />
-        <Select 
-          value={props.layout || 'vertical'} 
-          onValueChange={(val: 'vertical' | 'horizontal') => updateComponentProps(instanceId, { layout: val })}
+        <Select
+          value={props.layout || 'vertical'}
+          onValueChange={(val: 'vertical' | 'horizontal') =>
+            updateComponentProps(instanceId, { layout: val })
+          }
         >
-          <SelectTrigger><SelectValue placeholder="Select layout..." /></SelectTrigger>
+          <SelectTrigger>
+            <SelectValue placeholder="Select layout..." />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="vertical">Vertical</SelectItem>
             <SelectItem value="horizontal">Horizontal</SelectItem>

@@ -190,7 +190,11 @@ const registry: Registry = {
       createInputComponent(
         instanceId,
         { label: 'Input Field' },
-        { placeholder: '', defaultValue: '' }
+        {
+          questionText: '<p>Write the answer...</p>',
+          placeholder: '',
+          defaultValue: '',
+        }
       ),
     deserialize: (json) =>
       createInputComponent(json.instanceId, json.metadata, json.props),

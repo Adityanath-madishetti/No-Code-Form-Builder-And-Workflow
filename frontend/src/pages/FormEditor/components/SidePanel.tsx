@@ -4,6 +4,10 @@ import { useFormStore } from '@/form/store/formStore';
 
 import { ComponentPropertiesPanel } from './ComponentPropertiesPanel';
 import { ComponentCatalogPanel } from './ComponentCatalogPanel';
+import { FormOverviewPanel } from './FormOverviewPanel';
+
+import { printFormJSON } from '@/form/store/formStore';
+import { Button } from '@/components/ui/button';
 
 export function SidePanel() {
   const activeTab = useFormStore((s) => s.activeSidePanelTab);
@@ -36,16 +40,23 @@ export function SidePanel() {
         </TabsTrigger>
       </TabsList>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl bg-muted">
-        <TabsContent value="overview" className="mt-0 p-4">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl">
+        <TabsContent value="overview" className='pt-1'>
           {/* Overview content */}
+          <Button
+            variant="outline"
+            onClick={() => printFormJSON()}
+          >
+            Click to log json
+          </Button>
+          <FormOverviewPanel />
         </TabsContent>
 
-        <TabsContent value="properties" className="mt-0 p-4">
+        <TabsContent value="properties" className='pt-1'>
           <ComponentPropertiesPanel />
         </TabsContent>
 
-        <TabsContent value="components" className="mt-0 p-4">
+        <TabsContent value="components" className='pt-1'>
           <ComponentCatalogPanel />
         </TabsContent>
       </div>

@@ -24,6 +24,7 @@ import { ComponentIDs } from './base';
 import type { FormComponent } from '@/form/components/base';
 
 export interface InputProps {
+  questionText?: string;
   placeholder?: string;
   defaultValue?: string;
   // Add more props as needed (e.g., min/max length, validation rules)

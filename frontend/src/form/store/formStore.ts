@@ -152,6 +152,7 @@ interface FormSchemaActions {
     components: AnyFormComponent[]
   ) => void;
   updateFormName: (name: string) => void;
+  updateFormMetadata: (metadata: Partial<FormMetadata>) => void;
 
   addPage: (insertIndex?: number, customId?: PageID) => PageID;
   removePage: (pageId: PageID) => void;
@@ -174,11 +175,6 @@ interface FormSchemaActions {
     instanceId: InstanceID,
     metadata: Partial<ComponentMetadata>
   ) => void;
-
-  // insertComponentGap: (pageId: PageID, index?: number) => void;
-  // removeComponentGap: () => void;
-  // insertPageGap: (index: number) => void;
-  // removePageGap: () => void;
 }
 
 interface FormUIActions {
@@ -230,6 +226,7 @@ function syncTerminalFlags(state: {
  */
 export const formSelectors = {
   form: (s: FormStore) => s.form,
+  formMetadata: (s: FormStore) => s.form?.metadata,
   pages: (s: FormStore) => s.pages,
   components: (s: FormStore) => s.components,
   activePage: (s: FormStore) =>
@@ -257,7 +254,7 @@ export const useFormStore = create<FormStore>()(
     activePageId: null,
     activeDragData: null,
 
-    activeSidePanelTab: 'properties',
+    activeSidePanelTab: 'overview',
     catalogRefreshKey: 0,
 
     initForm: (id, name, metadata) =>
@@ -289,6 +286,13 @@ export const useFormStore = create<FormStore>()(
       set((state) => {
         if (!state.form) return;
         state.form.name = name;
+        state.form.metadata.updatedAt = new Date().toISOString();
+      }),
+
+    updateFormMetadata: (metadata: Partial<FormMetadata>) =>
+      set((state) => {
+        if (!state.form) return;
+        Object.assign(state.form.metadata, metadata);
         state.form.metadata.updatedAt = new Date().toISOString();
       }),
 
@@ -390,61 +394,6 @@ export const useFormStore = create<FormStore>()(
         if (!state.components[instanceId]) return;
         Object.assign(state.components[instanceId].metadata, metadata);
       }),
-
-    // insertComponentGap: (pageId, index) =>
-    //   set((state) => {
-    //     // 1. Remove gap from wherever it currently is
-    //     for (const page of Object.values(state.pages)) {
-    //       page.children = page.children.filter(
-    //         (id) => id !== TEMP_COMPONENT_PLACEHOLDER_ID
-    //       );
-    //     }
-    //     // 2. Insert it at the new location
-    //     const children = state.pages[pageId]?.children;
-    //     if (!children) return;
-
-    //     if (index === undefined || index === -1)
-    //       children.push(TEMP_COMPONENT_PLACEHOLDER_ID);
-    //     else children.splice(index, 0, TEMP_COMPONENT_PLACEHOLDER_ID);
-    //   }),
-
-    // removeComponentGap: () =>
-    //   set((state) => {
-    //     for (const page of Object.values(state.pages)) {
-    //       page.children = page.children.filter(
-    //         (id) => id !== TEMP_COMPONENT_PLACEHOLDER_ID
-    //       );
-    //     }
-    //     // Also clean up from components dict just in case the old code left it there
-    //     delete state.components[TEMP_COMPONENT_PLACEHOLDER_ID];
-    //   }),
-
-    // insertPageGap: (index) =>
-    //   set((state) => {
-    //     if (!state.form) return;
-    //     state.form.pages = state.form.pages.filter(
-    //       (id) => id !== TEMP_PAGE_PLACEHOLDER_ID
-    //     );
-
-    //     // Ensure the dummy page object exists so the renderer doesn't crash
-    //     if (!state.pages[TEMP_PAGE_PLACEHOLDER_ID]) {
-    //       state.pages[TEMP_PAGE_PLACEHOLDER_ID] = createFormPage(
-    //         TEMP_PAGE_PLACEHOLDER_ID
-    //       );
-    //     }
-
-    //     if (index === -1) state.form.pages.push(TEMP_PAGE_PLACEHOLDER_ID);
-    //     else state.form.pages.splice(index, 0, TEMP_PAGE_PLACEHOLDER_ID);
-    //   }),
-
-    // removePageGap: () =>
-    //   set((state) => {
-    //     if (!state.form) return;
-    //     state.form.pages = state.form.pages.filter(
-    //       (id) => id !== TEMP_PAGE_PLACEHOLDER_ID
-    //     );
-    //     delete state.pages[TEMP_PAGE_PLACEHOLDER_ID];
-    //   }),
 
     //==================
     selectComponent: (instanceId) =>
