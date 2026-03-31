@@ -7,7 +7,6 @@ import { Checkbox as ShadCheckbox } from '@/components/ui/checkbox';
 import { Input as HeroInput } from '@heroui/react';
 import { Card as HeroCard } from '@heroui/react';
 import { ComponentPropTitle } from './ComponentRender.Helper';
-import { FormThemeProvider } from '@/form/theme/FormThemeProvider';
 import {
   RichTextEditor,
   sharedProseClasses,
@@ -16,31 +15,29 @@ import {
 export const InputComponentRenderer = ({
   instanceId,
   props,
-  validation
+  validation,
 }: RendererProps<InputProps, InputValidation>) => {
   return (
-    <FormThemeProvider>
-      <HeroCard className="w-full">
-        <HeroCard.Content className="space-y-2">
-          {props.questionText && (
-            <div
-              className={sharedProseClasses}
-              dangerouslySetInnerHTML={{ __html: props.questionText }}
-            />
-          )}
-          <HeroInput
-            type="text"
-            name={instanceId}
-            placeholder={props.placeholder}
-            defaultValue={props.defaultValue}
-            className="w-full px-4"
-            required={validation.required}
-            minLength={validation.minLength}
-            maxLength={validation.maxLength}
+    <HeroCard className="w-full">
+      <HeroCard.Content className="space-y-2">
+        {props.questionText && (
+          <div
+            className={sharedProseClasses}
+            dangerouslySetInnerHTML={{ __html: props.questionText }}
           />
-        </HeroCard.Content>
-      </HeroCard>
-    </FormThemeProvider>
+        )}
+        <HeroInput
+          type="text"
+          name={instanceId}
+          placeholder={props.placeholder}
+          defaultValue={props.defaultValue}
+          className="w-full px-4"
+          required={validation.required}
+          minLength={validation.minLength}
+          maxLength={validation.maxLength}
+        />
+      </HeroCard.Content>
+    </HeroCard>
   );
 };
 

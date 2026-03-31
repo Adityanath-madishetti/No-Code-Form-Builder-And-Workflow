@@ -72,7 +72,7 @@ export const RenderPage = ({
   const rendered = (
     <div ref={mode === 'edit' ? contentDropRef : undefined}>
       <div
-        className={`relative flex flex-col gap-3 bg-transparent ${mode === 'edit' ? '-mx-12 rounded-xl border px-12 pt-12 pb-4' : ''}`}
+        className={`relative flex flex-col gap-3 bg-transparent ${mode === 'edit' ? '-mx-12 rounded-[20px] border-2 border-border px-12 pt-12 pb-4' : ''}`}
       >
         {pageId !== TEMP_PAGE_PLACEHOLDER_ID &&
           (pageTitle || pageDescription) && (

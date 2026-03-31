@@ -153,7 +153,7 @@ export const sharedProseClasses = [
   '[&_h1]:text-3xl [&_h1]:mt-6 [&_h1]:mb-2',
   '[&_h2]:text-2xl [&_h2]:mt-4 [&_h2]:mb-2',
   '[&_blockquote]:border-l-4 [&_blockquote]:border-primary/50 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:my-4 [&_blockquote]:text-muted-foreground',
-  '[&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4 [&_a]:cursor-pointer',
+  '[&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4 [&_a]:cursor-text [&_a]:pointer-events-none',
   '[&_mark]:bg-yellow-200 [&_mark]:text-black [&_mark]:px-1 [&_mark]:rounded-sm',
 ].join(' ');
 
@@ -528,6 +528,16 @@ export const RichTextEditor = ({
       onChange(cleanHTML);
     },
     editorProps: {
+      // Prevent link clicks from navigating away (but still allow cursor placement)
+      handleClick: (view, pos, event) => {
+        const target = event.target as HTMLElement;
+        if (target.closest('a')) {
+          event.preventDefault();
+          // We return false so ProseMirror still moves the text cursor into the link for editing
+          return false; 
+        }
+        return false;
+      },
       attributes: {
         class: `
         w-full rounded-md border border-input bg-card 

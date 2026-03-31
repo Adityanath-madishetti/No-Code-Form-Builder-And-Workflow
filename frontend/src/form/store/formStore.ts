@@ -42,6 +42,7 @@ import type {
   FormPage,
   InstanceID,
   PageID,
+  FormTheme,
 } from '../components/base';
 import type {
   AnyFormComponent,
@@ -58,6 +59,7 @@ import type {
   DRAG_COMPONENT_TYPE,
   DRAG_PAGE_TYPE,
 } from '../utils/DndUtils';
+import { DEFAULT_FORM_THEME } from '../theme/formTheme';
 // import {
 //   TEMP_COMPONENT_PLACEHOLDER_ID,
 //   TEMP_PAGE_PLACEHOLDER_ID,
@@ -154,6 +156,8 @@ interface FormSchemaActions {
   updateFormName: (name: string) => void;
   updateFormMetadata: (metadata: Partial<FormMetadata>) => void;
 
+  updateFormTheme: (theme: Partial<FormTheme>) => void;
+
   addPage: (insertIndex?: number, customId?: PageID) => PageID;
   removePage: (pageId: PageID) => void;
   reorderPages: (fromIndex: number, toIndex: number) => void;
@@ -234,6 +238,7 @@ function syncTerminalFlags(state: {
 export const formSelectors = {
   form: (s: FormStore) => s.form,
   formMetadata: (s: FormStore) => s.form?.metadata,
+  formTheme: (s: FormStore) => s.form?.theme ?? null, // <-- Add this selector
   pages: (s: FormStore) => s.pages,
   components: (s: FormStore) => s.components,
   activePage: (s: FormStore) =>
@@ -300,6 +305,22 @@ export const useFormStore = create<FormStore>()(
       set((state) => {
         if (!state.form) return;
         Object.assign(state.form.metadata, metadata);
+        state.form.metadata.updatedAt = new Date().toISOString();
+      }),
+
+    updateFormTheme: (themeUpdates: Partial<FormTheme>) =>
+      set((state) => {
+        if (!state.form) return;
+
+        // If theme is currently null, initialize it with a default baseline
+        if (!state.form.theme) {
+          state.form.theme = DEFAULT_FORM_THEME;
+        }
+
+        // Apply the partial updates over the existing theme
+        Object.assign(state.form.theme, themeUpdates);
+
+        // Optionally bump the updatedAt timestamp
         state.form.metadata.updatedAt = new Date().toISOString();
       }),
 

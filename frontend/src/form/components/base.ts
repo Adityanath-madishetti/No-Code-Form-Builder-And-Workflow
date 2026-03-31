@@ -139,6 +139,19 @@ export interface FormMetadata {
   version?: number;
 }
 
+import type { formFontName, formThemeColor, formThemeMode } from '../theme/formTheme';
+
+export interface Font {
+  family: formFontName;
+}
+
+export interface FormTheme {
+  color: formThemeColor;
+  mode: formThemeMode;
+  headingFont: Font;
+  bodyFont: Font;
+}
+
 /**
  * The root container for a form.
  * Manages form-level settings, metadata, and the ordered list of pages.
@@ -146,7 +159,7 @@ export interface FormMetadata {
 export interface Form {
   readonly id: FormID;
   name: string;
-  theme: ThemeID | null;
+  theme: FormTheme | null;
   metadata: FormMetadata;
   pages: PageID[];
 }

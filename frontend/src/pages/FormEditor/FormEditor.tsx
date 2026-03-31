@@ -4,13 +4,22 @@ loadFromJSON({
   form: {
     id: 'form-1',
     name: 'My Form',
-    theme: null,
+    theme: {
+      color: 'default',
+      mode: 'light',
+      headingFont: {
+        family: 'Inter',
+      },
+      bodyFont: {
+        family: 'Inter',
+      },
+    },
     pages: ['page-1', 'page-2', 'page-3'],
     metadata: {
       description:
         '<p><strong><em>Octopussy and The Living Daylights</em></strong> (sometimes published as <strong><em>Octopussy</em></strong>) is the fourteenth and final <a target="_blank" rel="noopener noreferrer" href="https://en.wikipedia.org/wiki/James_Bond">James Bond</a> book written by <a target="_blank" rel="noopener noreferrer" href="https://en.wikipedia.org/wiki/Ian_Fleming">Ian Fleming</a>. The book is a collection of short stories published in the United Kingdom by <a target="_blank" rel="noopener noreferrer" href="https://en.wikipedia.org/wiki/Jonathan_Cape">Jonathan Cape</a> on 23 June 1966, after Fleming\'s death in August 1964.</p>',
       createdAt: '2024-01-01T00:00:00.000Z',
-      updatedAt: '2026-03-28T17:31:09.245Z',
+      updatedAt: '2026-03-31T18:36:26.096Z',
       version: 1,
     },
   },
@@ -84,6 +93,11 @@ loadFromJSON({
             id: '7830f79e-f7ab-4bc4-8566-2d9794346b0c',
             label: 'Option 1',
             value: 'option-1',
+          },
+          {
+            id: '7830f79e-f7ab-4bc4-8566-2d9794346b0d',
+            label: 'Option 2',
+            value: 'option-2',
           },
         ],
       },
@@ -184,7 +198,7 @@ export default function FormEditor() {
 
         <ResizablePanel
           defaultSize="25%"
-          minSize="20%"
+          minSize="1%"
           maxSize="50%"
           className="flex min-h-0 flex-col"
         >

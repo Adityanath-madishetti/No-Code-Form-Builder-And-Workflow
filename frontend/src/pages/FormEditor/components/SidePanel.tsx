@@ -40,7 +40,7 @@ export function SidePanel() {
         </TabsTrigger>
       </TabsList>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden overflow-y-auto rounded-xl no-scrollbar">
         <TabsContent value="overview" className='pt-1'>
           {/* Overview content */}
           <Button

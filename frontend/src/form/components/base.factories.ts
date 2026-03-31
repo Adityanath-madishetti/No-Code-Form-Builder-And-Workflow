@@ -40,8 +40,11 @@ import type {
   FormID,
   FormMetadata,
   FormPage,
+  FormTheme,
   PageID,
 } from './base';
+
+import { DEFAULT_FORM_THEME } from '../theme/formTheme';
 
 export function createFormPage(id: PageID): FormPage {
   return { id, children: [], isTerminal: true };
@@ -51,7 +54,7 @@ export function createForm(
   id: FormID,
   name: string,
   metadata?: Partial<FormMetadata>,
-  theme: string | null = null
+  theme: FormTheme = DEFAULT_FORM_THEME,
 ) {
   const now = new Date().toISOString();
   return {

@@ -1,6 +1,5 @@
 // src/form/renderer/SelectableWrapper.tsx
 import { useFormStore } from '@/form/store/formStore';
-// import { Card } from '@/components/ui/card';
 import type { PageID } from '@/form/components/base';
 import { TEMP_PAGE_PLACEHOLDER_ID } from '@/form/utils/DndUtils';
 
@@ -32,9 +31,10 @@ export const SelectableComponent = ({
   const selectedId = useFormStore((s) => s.activeComponentId);
   const setActiveComponent = useFormStore((s) => s.setActiveComponent);
   const removeComponent = useFormStore((s) => s.removeComponent);
-  const isSelected = selectedId === component.instanceId;
   const setActiveSidePanelTab = useFormStore((s) => s.setActiveSidePanelTab);
   const setActivePage = useFormStore((s) => s.setActivePage);
+
+  const isSelected = selectedId === component.instanceId;
 
   const { ref, isDragging } = useSortable({
     id: component.instanceId,
@@ -54,15 +54,55 @@ export const SelectableComponent = ({
       ref={ref}
       onClick={(e) => {
         e.stopPropagation();
+
+        console.groupCollapsed(
+          `%c[Component Select] ${component.instanceId}`,
+          'color: #fff787; font-weight: bold;'
+        );
+
+        console.log('Event:', {
+          type: e.type,
+          target: e.target,
+          currentTarget: e.currentTarget,
+        });
+
+        console.log('Component:', {
+          instanceId: component.instanceId,
+          pageId,
+          index,
+        });
+
+        console.log('Before State:', {
+          activeComponentId: selectedId,
+        });
+
         setActiveComponent(component.instanceId);
         setActivePage(null);
         setActiveSidePanelTab('properties');
+
+        setTimeout(() => {
+          const state = useFormStore.getState();
+
+          console.log('After State:', {
+            activeComponentId: state.activeComponentId,
+            activePageId: state.activePageId,
+            activeSidePanelTab: state.activeSidePanelTab,
+          });
+
+          if (state.activeComponentId !== component.instanceId) {
+            console.warn('[ FAILURE ] Selection FAILED: state mismatch');
+          } else {
+            console.log('[ SUCCESS ] Selection SUCCESS');
+          }
+
+          console.groupEnd();
+        }, 0);
       }}
-      className={`form-component group relative cursor-pointer rounded-xl ${isDragging ? 'opacity-50' : 'opacity-100'} `}
+      className={`form-component group relative cursor-pointer rounded-xl ${
+        isDragging ? 'opacity-50' : 'opacity-100'
+      } ${isSelected ? '' : ''} `}
     >
-      <div
-        className={`pointer-events-none h-full w-full transition-all duration-200 ${isSelected ? '' : ''}`}
-      >
+      <div className="pointer-events-none h-full w-full transition-all duration-200">
         {children}
       </div>
 
@@ -93,14 +133,10 @@ export const SelectablePage = ({
   index,
   children,
 }: SelectablePageProps) => {
-  // const activePageId = useFormStore((s) => s.activePageId);
-  // const activeComponentId = useFormStore((s) => s.activeComponentId);
   const setActivePage = useFormStore((s) => s.setActivePage);
   const setActiveComponent = useFormStore((s) => s.setActiveComponent);
   const removePage = useFormStore((s) => s.removePage);
   const setActiveSidePanelTab = useFormStore((s) => s.setActiveSidePanelTab);
-
-  // const isSelected = activePageId === pageId && !activeComponentId;
 
   const { ref, isDragging } = useSortable({
     id: pageId,
@@ -119,21 +155,65 @@ export const SelectablePage = ({
       ref={ref}
       onClick={(e) => {
         e.stopPropagation();
+
+        console.groupCollapsed(
+          `%c[Page Select] ${pageId}`,
+          'color: #fff787; font-weight: bold;'
+        );
+
+        console.log('Event:', {
+          type: e.type,
+          target: e.target,
+          currentTarget: e.currentTarget,
+        });
+
+        console.log('Page:', {
+          pageId,
+          index,
+        });
+
+        const beforeState = useFormStore.getState();
+
+        console.log('Before State:', {
+          activePageId: beforeState.activePageId,
+          activeComponentId: beforeState.activeComponentId,
+        });
+
         setActivePage(pageId);
         setActiveComponent(null);
         setActiveSidePanelTab('properties');
+
+        setTimeout(() => {
+          const state = useFormStore.getState();
+
+          console.log('After State:', {
+            activePageId: state.activePageId,
+            activeComponentId: state.activeComponentId,
+            activeSidePanelTab: state.activeSidePanelTab,
+          });
+
+          if (state.activePageId !== pageId) {
+            console.warn('❌ Page selection FAILED');
+          } else {
+            console.log('✅ Page selection SUCCESS');
+          }
+
+          console.groupEnd();
+        }, 0);
       }}
-      className={`group relative cursor-pointer !overflow-visible transition-all duration-200 ease-in-out ${isDragging ? 'opacity-50' : 'opacity-100'} `}
+      className={`group relative cursor-pointer !overflow-visible transition-all duration-200 ease-in-out ${
+        isDragging ? 'opacity-50' : 'opacity-100'
+      }`}
     >
       <div
-        className={`absolute -top-3 left-1/2 z-20 -translate-x-1/2 cursor-grab rounded-full border bg-background p-1 opacity-0 transition-opacity group-hover:opacity-100 hover:opacity-100 [&:has(.form-component:group-hover)]:opacity-0 [&:has(.form-component:hover)]:opacity-0`}
+        className="absolute -top-3 left-1/2 z-20 -translate-x-1/2 cursor-grab rounded-full border bg-background p-1 opacity-0 transition-opacity group-hover:opacity-100 hover:opacity-100 [&:has(.form-component:group-hover)]:opacity-0 [&:has(.form-component:hover)]:opacity-0"
         data-dnd-kit-drag-handle
       >
         <GripHorizontal className="h-4 w-4 text-gray-400" />
       </div>
 
       {pageId !== TEMP_PAGE_PLACEHOLDER_ID && (
-        <div className="absolute top-2 -right-10 z-20">
+        <div className="absolute top-2 -right-9.5 z-20">
           <button
             onClick={(e) => {
               e.stopPropagation();

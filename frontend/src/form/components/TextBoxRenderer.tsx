@@ -1,6 +1,6 @@
 // src/form/renderer/TextBoxComponentRenderer.tsx
 import type { RendererProps } from './base';
-import type { TextBoxProps } from './textBox';
+import type { TextBoxProps, TextBoxValidation } from './textBox';
 // import { Card, CardContent } from '@/components/ui/card';
 import { useFormStore } from '../store/formStore';
 import { Card as HeroCard } from '@heroui/react';
@@ -11,29 +11,26 @@ import {
   RichTextEditor,
   sharedProseClasses,
 } from '@/components/RichTextEditor';
-import { FormThemeProvider } from '@/form/theme/FormThemeProvider';
 
 export const TextBoxComponentRenderer = ({
   props,
-}: RendererProps<TextBoxProps>) => {
+}: RendererProps<TextBoxProps, TextBoxValidation>) => {
   return (
-    <FormThemeProvider>
-      <HeroCard className="w-full">
-        <HeroCard.Content className="">
-          <div
-            className={sharedProseClasses}
-            dangerouslySetInnerHTML={{ __html: props.text }}
-          />
-        </HeroCard.Content>
-      </HeroCard>
-    </FormThemeProvider>
+    <HeroCard className="w-full">
+      <HeroCard.Content className="">
+        <div
+          className={sharedProseClasses}
+          dangerouslySetInnerHTML={{ __html: props.text }}
+        />
+      </HeroCard.Content>
+    </HeroCard>
   );
 };
 
 export const TextBoxComponentPropsRenderer = ({
   props,
   instanceId,
-}: RendererProps<TextBoxProps>) => {
+}: RendererProps<TextBoxProps, TextBoxValidation>) => {
   const updateComponentProps = useFormStore((s) => s.updateComponentProps);
 
   return (

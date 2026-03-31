@@ -59,7 +59,7 @@ export const RadioComponentRenderer = ({
           {(props.options || []).map((option) => (
             <HeroRadio key={option.id} value={option.value}>
               <HeroRadio.Control>
-                <HeroRadio.Indicator />
+                <HeroRadio.Indicator className="border-2 border-border rounded-xl" />
               </HeroRadio.Control>
               <HeroRadio.Content>
                 <HeroLabel className="cursor-pointer">{option.label}</HeroLabel>
