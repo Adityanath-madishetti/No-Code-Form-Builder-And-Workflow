@@ -32,7 +32,7 @@ import { LogicPlayground } from './components/LogicPlayground';
 import { useLogicStore } from '@/form/logic/logicStore';
 import { Bug, PanelLeftClose, PanelRightClose, Save, ArrowLeft, Loader2, Eye, Globe, Zap, LayoutGrid } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
-import { loadFormVersion, saveFormVersion, createNewVersion, loadWorkflow, saveWorkflow } from '@/lib/formApi';
+import { loadFormVersion, saveFormVersion, createNewVersion, loadWorkflow } from '@/lib/formApi';
 import { useWorkflowStore } from '@/form/workflow/workflowStore';
 
 const PANEL_TITLES: Record<SidebarPanelId, string> = {
@@ -220,7 +220,9 @@ export default function FormEditor() {
         store.form,
         store.pages,
         store.components,
-        user?.uid || 'unknown'
+        user?.uid || 'unknown',
+        logicState.rules,
+        logicState.formulas
       );
     } catch (err) {
       console.error('Save failed:', err);

@@ -9,6 +9,8 @@ import type {
   FormSettings,
   SubmissionPolicy,
 } from '@/form/components/base';
+import type { LogicRule, FormulaRule } from '@/form/logic/logicTypes';
+import type { Workflow } from '@/form/workflow/workflowTypes';
 import type { AnyFormComponent } from '@/form/registry/componentRegistry';
 import { deserializeComponent } from '@/form/registry/componentRegistry';
 import type { ComponentID } from '@/form/components/base';
