@@ -4,7 +4,6 @@ import ProtectedLayout from "./components/layout/ProtectedLayout";
 import Login from "./pages/Login/page";
 import Home from "./pages/Home";
 import FormEditor from "./pages/FormEditor/FormEditor";
-import FormTest from "./pages/FormTest";
 
 const router = createBrowserRouter([
   {
@@ -20,15 +19,9 @@ const router = createBrowserRouter([
         element: <Home />,
       },
       {
-        index: false,
-        path: "form-builder",
+        path: "form-builder/:formId",
         element: <FormEditor />,
       },
-      {
-        index: false,
-        path: "form-test",
-        element: <FormTest />,
-      }
     ],
   },
 ]);

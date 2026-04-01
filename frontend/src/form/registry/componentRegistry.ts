@@ -546,12 +546,22 @@ export interface CatalogEntry {
   create: (instanceId: string) => FormComponent;
 }
 
-export const catalogRegistry: CatalogEntry[] = Object.values(registry).map(
-  (def) => ({
+// ── IDs of components currently enabled in the catalog ──
+const ENABLED_CATALOG_IDS: Set<string> = new Set([
+  ComponentIDs.Header,
+  ComponentIDs.Input,
+  ComponentIDs.Radio,
+  ComponentIDs.Checkbox,
+  ComponentIDs.Dropdown,
+]);
+
+export const catalogRegistry: CatalogEntry[] = Object.values(registry)
+  .filter((def) => ENABLED_CATALOG_IDS.has(def.id))
+  .map((def) => ({
     id: def.id,
     label: def.catalog.label,
     description: def.catalog.description,
     category: def.catalog.category,
     create: def.create,
-  })
-);
+  }));
+

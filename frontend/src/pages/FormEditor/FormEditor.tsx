@@ -1,5 +1,6 @@
 // src/pages/FormEditor/FormEditor.tsx
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useFormStore } from '@/form/store/formStore';
 import { DragDropProvider, DragOverlay } from '@dnd-kit/react';
 import { componentRenderers } from '@/form/registry/componentRegistry';
@@ -26,8 +27,9 @@ import { PageNavigator } from './components/PageNavigator';
 import { DebugPanel } from './components/DebugPanel';
 import { ComponentPropertiesPanel } from './components/ComponentPropertiesPanel';
 import { RightFloatingPanel } from './components/RightFloatingPanel';
-import { Bug, PanelRightOpen, PanelLeftClose, PanelRightClose } from 'lucide-react';
+import { Bug, PanelRightOpen, PanelLeftClose, PanelRightClose, Save, ArrowLeft, Loader2 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
+import { loadFormVersion, saveFormVersion } from '@/lib/formApi';
 
 const PANEL_TITLES: Record<SidebarPanelId, string> = {
   form: 'Form Properties',
@@ -55,7 +57,6 @@ function PanelContent({ panelId }: { panelId: SidebarPanelId }) {
 
 export default function FormEditor() {
   const store = useFormStore();
-  const initForm = store.initForm;
   const addPage = store.addPage;
   const setActiveComponent = store.setActiveComponent;
 
@@ -75,13 +76,42 @@ export default function FormEditor() {
   const [leftWidth, setLeftWidth] = useState<number | string>('20%');
   const [rightWidth, setRightWidth] = useState(340);
   const [debugWidth, setDebugWidth] = useState(400);
+  const [saving, setSaving] = useState(false);
+  const [formLoaded, setFormLoaded] = useState(false);
+  const versionRef = useRef(1);
 
-  // Auto-init form
+  const { formId } = useParams<{ formId: string }>();
+  const navigate = useNavigate();
+
+  // Load form from backend
   useEffect(() => {
-    if (!store.form) {
-      initForm('form-' + crypto.randomUUID(), 'Untitled Form');
+    if (!formId) return;
+    let cancelled = false;
+
+    loadFormVersion(formId)
+      .then(({ form, pages, components, version }) => {
+        if (cancelled) return;
+        store.loadForm(form, pages, components);
+        versionRef.current = version;
+        setFormLoaded(true);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        // Form just created — init locally
+        store.initForm(formId, 'Untitled Form');
+        versionRef.current = 1;
+        setFormLoaded(true);
+      });
+
+    return () => { cancelled = true; };
+  }, [formId]);
+
+  // Ensure at least one page exists after load
+  useEffect(() => {
+    if (formLoaded && store.form && store.form.pages.length === 0) {
+      addPage();
     }
-  }, []);
+  }, [formLoaded]);
 
   // Clamp page index
   useEffect(() => {
@@ -111,6 +141,24 @@ export default function FormEditor() {
   };
 
   const hasSelection = !!activeComponentId || !!activePageId;
+
+  const handleSave = useCallback(async () => {
+    if (!formId || !store.form) return;
+    setSaving(true);
+    try {
+      await saveFormVersion(
+        formId,
+        versionRef.current,
+        store.form,
+        store.pages,
+        store.components
+      );
+    } catch (err) {
+      console.error('Save failed:', err);
+    } finally {
+      setSaving(false);
+    }
+  }, [formId, store.form, store.pages, store.components]);
 
   return (
     <DragDropProvider
@@ -251,7 +299,31 @@ export default function FormEditor() {
         </div>
 
         {/* ── Bottom-right floating buttons ── */}
-        <div className="fixed bottom-4 right-4 z-50 flex gap-1.5">
+        <div className="fixed bottom-4 right-4 z-[60] flex gap-1.5">
+          <button
+            onClick={() => navigate('/')}
+            title="Back to Dashboard"
+            className="flex h-8 w-8 items-center justify-center border border-border bg-background text-muted-foreground shadow-sm hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            title="Save form"
+            className={`flex h-8 items-center gap-1.5 border px-2.5 shadow-sm transition-colors ${
+              saving
+                ? 'border-primary/40 bg-primary/10 text-primary cursor-wait'
+                : 'border-primary/60 bg-primary text-primary-foreground hover:bg-primary/90'
+            }`}
+          >
+            {saving ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Save className="h-3.5 w-3.5" />
+            )}
+            <span className="text-xs font-medium">{saving ? 'Saving...' : 'Save'}</span>
+          </button>
           <button
             onClick={() => setShowProperties((p) => !p)}
             title="Toggle properties panel"

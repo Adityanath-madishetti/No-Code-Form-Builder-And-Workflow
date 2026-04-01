@@ -56,6 +56,7 @@ const ComponentSchema = new Schema(
                 "payment",
 
                 // ── Layout ──
+                "heading",
                 "section-divider",
                 "page-break",
 
