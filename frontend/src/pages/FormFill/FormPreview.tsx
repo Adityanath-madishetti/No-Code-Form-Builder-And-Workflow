@@ -53,7 +53,7 @@ export default function FormPreview() {
     if (!formId) return;
     // Preview loads the latest version (could be draft) via the owner endpoint
     api
-      .get<{ version: VersionData }>(`/forms/${formId}/versions/latest`)
+      .get<{ version: VersionData }>(`/api/forms/${formId}/versions/latest`)
       .then((res) => setVersion(res.version))
       .catch((err) => setError(err.message || 'Form not found'))
       .finally(() => setLoading(false));

@@ -529,7 +529,7 @@ export const RichTextEditor = ({
     },
     editorProps: {
       // Prevent link clicks from navigating away (but still allow cursor placement)
-      handleClick: (view, pos, event) => {
+      handleClick: (_view, _pos, event) => {
         const target = event.target as HTMLElement;
         if (target.closest('a')) {
           event.preventDefault();

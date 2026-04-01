@@ -362,7 +362,7 @@ export default function FormEditor() {
               try {
                 await handleSave();
                 const { api: apiClient } = await import('@/lib/api');
-                await apiClient.post(`/forms/${formId}/publish`);
+                await apiClient.post(`/api/forms/${formId}/publish`);
                 alert('Form published! Share this link:\n' + window.location.origin + '/forms/' + formId);
               } catch (err) {
                 console.error('Publish failed:', err);

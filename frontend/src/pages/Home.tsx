@@ -35,11 +35,11 @@ export default function Home() {
   useEffect(() => {
     Promise.all([
       api
-        .get<{ forms: FormHeader[] }>('/forms')
+        .get<{ forms: FormHeader[] }>('/api/forms')
         .then((res) => setForms(res.forms))
         .catch(() => {}),
       api
-        .get<{ submissions: MySubmission[] }>('/submissions/mine')
+        .get<{ submissions: MySubmission[] }>('/api/submissions/mine')
         .then((res) => setSubmissions(res.submissions))
         .catch(() => {}),
     ]).finally(() => setLoading(false));
@@ -52,7 +52,7 @@ export default function Home() {
   const handleCreate = async () => {
     setCreating(true);
     try {
-      const res = await api.post<{ form: FormHeader }>('/forms', {
+      const res = await api.post<{ form: FormHeader }>('/api/forms', {
         title: 'Untitled Form',
       });
       navigate(`/form-builder/${res.form.formId}`);

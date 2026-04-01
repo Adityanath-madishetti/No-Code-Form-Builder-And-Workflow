@@ -96,7 +96,7 @@ export async function loadFormVersion(formId: string): Promise<{
   version: number;
 }> {
   const res = await api.get<{ version: BackendFormVersion }>(
-    `/forms/${formId}/versions/latest`
+    `/api/forms/${formId}/versions/latest`
   );
   const v = res.version;
 
@@ -196,7 +196,7 @@ export async function saveFormVersion(
   });
 
   // Update the version
-  await api.put(`/forms/${formId}/versions/${versionNum}`, {
+  await api.put(`/api/forms/${formId}/versions/${versionNum}`, {
     meta: {
       createdBy,
       name: storeForm.name,
@@ -207,14 +207,14 @@ export async function saveFormVersion(
   });
 
   // Also sync the form header title so the dashboard stays in sync
-  await api.patch(`/forms/${formId}`, { title: storeForm.name });
+  await api.patch(`/api/forms/${formId}`, { title: storeForm.name });
 }
 
 // ── Create New Version: clones latest → increments version ──
 
 export async function createNewVersion(formId: string): Promise<number> {
   const res = await api.post<{ version: { version: number } }>(
-    `/forms/${formId}/versions`
+    `/api/forms/${formId}/versions`
   );
   return res.version.version;
 }

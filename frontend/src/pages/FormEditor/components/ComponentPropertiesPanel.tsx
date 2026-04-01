@@ -66,9 +66,9 @@ export function ComponentPropertiesPanel() {
           <SettingsRenderer
             instanceId={component.instanceId}
             metadata={component.metadata}
-            // @ts-expect-error type union
+            // @ts-ignore type union
             props={component.props}
-            // @ts-expect-error type union
+            // @ts-ignore type union
             validation={component.validation}
           />
         </div>

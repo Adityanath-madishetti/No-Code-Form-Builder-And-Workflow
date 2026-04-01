@@ -61,7 +61,7 @@ export default function FormFill() {
   useEffect(() => {
     if (!formId) return;
     api
-      .get<PublicFormData>(`/forms/${formId}/public`)
+      .get<PublicFormData>(`/api/forms/${formId}/public`)
       .then(setData)
       .catch((err) => setError(err.message || 'Form not found'))
       .finally(() => setLoading(false));
@@ -94,7 +94,7 @@ export default function FormFill() {
           })),
       }));
 
-      await api.post(`/forms/${formId}/submissions`, { pages });
+      await api.post(`/api/forms/${formId}/submissions`, { pages });
       navigate(`/forms/${formId}/success`);
     } catch (err) {
       setError((err as Error).message || 'Submission failed');
