@@ -1,12 +1,8 @@
 // src/form/renderer/TextBoxComponentRenderer.tsx
 import type { RendererProps } from './base';
 import type { TextBoxProps, TextBoxValidation } from './textBox';
-// import { Card, CardContent } from '@/components/ui/card';
 import { useFormStore } from '../store/formStore';
-import { Card as HeroCard } from '@heroui/react';
-
 import { ComponentPropTitle } from './ComponentRender.Helper';
-
 import {
   RichTextEditor,
   sharedProseClasses,
@@ -19,14 +15,14 @@ export const TextBoxComponentRenderer = ({
 }: RendererProps<TextBoxProps, TextBoxValidation>) => {
   return (
     <FormThemeProvider>
-      <HeroCard className="w-full">
-        <HeroCard.Content className="text-foreground">
+      <div className="w-full rounded-md border border-border bg-card shadow-sm">
+        <div className="p-6 text-foreground">
           <div
             className={sharedProseClasses}
             dangerouslySetInnerHTML={{ __html: props.text }}
           />
-        </HeroCard.Content>
-      </HeroCard>
+        </div>
+      </div>
     </FormThemeProvider>
   );
 };

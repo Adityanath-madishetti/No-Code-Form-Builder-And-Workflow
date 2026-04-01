@@ -12,9 +12,7 @@ import {
   sharedProseClasses,
 } from '@/components/RichTextEditor';
 
-import { Card as HeroCard } from '@heroui/react';
 import { Checkbox as ShadCheckbox } from '@/components/ui/checkbox';
-import { Checkbox as HeroCheckbox } from '@heroui/react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -30,7 +28,6 @@ import { Plus, Trash2 } from 'lucide-react';
 import { FormThemeProvider } from '@/form/theme/FormThemeProvider';
 
 export const CheckboxComponentRenderer = ({
-  // metadata,
   props,
   instanceId,
 }: RendererProps<CheckboxProps, CheckboxValidation>) => {
@@ -38,15 +35,8 @@ export const CheckboxComponentRenderer = ({
 
   return (
     <FormThemeProvider>
-      <HeroCard className="w-full">
-        {/* <CardHeader>
-        <CardTitle>{metadata.label}</CardTitle>
-        {metadata.description && (
-          <CardDescription>{metadata.description}</CardDescription>
-        )}
-      </CardHeader> */}
-
-        <HeroCard.Content className="text-foreground">
+      <div className="w-full rounded-md border border-border bg-card shadow-sm pointer-events-auto">
+        <div className="p-6 text-foreground space-y-4">
           {props.questionText && (
             <div
               className={sharedProseClasses}
@@ -59,45 +49,25 @@ export const CheckboxComponentRenderer = ({
               isHorizontal ? 'flex-row flex-wrap gap-6' : 'flex-col space-y-3'
             }`}
           >
-            {/* {(props.options || []).map((option) => (
+            {(props.options || []).map((option) => (
               <div key={option.id} className="flex items-center space-x-2">
                 <ShadCheckbox
-                  id={`cb-${option.id}`}
+                  id={`cb-${instanceId}-${option.id}`}
                   name={instanceId}
                   value={option.value}
-                  defaultChecked={(props.defaultValues || []).includes(
-                    option.value
-                  )}
+                  defaultChecked={(props.defaultValues || []).includes(option.value)}
                 />
                 <Label
-                  htmlFor={`cb-${option.id}`}
-                  className="cursor-pointer font-normal"
+                  htmlFor={`cb-${instanceId}-${option.id}`}
+                  className="font-normal cursor-pointer text-sm"
                 >
                   {option.label}
                 </Label>
               </div>
-            ))} */}
-
-            {(props.options || []).map((option) => (
-              <HeroCheckbox
-                key={option.id}
-                value={option.value}
-                name={instanceId}
-                // classNames={{
-                //   label: "text-foreground font-normal",
-                // }}
-              >
-                <HeroCheckbox.Control className="border-2 border-border">
-                  <HeroCheckbox.Indicator />
-                </HeroCheckbox.Control>
-                <HeroCheckbox.Content>
-                  <Label>{option.label}</Label>
-                </HeroCheckbox.Content>
-              </HeroCheckbox>
             ))}
           </div>
-        </HeroCard.Content>
-      </HeroCard>
+        </div>
+      </div>
     </FormThemeProvider>
   );
 };
@@ -181,7 +151,6 @@ export const CheckboxComponentPropsRenderer = ({
         <div className="space-y-2">
           {(props.options || []).map((option) => (
             <div key={option.id} className="flex items-center gap-2">
-              {/* Checkbox to toggle if this option is selected by default */}
               <ShadCheckbox
                 checked={(props.defaultValues || []).includes(option.value)}
                 onCheckedChange={() => toggleDefaultValue(option.value)}

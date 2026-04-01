@@ -4,8 +4,6 @@ import type { InputProps, InputValidation } from './input';
 import { useFormStore } from '../store/formStore';
 import { Input as ShadInput } from '@/components/ui/input';
 import { Checkbox as ShadCheckbox } from '@/components/ui/checkbox';
-import { Input as HeroInput } from '@heroui/react';
-import { Card as HeroCard } from '@heroui/react';
 import { ComponentPropTitle } from './ComponentRender.Helper';
 import {
   RichTextEditor,
@@ -21,26 +19,26 @@ export const InputComponentRenderer = ({
 }: RendererProps<InputProps, InputValidation>) => {
   return (
     <FormThemeProvider>
-      <HeroCard className="w-full">
-        <HeroCard.Content className="space-y-2 text-foreground">
+      <div className="w-full rounded-md border border-border bg-card shadow-sm relative pointer-events-auto">
+        <div className="p-6 space-y-4 text-foreground">
           {props.questionText && (
             <div
               className={sharedProseClasses}
               dangerouslySetInnerHTML={{ __html: props.questionText }}
             />
           )}
-          <HeroInput
+          <ShadInput
             type="text"
             name={instanceId}
             placeholder={props.placeholder}
             defaultValue={props.defaultValue}
-            className="w-full px-4 border-3 border-border"
+            className="w-full"
             required={validation.required}
             minLength={validation.minLength}
             maxLength={validation.maxLength}
           />
-        </HeroCard.Content>
-      </HeroCard>
+        </div>
+      </div>
     </FormThemeProvider>
   );
 };

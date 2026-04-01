@@ -10,8 +10,7 @@ import {
   DRAG_CATALOG_PAGE_ID,
 } from '@/form/utils/DndUtils';
 
-import { Allotment } from 'allotment';
-import 'allotment/dist/style.css';
+import { Rnd } from 'react-rnd';
 
 import { EditorSidebar, type SidebarPanelId } from './components/EditorSidebar';
 import { ComponentCatalogPanel } from './components/ComponentCatalogPanel';
@@ -26,12 +25,13 @@ import { FormCanvas } from './components/FormCanvas';
 import { PageNavigator } from './components/PageNavigator';
 import { DebugPanel } from './components/DebugPanel';
 import { ComponentPropertiesPanel } from './components/ComponentPropertiesPanel';
+import { RightFloatingPanel } from './components/RightFloatingPanel';
 import { Bug, PanelRightOpen, PanelLeftClose, PanelRightClose } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 const PANEL_TITLES: Record<SidebarPanelId, string> = {
-  components: 'Components',
   form: 'Form Properties',
+  components: 'Components',
   templates: 'Templates',
   theme: 'Theme',
   logic: 'Logic',
@@ -42,8 +42,8 @@ const PANEL_TITLES: Record<SidebarPanelId, string> = {
 
 function PanelContent({ panelId }: { panelId: SidebarPanelId }) {
   switch (panelId) {
-    case 'components': return <ComponentCatalogPanel />;
     case 'form': return <FormPropertiesPanel />;
+    case 'components': return <ComponentCatalogPanel />;
     case 'templates': return <TemplateCatalogPanel />;
     case 'theme': return <ThemePanel />;
     case 'logic': return <LogicPanel />;
@@ -71,6 +71,10 @@ export default function FormEditor() {
   const [activePanel, setActivePanel] = useState<SidebarPanelId | null>('components');
   const [showDebug, setShowDebug] = useState(false);
   const [showProperties, setShowProperties] = useState(true);
+
+  const [leftWidth, setLeftWidth] = useState<number | string>('20%');
+  const [rightWidth, setRightWidth] = useState(340);
+  const [debugWidth, setDebugWidth] = useState(400);
 
   // Auto-init form
   useEffect(() => {
@@ -114,21 +118,26 @@ export default function FormEditor() {
       onDragOver={onDragOver}
       onDragEnd={onDragEnd}
     >
-      <div className="flex h-screen w-full overflow-hidden bg-neutral-50 dark:bg-neutral-950">
+      <div className="flex h-screen w-full overflow-hidden bg-neutral-50 dark:bg-neutral-950 isolate">
         {/* ── Left icon rail ── */}
         <EditorSidebar activePanel={activePanel} onPanelChange={setActivePanel} />
 
-        {/* ── Main area with allotment resizable panels ── */}
-        <Allotment proportionalLayout={false}>
+        {/* ── Main area with react-rnd custom resizable panels ── */}
+        <div className="flex flex-1 overflow-hidden h-full relative">
+
           {/* ── Left fly-out panel ── */}
           {activePanel && (
-            <Allotment.Pane
-              preferredSize={300}
-              minSize={240}
-              maxSize={500}
-              snap
+            <Rnd
+              disableDragging
+              enableResizing={{ right: true }}
+              size={{ width: leftWidth, height: '100%' }}
+              minWidth="20%"
+              maxWidth="35%"
+              onResize={(_e, _dir, ref) => setLeftWidth(ref.style.width)}
+              style={{ position: 'relative', transform: 'none' }}
+              className="border-r border-border bg-background shrink-0 z-10"
             >
-              <div className="flex h-full flex-col border-r border-border bg-background">
+              <div className="flex h-full flex-col">
                 <div className="flex h-10 shrink-0 items-center border-b border-border px-3 gap-2">
                   <span className="flex-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                     {PANEL_TITLES[activePanel]}
@@ -145,51 +154,51 @@ export default function FormEditor() {
                   <PanelContent panelId={activePanel} />
                 </div>
               </div>
-            </Allotment.Pane>
+            </Rnd>
           )}
 
-          {/* ── Canvas (centre, fills remaining) ── */}
-          <Allotment.Pane minSize={400}>
-            <div
-              className="relative flex h-full min-h-0 flex-col overflow-y-auto bg-neutral-100 dark:bg-neutral-900"
-              onClick={handleCanvasClick}
-            >
-              <FormCanvas currentPageIndex={currentPageIndex} />
+          {/* ── Canvas (centre, fills remaining flex space) ── */}
+          <div
+            className="flex-1 min-w-[400px] relative flex h-full flex-col overflow-y-auto bg-neutral-100 dark:bg-neutral-900"
+            onClick={handleCanvasClick}
+          >
+            <FormCanvas currentPageIndex={currentPageIndex} />
 
-              {totalPages > 0 && (
-                <PageNavigator
-                  currentPage={currentPageIndex + 1}
-                  totalPages={totalPages}
-                  onNavigate={handleNavigate}
-                  onAddPage={handleAddPage}
-                />
-              )}
+            {totalPages > 0 && (
+              <PageNavigator
+                currentPage={currentPageIndex + 1}
+                totalPages={totalPages}
+                onNavigate={handleNavigate}
+                onAddPage={handleAddPage}
+              />
+            )}
 
-              {totalPages === 0 && (
-                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                  <button
-                    className="pointer-events-auto border border-dashed border-border bg-background px-5 py-2.5 text-sm text-muted-foreground shadow-sm transition-colors hover:border-primary/50 hover:text-primary"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleAddPage();
-                    }}
-                  >
-                    + Add your first page
-                  </button>
-                </div>
-              )}
-            </div>
-          </Allotment.Pane>
+            {totalPages === 0 && (
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <button
+                  className="pointer-events-auto border border-dashed border-border bg-background px-5 py-2.5 text-sm text-muted-foreground shadow-sm transition-colors hover:border-primary/50 hover:text-primary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAddPage();
+                  }}
+                >
+                  + Add your first page
+                </button>
+              </div>
+            )}
+          </div>
 
-          {/* ── Right properties panel ── */}
+          {/* ── Right properties panel (custom resizable, anchored right) ── */}
           {showProperties && hasSelection && (
-            <Allotment.Pane
-              preferredSize={280}
-              minSize={220}
-              maxSize={450}
-              snap
+            <RightFloatingPanel
+              width={rightWidth as number}
+              onWidthChange={(w) => setRightWidth(w)}
+              minWidth={280}
+              maxWidth={500}
+              zIndex={40}
+              rightOffset={showDebug ? debugWidth : 0}
             >
-              <div className="flex h-full flex-col border-l border-border bg-background">
+              <div className="flex h-full w-full flex-col">
                 <div className="flex h-10 shrink-0 items-center border-b border-border px-3">
                   <span className="flex-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                     Properties
@@ -202,22 +211,24 @@ export default function FormEditor() {
                     <PanelRightClose className="h-3.5 w-3.5" />
                   </button>
                 </div>
-                <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+                <div className="flex min-h-0 flex-1 w-full flex-col overflow-y-auto">
                   <ComponentPropertiesPanel />
                 </div>
               </div>
-            </Allotment.Pane>
+            </RightFloatingPanel>
           )}
 
-          {/* ── Debug panel ── */}
+          {/* ── Debug panel (custom resizable, anchored right) ── */}
           {showDebug && (
-            <Allotment.Pane
-              preferredSize={350}
-              minSize={280}
-              maxSize={600}
-              snap
+            <RightFloatingPanel
+              width={debugWidth as number}
+              onWidthChange={(w) => setDebugWidth(w)}
+              minWidth={300}
+              maxWidth={600}
+              zIndex={50}
+              rightOffset={0}
             >
-              <div className="flex h-full flex-col border-l border-border bg-background">
+              <div className="flex h-full w-full flex-col">
                 <div className="flex h-10 shrink-0 items-center border-b border-border px-3">
                   <Bug className="mr-1.5 h-3 w-3 text-amber-500" />
                   <span className="flex-1 text-xs font-semibold uppercase tracking-widest text-amber-500">
@@ -231,31 +242,32 @@ export default function FormEditor() {
                     <PanelRightClose className="h-3.5 w-3.5" />
                   </button>
                 </div>
-                <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-3">
+                <div className="flex min-h-0 flex-1 w-full flex-col overflow-hidden p-3">
                   <DebugPanel />
                 </div>
               </div>
-            </Allotment.Pane>
+            </RightFloatingPanel>
           )}
-        </Allotment>
+        </div>
 
         {/* ── Bottom-right floating buttons ── */}
         <div className="fixed bottom-4 right-4 z-50 flex gap-1.5">
-          {!showProperties && (
-            <button
-              onClick={() => setShowProperties(true)}
-              title="Show properties panel"
-              className="flex h-8 w-8 items-center justify-center border border-border bg-background text-muted-foreground shadow-sm hover:text-foreground"
-            >
-              <PanelRightOpen className="h-3.5 w-3.5" />
-            </button>
-          )}
+          <button
+            onClick={() => setShowProperties((p) => !p)}
+            title="Toggle properties panel"
+            className={`flex h-8 w-8 items-center justify-center border shadow-sm transition-colors ${showProperties
+              ? 'border-primary/60 bg-primary/10 text-primary'
+              : 'border-border bg-background text-muted-foreground hover:text-primary'
+              }`}
+          >
+            <PanelRightOpen className="h-3.5 w-3.5" />
+          </button>
           <button
             onClick={() => setShowDebug((p) => !p)}
             title="Toggle debug panel"
             className={`flex h-8 w-8 items-center justify-center border shadow-sm transition-colors ${showDebug
-                ? 'border-amber-400/60 bg-amber-400/10 text-amber-500'
-                : 'border-border bg-background text-muted-foreground hover:text-amber-500'
+              ? 'border-amber-400/60 bg-amber-400/10 text-amber-500'
+              : 'border-border bg-background text-muted-foreground hover:text-amber-500'
               }`}
           >
             <Bug className="h-3.5 w-3.5" />
@@ -271,7 +283,7 @@ export default function FormEditor() {
             const Renderer = componentRenderers[entry.id as keyof typeof componentRenderers];
             const previewData = entry.create('__preview__');
             return Renderer ? (
-              <div className="w-[400px] opacity-80">
+              <div className="w-[400px] opacity-80 pointer-events-none">
                 <Renderer
                   instanceId={previewData.instanceId}
                   metadata={previewData.metadata}
@@ -290,7 +302,7 @@ export default function FormEditor() {
             if (!existing) return null;
             const Renderer = componentRenderers[existing.id as keyof typeof componentRenderers];
             return Renderer ? (
-              <div className="w-[400px] opacity-80">
+              <div className="w-[400px] opacity-80 pointer-events-none">
                 <Renderer
                   instanceId={existing.instanceId}
                   metadata={existing.metadata}

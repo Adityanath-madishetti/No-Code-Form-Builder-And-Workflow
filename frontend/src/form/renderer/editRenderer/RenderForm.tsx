@@ -1,6 +1,6 @@
 // src/form/renderer/editRenderer/RenderForm.tsx
 import { useFormStore, formSelectors } from '@/form/store/formStore';
-import { Card as HeroCard } from '@heroui/react';
+
 import { RenderPage } from './RenderPage';
 import { ComponentPropTitle } from '@/form/components/ComponentRender.Helper';
 import {
@@ -31,32 +31,30 @@ export const RenderForm = () => {
   const form = useFormStore(formSelectors.form);
   if (!form) {
     return (
-      <HeroCard>
-        <HeroCard.Content>
-          <h3 className="text-lg font-semibold">No form loaded.</h3>
-        </HeroCard.Content>
-      </HeroCard>
+      <div className="w-full border border-border bg-card shadow-sm p-4 text-center">
+        <h3 className="text-lg font-semibold text-muted-foreground">No form loaded.</h3>
+      </div>
     );
   }
 
   return (
     <form className="mx-auto flex h-auto min-h-screen w-full flex-col gap-6 bg-background p-6 text-foreground">
       {/* 1. The Isolated White Header Region */}
-      <HeroCard className="bg-content1 mx-auto w-full max-w-3xl border-none shadow-sm">
-        <HeroCard.Header className="flex flex-col items-start gap-3">
-          <h2 className="text-6xl tracking-tight text-foreground">
+      <div className="bg-background mx-auto w-full max-w-3xl border border-border shadow-sm">
+        <div className="flex flex-col items-start gap-3 p-6 border-b border-border">
+          <h2 className="text-4xl font-semibold tracking-tight text-foreground">
             {form.name}
           </h2>
-        </HeroCard.Header>
-        <HeroCard.Content>
-          {form.metadata.description && (
+        </div>
+        {form.metadata.description && (
+          <div className="p-6">
             <div
               className={sharedProseClasses}
               dangerouslySetInnerHTML={{ __html: form.metadata.description }}
             />
-          )}
-        </HeroCard.Content>
-      </HeroCard>
+          </div>
+        )}
+      </div>
 
       {/* 2. The Rendered Pages */}
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">

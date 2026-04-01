@@ -26,15 +26,15 @@ const NAV_ITEMS: {
   label: string;
   icon: React.ElementType;
 }[] = [
-  { id: 'components', label: 'Components',       icon: LayoutGrid },
-  { id: 'form',       label: 'Form Properties',   icon: Settings2  },
-  { id: 'templates',  label: 'Templates',          icon: Layers     },
-  { id: 'theme',      label: 'Theme',              icon: Palette    },
-  { id: 'logic',      label: 'Logic',              icon: Zap        },
-  { id: 'workflow',   label: 'Workflow',            icon: GitBranch  },
-  { id: 'ai',         label: 'AI Assistant',        icon: Sparkles   },
-  { id: 'preview',    label: 'Preview & Publish',   icon: Eye        },
-];
+    { id: 'form', label: 'Form Properties', icon: Settings2 },
+    { id: 'components', label: 'Components', icon: LayoutGrid },
+    { id: 'templates', label: 'Templates', icon: Layers },
+    { id: 'theme', label: 'Theme', icon: Palette },
+    { id: 'logic', label: 'Logic', icon: Zap },
+    { id: 'workflow', label: 'Workflow', icon: GitBranch },
+    { id: 'ai', label: 'AI Assistant', icon: Sparkles },
+    { id: 'preview', label: 'Preview & Publish', icon: Eye },
+  ];
 
 interface EditorSidebarProps {
   activePanel: SidebarPanelId | null;
@@ -55,11 +55,10 @@ export function EditorSidebar({ activePanel, onPanelChange }: EditorSidebarProps
             <TooltipTrigger asChild>
               <button
                 onClick={() => handleClick(id)}
-                className={`flex h-10 w-10 items-center justify-center rounded-lg transition-all duration-150 ${
-                  isActive
+                className={`flex h-10 w-10 items-center justify-center rounded-lg transition-all duration-150 ${isActive
                     ? 'bg-primary text-primary-foreground shadow-sm'
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                }`}
+                  }`}
                 aria-label={label}
                 aria-pressed={isActive}
               >

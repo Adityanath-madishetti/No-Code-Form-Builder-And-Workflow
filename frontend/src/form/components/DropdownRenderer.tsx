@@ -9,7 +9,6 @@ import type {
 import { ComponentPropTitle } from './ComponentRender.Helper';
 import { RichTextEditor } from '@/components/RichTextEditor';
 
-import { Card as HeroCard } from '@heroui/react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,26 +18,17 @@ import {
   SelectTrigger as ShadSelectTrigger,
   SelectValue as ShadSelectValue,
 } from '@/components/ui/select';
-import { Select as HeroSelect, ListBox as HeroListBox } from '@heroui/react';
 import { Plus, Trash2 } from 'lucide-react';
 
 import { FormThemeProvider } from '@/form/theme/FormThemeProvider';
 
 export const DropdownComponentRenderer = ({
-  // metadata,
   props,
 }: RendererProps<DropdownProps, DropdownValidation>) => {
   return (
     <FormThemeProvider>
-      <HeroCard className="w-full">
-        {/* <HeroCard.Header>
-        <HeroCard.Title>{metadata.label}</HeroCard.Title>
-        {metadata.description && (
-          <HeroCard.Description>{metadata.description}</HeroCard.Description>
-        )}
-      </HeroCard.Header> */}
-
-        <HeroCard.Content className="text-foreground">
+      <div className="w-full rounded-md border border-border bg-card shadow-sm pointer-events-auto">
+        <div className="p-6 text-foreground space-y-4">
           {props.questionText && (
             <div
               className="prose prose-sm dark:prose-invert max-w-none break-words"
@@ -46,27 +36,20 @@ export const DropdownComponentRenderer = ({
             />
           )}
 
-          <HeroSelect
-            defaultValue={props.defaultValue}
-            placeholder={props.placeholder || 'Select an option...'}
-            fullWidth
-          >
-            <HeroSelect.Trigger className="w-full">
-              <HeroSelect.Value />
-            </HeroSelect.Trigger>
-            <HeroSelect.Popover>
-              <HeroListBox>
-                {(props.options || []).map((option) => (
-                  <HeroListBox.Item key={option.id} textValue={option.value}>
-                    {option.label}
-                    <HeroListBox.ItemIndicator />
-                  </HeroListBox.Item>
-                ))}
-              </HeroListBox>
-            </HeroSelect.Popover>
-          </HeroSelect>
-        </HeroCard.Content>
-      </HeroCard>
+          <ShadSelect defaultValue={props.defaultValue || undefined}>
+            <ShadSelectTrigger className="w-full">
+              <ShadSelectValue placeholder={props.placeholder || 'Select an option...'} />
+            </ShadSelectTrigger>
+            <ShadSelectContent>
+              {(props.options || []).map((option) => (
+                <ShadSelectItem key={option.id} value={option.value}>
+                  {option.label}
+                </ShadSelectItem>
+              ))}
+            </ShadSelectContent>
+          </ShadSelect>
+        </div>
+      </div>
     </FormThemeProvider>
   );
 };

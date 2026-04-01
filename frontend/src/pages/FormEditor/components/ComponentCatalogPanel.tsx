@@ -134,28 +134,28 @@ function DraggableCatalogItem({
     <div className="relative w-full">
       {/* Ghost */}
       <div
-        className={`flex w-full items-center gap-2.5 rounded-lg border p-2 transition-opacity ${
+        className={`flex w-full aspect-square flex-col items-center justify-center gap-1.5 rounded-lg border p-2 text-center transition-opacity ${
           isDragging ? 'border-dashed opacity-40' : 'opacity-0'
         }`}
       >
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-muted">
-          <IconComp className="h-3.5 w-3.5 text-muted-foreground" />
+        <div className="flex w-[35%] aspect-square shrink-0 items-center justify-center rounded-md bg-muted">
+          <IconComp className="h-[60%] w-[60%] text-muted-foreground" />
         </div>
-        <span className="truncate text-xs font-medium">{label}</span>
+        <span className="w-full text-[10px] font-medium leading-tight line-clamp-2 break-words">{label}</span>
       </div>
 
       {/* Draggable */}
       <div
         ref={ref}
-        className={`absolute top-0 left-0 flex h-full w-full cursor-grab touch-none items-center gap-2.5 rounded-lg border bg-card p-2 text-card-foreground transition-colors hover:border-primary/50 hover:bg-muted/40 active:cursor-grabbing ${
-          isDragging ? 'z-50 opacity-95' : 'z-10'
+        className={`absolute top-0 left-0 flex h-full w-full aspect-square cursor-grab touch-none flex-col items-center justify-center gap-1.5 rounded-lg border bg-card p-2 text-center text-card-foreground transition-all hover:border-primary/50 hover:bg-muted/40 hover:shadow-sm active:cursor-grabbing ${
+          isDragging ? 'z-50 opacity-95 shadow-lg scale-105' : 'z-10'
         }`}
         title={description}
       >
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-muted">
-          <IconComp className="h-3.5 w-3.5 text-foreground/60" />
+        <div className="flex w-[35%] aspect-square shrink-0 items-center justify-center rounded-md bg-muted/60">
+          <IconComp className="h-[60%] w-[60%] text-primary/80" />
         </div>
-        <span className="truncate text-xs font-medium">{label}</span>
+        <span className="w-full text-[10px] font-medium leading-tight line-clamp-2 break-words text-foreground/80">{label}</span>
       </div>
     </div>
   );
@@ -223,7 +223,7 @@ export function ComponentCatalogPanel() {
           <p className="mb-0.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
             {category}
           </p>
-          <div className="flex flex-col gap-1">
+          <div className="grid grid-cols-3 gap-2">
             {entries.map((entry) => (
               <DraggableCatalogItem
                 key={entry.id}

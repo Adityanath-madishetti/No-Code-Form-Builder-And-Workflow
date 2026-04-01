@@ -10,6 +10,7 @@ import {
 
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -19,33 +20,18 @@ import {
 } from '@/components/ui/select';
 import { Plus, Trash2 } from 'lucide-react';
 
-// HeroUI Imports
-import {
-  Card as HeroCard,
-  RadioGroup as HeroRadioGroup,
-  Radio as HeroRadio,
-  Label as HeroLabel,
-} from '@heroui/react';
-
 import { FormThemeProvider } from '@/form/theme/FormThemeProvider';
 
 export const RadioComponentRenderer = ({
-  // metadata,
   props,
+  instanceId,
 }: RendererProps<RadioProps, RadioValidation>) => {
   const isHorizontal = props.layout === 'horizontal';
 
   return (
     <FormThemeProvider>
-      <HeroCard className="w-full">
-        {/* <HeroCard.Header>
-        <HeroCard.Title>{metadata.label}</HeroCard.Title>
-        {metadata.description && (
-          <HeroCard.Description>{metadata.description}</HeroCard.Description>
-        )}
-      </HeroCard.Header> */}
-
-        <HeroCard.Content className="text-foreground">
+      <div className="w-full rounded-md border border-border bg-card shadow-sm pointer-events-auto">
+        <div className="p-6 text-foreground space-y-4">
           {props.questionText && (
             <div
               className={sharedProseClasses}
@@ -53,27 +39,32 @@ export const RadioComponentRenderer = ({
             />
           )}
 
-          <HeroRadioGroup
-            defaultValue={props.defaultValue}
+          <div
             className={`flex ${
-              isHorizontal ? 'flex-row flex-wrap gap-6' : 'flex-col'
+              isHorizontal ? 'flex-row flex-wrap gap-6' : 'flex-col space-y-3'
             }`}
           >
             {(props.options || []).map((option) => (
-              <HeroRadio key={option.id} value={option.value}>
-                <HeroRadio.Control>
-                  <HeroRadio.Indicator className="rounded-xl border-2 border-border" />
-                </HeroRadio.Control>
-                <HeroRadio.Content>
-                  <HeroLabel className="cursor-pointer">
-                    {option.label}
-                  </HeroLabel>
-                </HeroRadio.Content>
-              </HeroRadio>
+              <div key={option.id} className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id={`radio-${instanceId}-${option.id}`}
+                  name={instanceId}
+                  value={option.value}
+                  defaultChecked={props.defaultValue === option.value}
+                  className="h-4 w-4 bg-background border-border text-primary focus:ring-primary cursor-pointer accent-primary"
+                />
+                <Label
+                  htmlFor={`radio-${instanceId}-${option.id}`}
+                  className="font-normal cursor-pointer text-sm"
+                >
+                  {option.label}
+                </Label>
+              </div>
             ))}
-          </HeroRadioGroup>
-        </HeroCard.Content>
-      </HeroCard>
+          </div>
+        </div>
+      </div>
     </FormThemeProvider>
   );
 };
