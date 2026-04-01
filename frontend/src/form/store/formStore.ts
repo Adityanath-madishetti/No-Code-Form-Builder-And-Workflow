@@ -33,7 +33,6 @@
 
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import { createForm, createFormPage } from '../components/base.factories';
 import type {
   ComponentMetadata,
   Form,
@@ -52,6 +51,24 @@ import {
   deserializeComponent,
   serializeComponent,
 } from '../registry/componentRegistry';
+
+const createForm = (id: FormID, name: string, metadata?: Partial<FormMetadata>): Form => ({
+  id,
+  name,
+  metadata: {
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    ...metadata,
+  },
+  theme: null,
+  pages: [],
+});
+
+const createFormPage = (id: PageID): FormPage => ({
+  id,
+  children: [],
+  isTerminal: false,
+});
 
 import type {
   DRAG_CATALOG_COMPONENT_TYPE,

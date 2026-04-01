@@ -13,7 +13,7 @@ import {
 import { LayoutGrid } from 'lucide-react';
 
 interface FormCanvasProps {
-  currentPageIndex: number; // 0-indexed
+  currentPageIndex: number;
 }
 
 function EmptyPageDrop({ pageId }: { pageId: string }) {
@@ -26,20 +26,15 @@ function EmptyPageDrop({ pageId }: { pageId: string }) {
   return (
     <div
       ref={ref}
-      className={`flex min-h-[240px] w-full items-center justify-center rounded-2xl border-2 border-dashed transition-colors ${
+      className={`flex min-h-[200px] w-full items-center justify-center border-2 border-dashed transition-colors ${
         isOver
           ? 'border-primary bg-primary/5 text-primary'
-          : 'border-border/50 text-muted-foreground/40'
+          : 'border-border/40 text-muted-foreground/30'
       }`}
     >
-      <div className="flex flex-col items-center gap-3 text-center">
-        <LayoutGrid className="h-8 w-8 opacity-40" />
-        <div>
-          <p className="text-sm font-medium">Drop components here</p>
-          <p className="mt-0.5 text-xs opacity-70">
-            Drag from the Components panel on the left
-          </p>
-        </div>
+      <div className="flex flex-col items-center gap-2 text-center">
+        <LayoutGrid className="h-6 w-6 opacity-40" />
+        <p className="text-xs font-medium">Drop components here</p>
       </div>
     </div>
   );
@@ -52,9 +47,9 @@ export function FormCanvas({ currentPageIndex }: FormCanvasProps) {
   if (!form || form.pages.length === 0) {
     return (
       <div className="flex h-full items-center justify-center text-muted-foreground">
-        <div className="flex flex-col items-center gap-3 text-center">
-          <LayoutGrid className="h-10 w-10 opacity-20" />
-          <p className="text-sm">Add a page to get started</p>
+        <div className="flex flex-col items-center gap-2 text-center">
+          <LayoutGrid className="h-8 w-8 opacity-15" />
+          <p className="text-xs">Add a page to get started</p>
         </div>
       </div>
     );
@@ -67,8 +62,8 @@ export function FormCanvas({ currentPageIndex }: FormCanvasProps) {
   return (
     <FormThemeProvider>
       <FormModeProvider value="edit">
-        <div className="mx-auto w-full max-w-3xl px-6 py-8">
-          {/* Page header: title editable */}
+        <div className="mx-auto w-full max-w-3xl px-8 py-6">
+          {/* Editable form title on first page */}
           <PageHeader pageId={pageId} pageNumber={currentPageIndex + 1} />
 
           {/* Components or empty drop zone */}
@@ -95,36 +90,34 @@ function PageHeader({
   const formName = useFormStore((s) => s.form?.name ?? '');
   const updateFormName = useFormStore((s) => s.updateFormName);
 
-  // On first page, show editable form name
   if (pageNumber === 1) {
     return (
-      <div className="mb-6">
+      <div className="mb-5">
         <input
           value={formName}
           onChange={(e) => updateFormName(e.target.value)}
           placeholder="Untitled Form"
-          className="w-full bg-transparent text-3xl font-bold tracking-tight text-foreground outline-none placeholder:text-muted-foreground/30"
+          className="w-full bg-transparent text-2xl font-bold tracking-tight text-foreground outline-none placeholder:text-muted-foreground/20"
         />
         {page?.title !== undefined && (
           <input
             value={page.title ?? ''}
             onChange={(e) => updatePageTitle(pageId, e.target.value)}
             placeholder="Page title (optional)"
-            className="mt-1 w-full bg-transparent text-base text-muted-foreground outline-none placeholder:text-muted-foreground/30"
+            className="mt-1 w-full bg-transparent text-sm text-muted-foreground outline-none placeholder:text-muted-foreground/20"
           />
         )}
       </div>
     );
   }
 
-  // Other pages: just the page title
   return (
-    <div className="mb-6">
+    <div className="mb-5">
       <input
         value={page?.title ?? ''}
         onChange={(e) => updatePageTitle(pageId, e.target.value)}
         placeholder={`Page ${pageNumber}`}
-        className="w-full bg-transparent text-2xl font-semibold tracking-tight text-foreground outline-none placeholder:text-muted-foreground/30"
+        className="w-full bg-transparent text-xl font-semibold tracking-tight text-foreground outline-none placeholder:text-muted-foreground/20"
       />
     </div>
   );

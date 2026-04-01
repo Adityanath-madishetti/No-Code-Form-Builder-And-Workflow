@@ -3,7 +3,7 @@ import { useFormStore } from '@/form/store/formStore';
 import type { PageID } from '@/form/components/base';
 import { TEMP_PAGE_PLACEHOLDER_ID } from '@/form/utils/DndUtils';
 
-import { GripHorizontal, Trash2, Ellipsis } from 'lucide-react';
+import { GripVertical, Trash2, Copy } from 'lucide-react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import type { AnyFormComponent } from '../registry/componentRegistry';
 
@@ -14,13 +14,6 @@ import {
   DRAG_PAGE_ID,
   DRAG_PAGE_GROUP_ID,
 } from '@/form/utils/DndUtils';
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 
 interface Props {
   component: AnyFormComponent;
@@ -39,10 +32,9 @@ export const SelectableComponent = ({
   const setActiveComponent = useFormStore((s) => s.setActiveComponent);
   const removeComponent = useFormStore((s) => s.removeComponent);
   const setActivePage = useFormStore((s) => s.setActivePage);
+  const duplicateComponent = useFormStore((s) => s.duplicateComponent);
 
   const isSelected = selectedId === component.instanceId;
-
-  const duplicateComponent = useFormStore((s) => s.duplicateComponent);
 
   const { ref, isDragging } = useSortable({
     id: component.instanceId,
@@ -62,107 +54,58 @@ export const SelectableComponent = ({
       ref={ref}
       onClick={(e) => {
         e.stopPropagation();
-
-        console.groupCollapsed(
-          `%c[Component Select] ${component.instanceId}`,
-          'color: #fff787; font-weight: bold;'
-        );
-
-        console.log('Event:', {
-          type: e.type,
-          target: e.target,
-          currentTarget: e.currentTarget,
-        });
-
-        console.log('Component:', {
-          instanceId: component.instanceId,
-          pageId,
-          index,
-        });
-
-        console.log('Before State:', {
-          activeComponentId: selectedId,
-        });
-
         setActiveComponent(component.instanceId);
         setActivePage(null);
-
-        setTimeout(() => {
-          const state = useFormStore.getState();
-
-          console.log('After State:', {
-            activeComponentId: state.activeComponentId,
-            activePageId: state.activePageId,
-            activeSidePanelTab: state.activeSidePanelTab,
-          });
-
-          if (state.activeComponentId !== component.instanceId) {
-            console.warn('[ FAILURE ] Selection FAILED: state mismatch');
-          } else {
-            console.log('[ SUCCESS ] Selection SUCCESS');
-          }
-
-          console.groupEnd();
-        }, 0);
       }}
-      className={`form-component group relative cursor-pointer rounded-xl ${
-        isDragging ? 'opacity-50' : 'opacity-100'
-      } ${isSelected ? '' : ''} `}
+      className={`form-component group relative transition-all duration-100 ${
+        isDragging ? 'opacity-40' : 'opacity-100'
+      } ${
+        isSelected
+          ? 'ring-2 ring-primary/50 ring-offset-1 ring-offset-background'
+          : 'hover:ring-1 hover:ring-border'
+      }`}
     >
-      <div className="pointer-events-none h-full w-full transition-all duration-200">
-        {children}
-      </div>
+      {/* Content — fully interactive, no pointer-events-none */}
+      <div className="w-full">{children}</div>
 
-      <div className="absolute top-[1px] -right-12 bottom-[1px] z-10 flex h-0 w-12 flex-col items-center justify-start">
+      {/* Toolbar — appears on hover or selection */}
+      <div
+        className={`absolute -top-8 right-0 z-30 flex items-center gap-0.5 rounded-sm border border-border bg-background px-0.5 py-0.5 shadow-sm transition-opacity ${
+          isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+        }`}
+      >
+        {/* Drag handle */}
+        <div
+          className="flex h-6 w-6 cursor-grab items-center justify-center text-muted-foreground hover:text-foreground"
+          data-dnd-kit-drag-handle
+        >
+          <GripVertical className="h-3.5 w-3.5" />
+        </div>
+
+        {/* Duplicate */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            const newId = duplicateComponent(component.instanceId);
+            if (newId) setActiveComponent(newId);
+          }}
+          className="flex h-6 w-6 cursor-pointer items-center justify-center text-muted-foreground hover:text-foreground"
+          aria-label="Duplicate"
+        >
+          <Copy className="h-3 w-3" />
+        </button>
+
+        {/* Delete */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             removeComponent(component.instanceId);
           }}
-          className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md text-muted-foreground/60 transition-all hover:text-destructive"
-          aria-label="Remove component"
+          className="flex h-6 w-6 cursor-pointer items-center justify-center text-muted-foreground hover:text-destructive"
+          aria-label="Delete"
         >
-          <Trash2 className="h-5 w-5" />
+          <Trash2 className="h-3 w-3" />
         </button>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              onClick={(e) => e.stopPropagation()}
-              className="mt-3 flex h-8 w-8 cursor-pointer items-center justify-center rounded-md text-muted-foreground/60 transition-all hover:text-foreground"
-              aria-label="More options"
-            >
-              <Ellipsis className="h-5 w-5" />
-            </button>
-          </DropdownMenuTrigger>
-
-          <DropdownMenuContent align="end" className="w-36">
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation();
-                const newId = duplicateComponent(component.instanceId);
-                if (newId) {
-                  setActiveComponent(newId);
-                }
-                console.log('Component duplicated:', {
-                  originalId: component.instanceId,
-                  newId: newId,
-                  pageId,
-                });
-              }}
-            >
-              Duplicate
-            </DropdownMenuItem>
-            {/* <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation();
-                console.log('Hide clicked');
-              }}
-            >
-              Hide
-            </DropdownMenuItem> */}
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
     </div>
   );
@@ -200,73 +143,33 @@ export const SelectablePage = ({
       ref={ref}
       onClick={(e) => {
         e.stopPropagation();
-
-        console.groupCollapsed(
-          `%c[Page Select] ${pageId}`,
-          'color: #fff787; font-weight: bold;'
-        );
-
-        console.log('Event:', {
-          type: e.type,
-          target: e.target,
-          currentTarget: e.currentTarget,
-        });
-
-        console.log('Page:', {
-          pageId,
-          index,
-        });
-
-        const beforeState = useFormStore.getState();
-
-        console.log('Before State:', {
-          activePageId: beforeState.activePageId,
-          activeComponentId: beforeState.activeComponentId,
-        });
-
         setActivePage(pageId);
         setActiveComponent(null);
-
-        setTimeout(() => {
-          const state = useFormStore.getState();
-
-          console.log('After State:', {
-            activePageId: state.activePageId,
-            activeComponentId: state.activeComponentId,
-            activeSidePanelTab: state.activeSidePanelTab,
-          });
-
-          if (state.activePageId !== pageId) {
-            console.warn('❌ Page selection FAILED');
-          } else {
-            console.log('✅ Page selection SUCCESS');
-          }
-
-          console.groupEnd();
-        }, 0);
       }}
-      className={`group relative cursor-pointer !overflow-visible transition-all duration-200 ease-in-out ${
-        isDragging ? 'opacity-50' : 'opacity-100'
+      className={`group relative !overflow-visible transition-all duration-100 ${
+        isDragging ? 'opacity-40' : 'opacity-100'
       }`}
     >
+      {/* Drag handle — top center */}
       <div
-        className="absolute -top-3 left-1/2 z-20 -translate-x-1/2 cursor-grab rounded-full border bg-background p-1 opacity-0 transition-opacity group-hover:opacity-100 hover:opacity-100 [&:has(.form-component:group-hover)]:opacity-0 [&:has(.form-component:hover)]:opacity-0"
+        className="absolute -top-3 left-1/2 z-20 -translate-x-1/2 cursor-grab border border-border bg-background p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
         data-dnd-kit-drag-handle
       >
-        <GripHorizontal className="h-4 w-4 text-gray-400" />
+        <GripVertical className="h-3 w-3 rotate-90 text-muted-foreground" />
       </div>
 
+      {/* Delete page */}
       {pageId !== TEMP_PAGE_PLACEHOLDER_ID && (
-        <div className="absolute top-2 -right-9.5 z-20">
+        <div className="absolute top-1 -right-8 z-20 opacity-0 transition-opacity group-hover:opacity-100">
           <button
             onClick={(e) => {
               e.stopPropagation();
               removePage(pageId);
             }}
-            className="rounded-md p-1.5 text-muted-foreground/60 transition-colors hover:text-destructive"
+            className="p-1 text-muted-foreground/60 hover:text-destructive"
             aria-label="Remove page"
           >
-            <Trash2 className="h-5 w-5" />
+            <Trash2 className="h-3.5 w-3.5" />
           </button>
         </div>
       )}

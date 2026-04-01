@@ -4,8 +4,6 @@ import { SelectablePage } from '@/form/renderer/SelectableWrapper';
 import type { PageID } from '@/form/components/base';
 import { useShallow } from 'zustand/react/shallow';
 import { useFormStore } from '@/form/store/formStore';
-import { Card as HeroCard } from '@heroui/react';
-import { Input as ShadInput } from '@/components/ui/input';
 import { useDroppable } from '@dnd-kit/react';
 import {
   DRAG_CATALOG_PAGE_ID,
@@ -15,11 +13,6 @@ import {
   DRAG_PAGE_ID,
 } from '@/form/utils/DndUtils';
 import { RenderComponent } from './RenderComponent';
-import { ComponentPropTitle } from '@/form/components/ComponentRender.Helper';
-import {
-  RichTextEditor,
-  sharedProseClasses,
-} from '@/components/RichTextEditor';
 
 export const RenderPage = ({
   pageId,
@@ -38,14 +31,6 @@ export const RenderPage = ({
     )
   );
 
-  const pageTitle = useFormStore(
-    useShallow((s) => s.pages[pageId]?.title ?? '')
-  );
-
-  const pageDescription = useFormStore(
-    useShallow((s) => s.pages[pageId]?.description ?? '')
-  );
-
   const { ref: contentDropRef } = useDroppable({
     id: `content-drop-${pageId}`,
     accept: [DRAG_COMPONENT_ID, DRAG_CATALOG_COMPONENT_ID],
@@ -62,9 +47,9 @@ export const RenderPage = ({
     return (
       <div
         ref={mode === 'edit' ? pagePlaceholderRef : undefined}
-        className="m-6 flex h-6 items-center justify-center rounded-lg"
+        className="m-4 flex h-6 items-center justify-center"
       >
-        <span className="text-primary">Drop New Page Here</span>
+        <span className="text-sm text-primary">Drop New Page Here</span>
       </div>
     );
   }
@@ -72,38 +57,17 @@ export const RenderPage = ({
   const rendered = (
     <div ref={mode === 'edit' ? contentDropRef : undefined}>
       <div
-        className={`relative flex flex-col gap-3 bg-transparent ${mode === 'edit' ? '-mx-12 rounded-[20px] border-2 border-border px-12 pt-12 pb-4' : ''}`}
+        className={`relative flex flex-col gap-2 bg-transparent ${
+          mode === 'edit' ? 'border border-border/30 p-6' : ''
+        }`}
       >
-        {pageId !== TEMP_PAGE_PLACEHOLDER_ID &&
-          (pageTitle || pageDescription) && (
-            <HeroCard className="bg-content1 w-full border-none shadow-sm">
-              {pageTitle && (
-                <HeroCard.Header className="flex flex-col items-start">
-                  <h3 className="text-5xl tracking-tight text-foreground">
-                    {pageTitle}
-                  </h3>
-                </HeroCard.Header>
-              )}
-              {pageDescription && (
-                <HeroCard.Content>
-                  <div
-                    className={sharedProseClasses}
-                    dangerouslySetInnerHTML={{ __html: pageDescription }}
-                  />
-                </HeroCard.Content>
-              )}
-            </HeroCard>
-          )}
-
         {componentIds.length === 0 && (
-          <div
-            className={`text-default-500 pointer-events-none inset-0 flex min-h-20 items-center justify-center text-sm opacity-100 transition-opacity duration-200`}
-          >
-            Empty Page
+          <div className="flex min-h-[120px] items-center justify-center text-sm text-muted-foreground/40">
+            Drop components here
           </div>
         )}
 
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-3">
+        <div className="flex w-full flex-col gap-2">
           {components.map((component, idx) => (
             <RenderComponent
               key={component.instanceId}
@@ -123,30 +87,5 @@ export const RenderPage = ({
     </SelectablePage>
   ) : (
     rendered
-  );
-};
-
-// TODO
-export const RenderPageProps = ({ pageId }: { pageId: PageID }) => {
-  const updatePageTitle = useFormStore((s) => s.updatePageTitle);
-  const updatePageDesc = useFormStore((s) => s.updatePageDesc);
-
-  const pageTitle = useFormStore((s) => s.pages?.[pageId].title);
-  const pageDesc = useFormStore((s) => s.pages?.[pageId].description);
-
-  return (
-    <div className="w-full space-y-2">
-      <ComponentPropTitle title="Page Title" />
-      <ShadInput
-        value={pageTitle}
-        onChange={(e) => updatePageTitle(pageId, e.target.value)}
-      />
-
-      <ComponentPropTitle title="Form Description" />
-      <RichTextEditor
-        value={pageDesc || ''}
-        onChange={(newHTML) => updatePageDesc(pageId, newHTML)}
-      />
-    </div>
   );
 };
