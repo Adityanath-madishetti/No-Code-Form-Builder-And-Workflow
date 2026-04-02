@@ -21,8 +21,12 @@ interface LogicPlaygroundProps {
 
 export function LogicPlayground({ onClose }: LogicPlaygroundProps) {
   const activeRuleId = useLogicStore((s) => s.activeRuleId);
-  const rule = useLogicStore((s) => s.rules.find((r) => r.ruleId === s.activeRuleId));
-  const formula = useLogicStore((s) => s.formulas.find((f) => f.ruleId === s.activeFormulaId));
+  const rule = useLogicStore((s) =>
+    s.rules.find((r) => r.ruleId === s.activeRuleId)
+  );
+  const formula = useLogicStore((s) =>
+    s.formulas.find((f) => f.ruleId === s.activeFormulaId)
+  );
   const updateRule = useLogicStore((s) => s.updateRule);
   const updateRuleCondition = useLogicStore((s) => s.updateRuleCondition);
   const updateRuleThenActions = useLogicStore((s) => s.updateRuleThenActions);
@@ -117,7 +121,9 @@ export function LogicPlayground({ onClose }: LogicPlaygroundProps) {
       <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
         <Zap className="h-12 w-12 text-muted-foreground/20" />
         <div>
-          <p className="text-sm font-medium text-muted-foreground">No rule selected</p>
+          <p className="text-sm font-medium text-muted-foreground">
+            No rule selected
+          </p>
           <p className="mt-1 text-xs text-muted-foreground/70">
             Select a rule from the Logic panel or create a new one.
           </p>
@@ -137,14 +143,19 @@ export function LogicPlayground({ onClose }: LogicPlaygroundProps) {
       <div className="flex h-full flex-col">
         {/* Header */}
         <div className="flex items-center gap-2 border-b border-border bg-background/80 px-4 py-2.5 backdrop-blur-sm">
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
+          <button
+            onClick={onClose}
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
             <ArrowLeft className="h-4 w-4" />
           </button>
           <Calculator className="h-4 w-4 text-violet-500" />
           <input
             type="text"
             value={formula.name}
-            onChange={(e) => updateFormula(formula.ruleId, { name: e.target.value })}
+            onChange={(e) =>
+              updateFormula(formula.ruleId, { name: e.target.value })
+            }
             className="flex-1 bg-transparent text-sm font-medium outline-none"
             placeholder="Formula name…"
           />
@@ -159,10 +170,17 @@ export function LogicPlayground({ onClose }: LogicPlaygroundProps) {
               fields={fieldOptions}
               targets={fieldOptions}
               onExpressionChange={(expr) => {
-                const refs = (expr.match(/\{([^}]+)\}/g) || []).map((m) => m.slice(1, -1));
-                updateFormula(formula.ruleId, { expression: expr, referencedFields: refs });
+                const refs = (expr.match(/\{([^}]+)\}/g) || []).map((m) =>
+                  m.slice(1, -1)
+                );
+                updateFormula(formula.ruleId, {
+                  expression: expr,
+                  referencedFields: refs,
+                });
               }}
-              onTargetChange={(targetId) => updateFormula(formula.ruleId, { targetId })}
+              onTargetChange={(targetId) =>
+                updateFormula(formula.ruleId, { targetId })
+              }
             />
           </div>
         </div>
@@ -176,7 +194,10 @@ export function LogicPlayground({ onClose }: LogicPlaygroundProps) {
     <div className="flex h-full flex-col">
       {/* Header */}
       <div className="flex items-center gap-2 border-b border-border bg-background/80 px-4 py-2.5 backdrop-blur-sm">
-        <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
+        <button
+          onClick={onClose}
+          className="text-muted-foreground transition-colors hover:text-foreground"
+        >
           <ArrowLeft className="h-4 w-4" />
         </button>
         <Zap className="h-4 w-4 text-amber-500" />
@@ -194,7 +215,7 @@ export function LogicPlayground({ onClose }: LogicPlaygroundProps) {
         <div className="mx-auto max-w-xl space-y-6">
           {/* IF section */}
           <section>
-            <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-primary">
+            <h3 className="mb-2 text-xs font-bold tracking-widest text-primary uppercase">
               IF
             </h3>
             <ConditionBuilder
@@ -206,7 +227,7 @@ export function LogicPlayground({ onClose }: LogicPlaygroundProps) {
 
           {/* THEN section */}
           <section>
-            <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-green-600">
+            <h3 className="mb-2 text-xs font-bold tracking-widest text-green-600 uppercase">
               THEN
             </h3>
             <div className="space-y-1.5">
@@ -216,7 +237,11 @@ export function LogicPlayground({ onClose }: LogicPlaygroundProps) {
                   action={action}
                   targets={targetOptions}
                   onChange={(updated) => handleThenChange(index, updated)}
-                  onRemove={rule!.thenActions.length > 1 ? () => removeThenAction(index) : undefined}
+                  onRemove={
+                    rule!.thenActions.length > 1
+                      ? () => removeThenAction(index)
+                      : undefined
+                  }
                 />
               ))}
             </div>
@@ -238,8 +263,11 @@ export function LogicPlayground({ onClose }: LogicPlaygroundProps) {
 
           {/* ELSE section */}
           <section>
-            <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-red-500">
-              ELSE <span className="font-normal normal-case text-muted-foreground">(optional)</span>
+            <h3 className="mb-2 text-xs font-bold tracking-widest text-red-500 uppercase">
+              ELSE{' '}
+              <span className="font-normal text-muted-foreground normal-case">
+                (optional)
+              </span>
             </h3>
             {rule!.elseActions.length > 0 ? (
               <>
@@ -275,7 +303,9 @@ export function LogicPlayground({ onClose }: LogicPlaygroundProps) {
                 size="sm"
                 className="h-7 text-xs"
                 onClick={() =>
-                  updateRuleElseActions(rule!.ruleId, [createRuleAction('HIDE')])
+                  updateRuleElseActions(rule!.ruleId, [
+                    createRuleAction('HIDE'),
+                  ])
                 }
               >
                 <Plus className="mr-1 h-3 w-3" />

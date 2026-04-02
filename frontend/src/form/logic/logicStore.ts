@@ -16,10 +16,7 @@ import type {
   RuleAction,
   DependencyEdge,
 } from './logicTypes';
-import {
-  createLogicRule,
-  createFormulaRule,
-} from './logicTypes';
+import { createLogicRule, createFormulaRule } from './logicTypes';
 
 // ── State ──
 
@@ -36,7 +33,10 @@ interface LogicState {
 interface LogicActions {
   // Rules
   addRule: (name?: string) => string;
-  updateRule: (ruleId: string, updates: Partial<Omit<LogicRule, 'ruleId'>>) => void;
+  updateRule: (
+    ruleId: string,
+    updates: Partial<Omit<LogicRule, 'ruleId'>>
+  ) => void;
   removeRule: (ruleId: string) => void;
   duplicateRule: (ruleId: string) => string | undefined;
   toggleRule: (ruleId: string) => void;
@@ -48,7 +48,10 @@ interface LogicActions {
 
   // Formulas
   addFormula: (name?: string) => string;
-  updateFormula: (ruleId: string, updates: Partial<Omit<FormulaRule, 'ruleId'>>) => void;
+  updateFormula: (
+    ruleId: string,
+    updates: Partial<Omit<FormulaRule, 'ruleId'>>
+  ) => void;
   removeFormula: (ruleId: string) => void;
 
   // UI
@@ -207,7 +210,7 @@ export function getDependencyEdges(rules: LogicRule[]): DependencyEdge[] {
 
   function extractFieldIds(condition: Condition): string[] {
     if (condition.type === 'leaf') {
-      return condition.fieldId ? [condition.fieldId] : [];
+      return condition.instanceId ? [condition.instanceId] : [];
     }
     return condition.conditions.flatMap(extractFieldIds);
   }

@@ -48,7 +48,7 @@ export type LogicalOp = 'AND' | 'OR';
 export interface ConditionLeaf {
   type: 'leaf';
   id: string;
-  fieldId: string;            // instanceId of the source component
+  instanceId: string; // instanceId of the source component
   operator: ComparisonOp;
   value: unknown;
 }
@@ -96,8 +96,8 @@ export const ACTION_TYPE_COLORS: Record<ActionType, string> = {
 export interface RuleAction {
   id: string;
   type: ActionType;
-  targetId: string;           // componentId or pageId
-  value?: unknown;            // for SET_VALUE
+  targetId: string; // componentId or pageId
+  value?: unknown; // for SET_VALUE
 }
 
 // ── Logic Rule ──
@@ -117,8 +117,8 @@ export interface FormulaRule {
   ruleId: string;
   name: string;
   enabled: boolean;
-  targetId: string;           // component to set computed value on
-  expression: string;         // e.g. "{field1} + {field2} * 2"
+  targetId: string; // component to set computed value on
+  expression: string; // e.g. "{field1} + {field2} * 2"
   referencedFields: string[];
 }
 
@@ -143,13 +143,15 @@ export function createConditionLeaf(fieldId = ''): ConditionLeaf {
   return {
     type: 'leaf',
     id: crypto.randomUUID(),
-    fieldId,
+    instanceId: fieldId,
     operator: 'equals',
     value: '',
   };
 }
 
-export function createConditionGroup(operator: LogicalOp = 'AND'): ConditionGroup {
+export function createConditionGroup(
+  operator: LogicalOp = 'AND'
+): ConditionGroup {
   return {
     type: 'group',
     id: crypto.randomUUID(),
