@@ -30,9 +30,27 @@ import { ComponentPropertiesPanel } from './components/ComponentPropertiesPanel'
 import { RightFloatingPanel } from './components/RightFloatingPanel';
 import { LogicPlayground } from './components/LogicPlayground';
 import { useLogicStore } from '@/form/logic/logicStore';
-import { Bug, PanelLeftClose, PanelRightClose, Save, ArrowLeft, Loader2, Eye, Globe, Zap, LayoutGrid, GitBranch, Settings2 } from 'lucide-react';
+import {
+  Bug,
+  PanelLeftClose,
+  PanelRightClose,
+  Save,
+  ArrowLeft,
+  Loader2,
+  Eye,
+  Globe,
+  Zap,
+  LayoutGrid,
+  GitBranch,
+  Settings2,
+} from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
-import { loadFormVersion, saveFormVersion, createNewVersion, loadWorkflow } from '@/lib/formApi';
+import {
+  loadFormVersion,
+  saveFormVersion,
+  createNewVersion,
+  loadWorkflow,
+} from '@/lib/formApi';
 import { useWorkflowStore } from '@/form/workflow/workflowStore';
 
 const PANEL_TITLES: Record<SidebarPanelId, string> = {
@@ -46,12 +64,18 @@ const PANEL_TITLES: Record<SidebarPanelId, string> = {
 
 function PanelContent({ panelId }: { panelId: SidebarPanelId }) {
   switch (panelId) {
-    case 'components': return <ComponentCatalogPanel />;
-    case 'templates': return <TemplateCatalogPanel />;
-    case 'theme': return <ThemePanel />;
-    case 'logic': return <LogicPanel />;
-    case 'workflow': return <WorkflowListPanel />;
-    case 'ai': return <AIPanel />;
+    case 'components':
+      return <ComponentCatalogPanel />;
+    case 'templates':
+      return <TemplateCatalogPanel />;
+    case 'theme':
+      return <ThemePanel />;
+    case 'logic':
+      return <LogicPanel />;
+    case 'workflow':
+      return <WorkflowListPanel />;
+    case 'ai':
+      return <AIPanel />;
   }
 }
 
@@ -76,7 +100,9 @@ export default function FormEditor() {
   const totalPages = pageIds.length;
 
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
-  const [activePanel, setActivePanel] = useState<SidebarPanelId | null>('components');
+  const [activePanel, setActivePanel] = useState<SidebarPanelId | null>(
+    'components'
+  );
   const [showDebug, setShowDebug] = useState(false);
   const [showProperties, setShowProperties] = useState(true);
   const showPropertiesPanel = useFormStore((s) => s.showPropertiesPanel);
@@ -111,7 +137,12 @@ export default function FormEditor() {
         name: '',
         metadata: { createdAt: '', updatedAt: '' },
         theme: null,
-        access: { visibility: 'private', editors: [], reviewers: [], viewers: [] },
+        access: {
+          visibility: 'private',
+          editors: [],
+          reviewers: [],
+          viewers: [],
+        },
         settings: {
           submissionLimit: null,
           closeDate: null,
@@ -128,13 +159,15 @@ export default function FormEditor() {
     );
 
     loadFormVersion(formId)
-      .then(({ form, pages, components, version, logicRules, logicFormulas }) => {
-        if (cancelled) return;
-        loadForm(form, pages, components, version);
-        // Hydrate logic store
-        useLogicStore.getState().loadRules(logicRules, logicFormulas);
-        setFormLoaded(true);
-      })
+      .then(
+        ({ form, pages, components, version, logicRules, logicFormulas }) => {
+          if (cancelled) return;
+          loadForm(form, pages, components, version);
+          // Hydrate logic store
+          useLogicStore.getState().loadRules(logicRules, logicFormulas);
+          setFormLoaded(true);
+        }
+      )
       .catch(() => {
         if (cancelled) return;
         // Form just created — init locally
@@ -153,7 +186,9 @@ export default function FormEditor() {
         // No workflow yet — store stays at defaults
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [formId, initForm, loadForm, setCurrentVersionInStore]);
 
   // Ensure at least one page exists after load
@@ -225,6 +260,18 @@ export default function FormEditor() {
 
       // Save current editor state to the new version
       const logicState = useLogicStore.getState();
+
+      console.log({
+        formId,
+        newVersionNum,
+        form,
+        pages,
+        components,
+        uid: user?.uid || 'unknown',
+        rules: logicState.rules,
+        formulas: logicState.formulas,
+      });
+
       await saveFormVersion(
         formId,
         newVersionNum,
@@ -248,13 +295,15 @@ export default function FormEditor() {
       onDragOver={onDragOver}
       onDragEnd={onDragEnd}
     >
-      <div className="flex h-screen w-full overflow-hidden bg-neutral-50 dark:bg-neutral-950 isolate">
+      <div className="isolate flex h-screen w-full overflow-hidden bg-neutral-50 dark:bg-neutral-950">
         {/* ── Left icon rail ── */}
-        <EditorSidebar activePanel={activePanel} onPanelChange={setActivePanel} />
+        <EditorSidebar
+          activePanel={activePanel}
+          onPanelChange={setActivePanel}
+        />
 
         {/* ── Main area with react-rnd custom resizable panels ── */}
-        <div className="flex flex-1 overflow-hidden h-full relative">
-
+        <div className="relative flex h-full flex-1 overflow-hidden">
           {/* ── Left fly-out panel ── */}
           {activePanel && (
             <Rnd
@@ -265,17 +314,17 @@ export default function FormEditor() {
               maxWidth="35%"
               onResize={(_e, _dir, ref) => setLeftWidth(ref.style.width)}
               style={{ position: 'relative', transform: 'none' }}
-              className="border-r border-border bg-background shrink-0 z-10"
+              className="z-10 shrink-0 border-r border-border bg-background"
             >
               <div className="flex h-full flex-col">
-                <div className="flex h-10 shrink-0 items-center border-b border-border px-3 gap-2">
-                  <span className="flex-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                <div className="flex h-10 shrink-0 items-center gap-2 border-b border-border px-3">
+                  <span className="flex-1 text-xs font-semibold tracking-widest text-muted-foreground uppercase">
                     {PANEL_TITLES[activePanel]}
                   </span>
                   <button
                     onClick={() => setActivePanel(null)}
                     title="Collapse Sidebar"
-                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    className="text-muted-foreground transition-colors hover:text-foreground"
                   >
                     <PanelLeftClose className="h-3.5 w-3.5" />
                   </button>
@@ -288,7 +337,7 @@ export default function FormEditor() {
           )}
 
           {/* ── Centre area: Form canvas OR Logic playground ── */}
-          <div className="flex-1 min-w-[400px] relative flex h-full flex-col overflow-hidden bg-neutral-100 dark:bg-neutral-900">
+          <div className="relative flex h-full min-w-[400px] flex-1 flex-col overflow-hidden bg-neutral-100 dark:bg-neutral-900">
             {/* Top bar: editor view + save/preview/publish */}
             <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border bg-background px-3 py-1">
               <div className="flex items-center gap-1">
@@ -297,7 +346,7 @@ export default function FormEditor() {
                   className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors ${
                     editorView === 'formProperties'
                       ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                   }`}
                 >
                   <Settings2 className="h-3 w-3" />
@@ -308,7 +357,7 @@ export default function FormEditor() {
                   className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors ${
                     editorView === 'canvas'
                       ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                   }`}
                 >
                   <LayoutGrid className="h-3 w-3" />
@@ -319,7 +368,7 @@ export default function FormEditor() {
                   className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors ${
                     editorView === 'logic'
                       ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                   }`}
                 >
                   <Zap className="h-3 w-3" />
@@ -333,7 +382,7 @@ export default function FormEditor() {
                   className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors ${
                     editorView === 'workflow'
                       ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                   }`}
                 >
                   <GitBranch className="h-3 w-3" />
@@ -352,9 +401,9 @@ export default function FormEditor() {
                   onClick={handleSave}
                   disabled={saving}
                   title="Save form"
-                  className={`group flex h-7 items-center gap-0 border px-1.5 shadow-sm transition-all duration-300 rounded-sm hover:gap-1 hover:px-2 ${
+                  className={`group flex h-7 items-center gap-0 rounded-sm border px-1.5 shadow-sm transition-all duration-300 hover:gap-1 hover:px-2 ${
                     saving
-                      ? 'border-primary/40 bg-primary/10 text-primary cursor-wait'
+                      ? 'cursor-wait border-primary/40 bg-primary/10 text-primary'
                       : 'border-primary/60 bg-primary text-primary-foreground hover:bg-primary/90'
                   }`}
                 >
@@ -363,17 +412,19 @@ export default function FormEditor() {
                   ) : (
                     <Save className="h-3 w-3" />
                   )}
-                  <span className="max-w-0 overflow-hidden whitespace-nowrap text-[11px] font-medium transition-all duration-300 group-hover:max-w-[60px]">
+                  <span className="max-w-0 overflow-hidden text-[11px] font-medium whitespace-nowrap transition-all duration-300 group-hover:max-w-[60px]">
                     {saving ? 'Saving...' : 'Save'}
                   </span>
                 </button>
                 <button
-                  onClick={() => window.open(`/forms/${formId}/preview`, '_blank')}
+                  onClick={() =>
+                    window.open(`/forms/${formId}/preview`, '_blank')
+                  }
                   title="Preview form"
-                  className="group flex h-7 items-center gap-0 rounded-sm border border-border bg-background px-1.5 shadow-sm transition-all duration-300 text-muted-foreground hover:text-foreground hover:bg-muted hover:gap-1 hover:px-2"
+                  className="group flex h-7 items-center gap-0 rounded-sm border border-border bg-background px-1.5 text-muted-foreground shadow-sm transition-all duration-300 hover:gap-1 hover:bg-muted hover:px-2 hover:text-foreground"
                 >
                   <Eye className="h-3 w-3" />
-                  <span className="max-w-0 overflow-hidden whitespace-nowrap text-[11px] font-medium transition-all duration-300 group-hover:max-w-[60px]">
+                  <span className="max-w-0 overflow-hidden text-[11px] font-medium whitespace-nowrap transition-all duration-300 group-hover:max-w-[60px]">
                     Preview
                   </span>
                 </button>
@@ -384,9 +435,7 @@ export default function FormEditor() {
                     try {
                       await handleSave();
                       const { api: apiClient } = await import('@/lib/api');
-                      await apiClient.post(
-                        `/api/forms/${formId}/publish`
-                      );
+                      await apiClient.post(`/api/forms/${formId}/publish`);
                       alert(
                         'Form published! Share this link:\\n' +
                           window.location.origin +
@@ -403,7 +452,7 @@ export default function FormEditor() {
                   title="Publish form"
                   className={`group flex h-7 items-center gap-0 rounded-sm border px-1.5 shadow-sm transition-all duration-300 hover:gap-1 hover:px-2 ${
                     publishing
-                      ? 'border-green-400/40 bg-green-400/10 text-green-600 cursor-wait'
+                      ? 'cursor-wait border-green-400/40 bg-green-400/10 text-green-600'
                       : 'border-green-600/60 bg-green-600 text-white hover:bg-green-700'
                   }`}
                 >
@@ -412,7 +461,7 @@ export default function FormEditor() {
                   ) : (
                     <Globe className="h-3 w-3" />
                   )}
-                  <span className="max-w-0 overflow-hidden whitespace-nowrap text-[11px] font-medium transition-all duration-300 group-hover:max-w-[70px]">
+                  <span className="max-w-0 overflow-hidden text-[11px] font-medium whitespace-nowrap transition-all duration-300 group-hover:max-w-[70px]">
                     {publishing ? 'Publishing...' : 'Publish'}
                   </span>
                 </button>
@@ -488,18 +537,18 @@ export default function FormEditor() {
             >
               <div className="flex h-full w-full flex-col">
                 <div className="flex h-10 shrink-0 items-center border-b border-border px-3">
-                  <span className="flex-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                  <span className="flex-1 text-xs font-semibold tracking-widest text-muted-foreground uppercase">
                     Properties
                   </span>
                   <button
                     onClick={togglePropertiesPanel}
                     title="Collapse Properties"
-                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    className="text-muted-foreground transition-colors hover:text-foreground"
                   >
                     <PanelRightClose className="h-3.5 w-3.5" />
                   </button>
                 </div>
-                <div className="flex min-h-0 flex-1 w-full flex-col overflow-y-auto">
+                <div className="flex min-h-0 w-full flex-1 flex-col overflow-y-auto">
                   <ComponentPropertiesPanel />
                 </div>
               </div>
@@ -519,18 +568,18 @@ export default function FormEditor() {
               <div className="flex h-full w-full flex-col">
                 <div className="flex h-10 shrink-0 items-center border-b border-border px-3">
                   <Bug className="mr-1.5 h-3 w-3 text-amber-500" />
-                  <span className="flex-1 text-xs font-semibold uppercase tracking-widest text-amber-500">
+                  <span className="flex-1 text-xs font-semibold tracking-widest text-amber-500 uppercase">
                     Debug
                   </span>
                   <button
                     onClick={() => setShowDebug(false)}
                     title="Collapse Debug Panel"
-                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    className="text-muted-foreground transition-colors hover:text-foreground"
                   >
                     <PanelRightClose className="h-3.5 w-3.5" />
                   </button>
                 </div>
-                <div className="flex min-h-0 flex-1 w-full flex-col overflow-hidden p-3">
+                <div className="flex min-h-0 w-full flex-1 flex-col overflow-hidden p-3">
                   <DebugPanel />
                 </div>
               </div>
@@ -540,13 +589,16 @@ export default function FormEditor() {
 
         {/* ── Bottom-right utility buttons ── */}
         <div
-          className="fixed bottom-4 right-4 z-[60] flex gap-1 will-change-transform"
-          style={{ transform: `translateX(-${(showProperties ? rightWidth : 0) + (showDebug ? debugWidth : 0)}px)`, transition: 'transform 100ms ease-out' }}
+          className="fixed right-4 bottom-4 z-[60] flex gap-1 will-change-transform"
+          style={{
+            transform: `translateX(-${(showProperties ? rightWidth : 0) + (showDebug ? debugWidth : 0)}px)`,
+            transition: 'transform 100ms ease-out',
+          }}
         >
           <button
             onClick={() => navigate('/')}
             title="Back to Dashboard"
-            className="flex h-7 w-7 items-center justify-center border border-border bg-background text-muted-foreground shadow-sm hover:text-foreground transition-colors"
+            className="flex h-7 w-7 items-center justify-center border border-border bg-background text-muted-foreground shadow-sm transition-colors hover:text-foreground"
           >
             <ArrowLeft className="h-3 w-3" />
           </button>
@@ -559,10 +611,11 @@ export default function FormEditor() {
           <button
             onClick={() => setShowDebug((p) => !p)}
             title="Toggle debug panel"
-            className={`flex h-7 w-7 items-center justify-center border shadow-sm transition-colors ${showDebug
-              ? 'border-amber-400/60 bg-amber-400/10 text-amber-500'
-              : 'border-border bg-background text-muted-foreground hover:text-amber-500'
-              }`}
+            className={`flex h-7 w-7 items-center justify-center border shadow-sm transition-colors ${
+              showDebug
+                ? 'border-amber-400/60 bg-amber-400/10 text-amber-500'
+                : 'border-border bg-background text-muted-foreground hover:text-amber-500'
+            }`}
           >
             <Bug className="h-3 w-3" />
           </button>
@@ -574,10 +627,11 @@ export default function FormEditor() {
         {activeDragData?.type === DRAG_CATALOG_COMPONENT_ID &&
           (() => {
             const entry = activeDragData.entry;
-            const Renderer = componentRenderers[entry.id as keyof typeof componentRenderers];
+            const Renderer =
+              componentRenderers[entry.id as keyof typeof componentRenderers];
             const previewData = entry.create('__preview__');
             return Renderer ? (
-              <div className="w-[400px] opacity-80 pointer-events-none">
+              <div className="pointer-events-none w-[400px] opacity-80">
                 <Renderer
                   instanceId={previewData.instanceId}
                   metadata={previewData.metadata}
@@ -594,9 +648,12 @@ export default function FormEditor() {
           (() => {
             const existing = components[activeDragData.instanceId];
             if (!existing) return null;
-            const Renderer = componentRenderers[existing.id as keyof typeof componentRenderers];
+            const Renderer =
+              componentRenderers[
+                existing.id as keyof typeof componentRenderers
+              ];
             return Renderer ? (
-              <div className="w-[400px] opacity-80 pointer-events-none">
+              <div className="pointer-events-none w-[400px] opacity-80">
                 <Renderer
                   instanceId={existing.instanceId}
                   metadata={existing.metadata}
