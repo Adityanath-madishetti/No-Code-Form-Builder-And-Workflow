@@ -48,8 +48,15 @@ export interface HeaderProps {
   text: string;
   level: 'h1' | 'h2' | 'h3' | 'h4';
 }
-export const createHeaderComponent = (instanceId: string, metadata: ComponentMetadata, props?: Partial<HeaderProps>) =>
-  createComponent(ComponentIDs.Header, instanceId, metadata,
+export const createHeaderComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props?: Partial<HeaderProps>
+) =>
+  createComponent(
+    ComponentIDs.Header,
+    instanceId,
+    metadata,
     { text: 'Heading', level: 'h2' as const, ...props },
     { proxy: 0 } as NoValidation
   );
@@ -59,8 +66,15 @@ export interface LineDividerProps {
   style: 'solid' | 'dashed' | 'dotted';
   thickness: number;
 }
-export const createLineDividerComponent = (instanceId: string, metadata: ComponentMetadata, props?: Partial<LineDividerProps>) =>
-  createComponent(ComponentIDs.LineDivider, instanceId, metadata,
+export const createLineDividerComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props?: Partial<LineDividerProps>
+) =>
+  createComponent(
+    ComponentIDs.LineDivider,
+    instanceId,
+    metadata,
     { style: 'solid' as const, thickness: 1, ...props },
     { proxy: 0 } as NoValidation
   );
@@ -70,8 +84,15 @@ export interface ColumnLayoutProps {
   columns: number;
   gap: number;
 }
-export const createColumnLayoutComponent = (instanceId: string, metadata: ComponentMetadata, props?: Partial<ColumnLayoutProps>) =>
-  createComponent(ComponentIDs.ColumnLayout, instanceId, metadata,
+export const createColumnLayoutComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props?: Partial<ColumnLayoutProps>
+) =>
+  createComponent(
+    ComponentIDs.ColumnLayout,
+    instanceId,
+    metadata,
     { columns: 2, gap: 16, ...props },
     { proxy: 0 } as NoValidation
   );
@@ -80,6 +101,34 @@ export const createColumnLayoutComponent = (instanceId: string, metadata: Compon
 //  TEXT INPUT COMPONENTS
 // ========================================================================================
 
+// ── Single-line Text (Input) ──
+export interface InputProps {
+  type?: string;
+  questionText?: string;
+  placeholder?: string;
+  defaultValue?: string;
+}
+
+export interface InputValidation {
+  required: boolean;
+  minLength: number;
+  maxLength?: number;
+}
+
+export const createInputComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props: InputProps,
+  validation: InputValidation
+): FormComponent<'Input', InputProps, InputValidation> => ({
+  id: ComponentIDs.Input,
+  instanceId,
+  metadata,
+  children: [],
+  props,
+  validation,
+});
+
 // ── Multi-line Text ──
 export interface MultiLineTextProps {
   questionText: string;
@@ -87,9 +136,22 @@ export interface MultiLineTextProps {
   defaultValue: string;
   rows: number;
 }
-export const createMultiLineTextComponent = (instanceId: string, metadata: ComponentMetadata, props?: Partial<MultiLineTextProps>) =>
-  createComponent(ComponentIDs.MultiLineText, instanceId, metadata,
-    { questionText: '<p>Enter your response</p>', placeholder: '', defaultValue: '', rows: 4, ...props },
+export const createMultiLineTextComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props?: Partial<MultiLineTextProps>
+) =>
+  createComponent(
+    ComponentIDs.MultiLineText,
+    instanceId,
+    metadata,
+    {
+      questionText: '<p>Enter your response</p>',
+      placeholder: '',
+      defaultValue: '',
+      rows: 4,
+      ...props,
+    },
     { required: false, minLength: 0 } as TextValidation
   );
 
@@ -99,9 +161,21 @@ export interface EmailProps {
   placeholder: string;
   defaultValue: string;
 }
-export const createEmailComponent = (instanceId: string, metadata: ComponentMetadata, props?: Partial<EmailProps>) =>
-  createComponent(ComponentIDs.Email, instanceId, metadata,
-    { questionText: '<p>Email address</p>', placeholder: 'user@example.com', defaultValue: '', ...props },
+export const createEmailComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props?: Partial<EmailProps>
+) =>
+  createComponent(
+    ComponentIDs.Email,
+    instanceId,
+    metadata,
+    {
+      questionText: '<p>Email address</p>',
+      placeholder: 'user@example.com',
+      defaultValue: '',
+      ...props,
+    },
     { required: false, pattern: '^[^@]+@[^@]+\\.[^@]+$' } as TextValidation
   );
 
@@ -112,9 +186,22 @@ export interface PhoneProps {
   defaultValue: string;
   countryCode: string;
 }
-export const createPhoneComponent = (instanceId: string, metadata: ComponentMetadata, props?: Partial<PhoneProps>) =>
-  createComponent(ComponentIDs.Phone, instanceId, metadata,
-    { questionText: '<p>Phone number</p>', placeholder: '+1 (555) 000-0000', defaultValue: '', countryCode: '+1', ...props },
+export const createPhoneComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props?: Partial<PhoneProps>
+) =>
+  createComponent(
+    ComponentIDs.Phone,
+    instanceId,
+    metadata,
+    {
+      questionText: '<p>Phone number</p>',
+      placeholder: '+1 (555) 000-0000',
+      defaultValue: '',
+      countryCode: '+1',
+      ...props,
+    },
     { required: false } as TextValidation
   );
 
@@ -124,9 +211,21 @@ export interface NumberProps {
   placeholder: string;
   defaultValue: string;
 }
-export const createNumberComponent = (instanceId: string, metadata: ComponentMetadata, props?: Partial<NumberProps>) =>
-  createComponent(ComponentIDs.Number, instanceId, metadata,
-    { questionText: '<p>Enter a number</p>', placeholder: '0', defaultValue: '', ...props },
+export const createNumberComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props?: Partial<NumberProps>
+) =>
+  createComponent(
+    ComponentIDs.Number,
+    instanceId,
+    metadata,
+    {
+      questionText: '<p>Enter a number</p>',
+      placeholder: '0',
+      defaultValue: '',
+      ...props,
+    },
     { required: false, min: undefined, max: undefined } as NumericValidation
   );
 
@@ -137,9 +236,22 @@ export interface DecimalProps {
   defaultValue: string;
   precision: number;
 }
-export const createDecimalComponent = (instanceId: string, metadata: ComponentMetadata, props?: Partial<DecimalProps>) =>
-  createComponent(ComponentIDs.Decimal, instanceId, metadata,
-    { questionText: '<p>Enter a decimal value</p>', placeholder: '0.00', defaultValue: '', precision: 2, ...props },
+export const createDecimalComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props?: Partial<DecimalProps>
+) =>
+  createComponent(
+    ComponentIDs.Decimal,
+    instanceId,
+    metadata,
+    {
+      questionText: '<p>Enter a decimal value</p>',
+      placeholder: '0.00',
+      defaultValue: '',
+      precision: 2,
+      ...props,
+    },
     { required: false, min: undefined, max: undefined } as NumericValidation
   );
 
@@ -149,9 +261,21 @@ export interface URLProps {
   placeholder: string;
   defaultValue: string;
 }
-export const createURLComponent = (instanceId: string, metadata: ComponentMetadata, props?: Partial<URLProps>) =>
-  createComponent(ComponentIDs.URL, instanceId, metadata,
-    { questionText: '<p>Enter a URL</p>', placeholder: 'https://example.com', defaultValue: '', ...props },
+export const createURLComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props?: Partial<URLProps>
+) =>
+  createComponent(
+    ComponentIDs.URL,
+    instanceId,
+    metadata,
+    {
+      questionText: '<p>Enter a URL</p>',
+      placeholder: 'https://example.com',
+      defaultValue: '',
+      ...props,
+    },
     { required: false, pattern: '^https?://' } as TextValidation
   );
 
@@ -165,9 +289,21 @@ export interface DateProps {
   placeholder: string;
   includeTime: boolean;
 }
-export const createDateComponent = (instanceId: string, metadata: ComponentMetadata, props?: Partial<DateProps>) =>
-  createComponent(ComponentIDs.Date, instanceId, metadata,
-    { questionText: '<p>Select a date</p>', placeholder: 'YYYY-MM-DD', includeTime: false, ...props },
+export const createDateComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props?: Partial<DateProps>
+) =>
+  createComponent(
+    ComponentIDs.Date,
+    instanceId,
+    metadata,
+    {
+      questionText: '<p>Select a date</p>',
+      placeholder: 'YYYY-MM-DD',
+      includeTime: false,
+      ...props,
+    },
     { required: false } as BasicValidation
   );
 
@@ -177,9 +313,21 @@ export interface TimeProps {
   placeholder: string;
   format24h: boolean;
 }
-export const createTimeComponent = (instanceId: string, metadata: ComponentMetadata, props?: Partial<TimeProps>) =>
-  createComponent(ComponentIDs.Time, instanceId, metadata,
-    { questionText: '<p>Select a time</p>', placeholder: 'HH:MM', format24h: false, ...props },
+export const createTimeComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props?: Partial<TimeProps>
+) =>
+  createComponent(
+    ComponentIDs.Time,
+    instanceId,
+    metadata,
+    {
+      questionText: '<p>Select a time</p>',
+      placeholder: 'HH:MM',
+      format24h: false,
+      ...props,
+    },
     { required: false } as BasicValidation
   );
 
@@ -194,9 +342,22 @@ export interface FileUploadProps {
   maxSizeMB: number;
   multiple: boolean;
 }
-export const createFileUploadComponent = (instanceId: string, metadata: ComponentMetadata, props?: Partial<FileUploadProps>) =>
-  createComponent(ComponentIDs.FileUpload, instanceId, metadata,
-    { questionText: '<p>Upload a file</p>', accept: '*', maxSizeMB: 10, multiple: false, ...props },
+export const createFileUploadComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props?: Partial<FileUploadProps>
+) =>
+  createComponent(
+    ComponentIDs.FileUpload,
+    instanceId,
+    metadata,
+    {
+      questionText: '<p>Upload a file</p>',
+      accept: '*',
+      maxSizeMB: 10,
+      multiple: false,
+      ...props,
+    },
     { required: false } as BasicValidation
   );
 
@@ -207,18 +368,143 @@ export interface ImageUploadProps {
   maxSizeMB: number;
   multiple: boolean;
 }
-export const createImageUploadComponent = (instanceId: string, metadata: ComponentMetadata, props?: Partial<ImageUploadProps>) =>
-  createComponent(ComponentIDs.ImageUpload, instanceId, metadata,
-    { questionText: '<p>Upload an image</p>', accept: 'image/*', maxSizeMB: 5, multiple: false, ...props },
+export const createImageUploadComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props?: Partial<ImageUploadProps>
+) =>
+  createComponent(
+    ComponentIDs.ImageUpload,
+    instanceId,
+    metadata,
+    {
+      questionText: '<p>Upload an image</p>',
+      accept: 'image/*',
+      maxSizeMB: 5,
+      multiple: false,
+      ...props,
+    },
     { required: false } as BasicValidation
   );
+
+// ========================================================================================
+//  CHECKBOX
+// ========================================================================================
+
+export interface CheckboxOption {
+  id: string;
+  label: string;
+  value: string;
+}
+
+export interface CheckboxProps {
+  questionText?: string;
+  options: CheckboxOption[];
+  defaultValues?: string[];
+  layout?: 'vertical' | 'horizontal';
+}
+
+export interface CheckboxValidation {
+  required: boolean;
+}
+
+export const createCheckboxComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props: CheckboxProps,
+  validation: CheckboxValidation
+): FormComponent<'Checkbox', CheckboxProps, CheckboxValidation> => ({
+  id: ComponentIDs.Checkbox,
+  instanceId,
+  metadata,
+  children: [],
+  props,
+  validation,
+});
+
+// ========================================================================================
+//  DROPDOWN
+// ========================================================================================
+
+export interface DropdownOption {
+  id: string;
+  label: string;
+  value: string;
+}
+
+export interface DropdownProps {
+  questionText?: string;
+  placeholder?: string;
+  options: DropdownOption[];
+  defaultValue?: string;
+}
+
+export interface DropdownValidation {
+  requred: boolean;
+}
+
+export const createDropdownComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props: DropdownProps,
+  validation: DropdownValidation
+): FormComponent<'Dropdown', DropdownProps, DropdownValidation> => ({
+  id: ComponentIDs.Dropdown,
+  instanceId,
+  metadata,
+  children: [],
+  props,
+  validation,
+});
+
+// ========================================================================================
+//  RADIO
+// ========================================================================================
+
+export interface RadioOption {
+  id: string;
+  label: string;
+  value: string;
+}
+
+export interface RadioProps {
+  questionText?: string;
+  options: RadioOption[];
+  defaultValue?: string;
+  layout?: 'vertical' | 'horizontal';
+}
+
+export interface RadioValidation {
+  required: boolean;
+}
+
+export const createRadioComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props: RadioProps,
+  validation: RadioValidation
+): FormComponent<'Radio', RadioProps, RadioValidation> => ({
+  id: ComponentIDs.Radio,
+  instanceId,
+  metadata,
+  children: [],
+  props,
+  validation,
+});
 
 // ========================================================================================
 //  SELECTION / GRIDS
 // ========================================================================================
 
-interface GridOption { id: string; label: string; value: string; }
-interface GridRow { id: string; label: string; }
+interface GridOption {
+  id: string;
+  label: string;
+  value: string;
+}
+interface GridRow {
+  id: string;
+  label: string;
+}
 
 // ── Single Choice Grid ──
 export interface SingleChoiceGridProps {
@@ -226,8 +512,15 @@ export interface SingleChoiceGridProps {
   rows: GridRow[];
   columns: GridOption[];
 }
-export const createSingleChoiceGridComponent = (instanceId: string, metadata: ComponentMetadata, props?: Partial<SingleChoiceGridProps>) =>
-  createComponent(ComponentIDs.SingleChoiceGrid, instanceId, metadata,
+export const createSingleChoiceGridComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props?: Partial<SingleChoiceGridProps>
+) =>
+  createComponent(
+    ComponentIDs.SingleChoiceGrid,
+    instanceId,
+    metadata,
     {
       questionText: '<p>Select one per row</p>',
       rows: [{ id: crypto.randomUUID(), label: 'Row 1' }],
@@ -246,8 +539,15 @@ export interface MultiChoiceGridProps {
   rows: GridRow[];
   columns: GridOption[];
 }
-export const createMultiChoiceGridComponent = (instanceId: string, metadata: ComponentMetadata, props?: Partial<MultiChoiceGridProps>) =>
-  createComponent(ComponentIDs.MultiChoiceGrid, instanceId, metadata,
+export const createMultiChoiceGridComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props?: Partial<MultiChoiceGridProps>
+) =>
+  createComponent(
+    ComponentIDs.MultiChoiceGrid,
+    instanceId,
+    metadata,
     {
       questionText: '<p>Select all that apply per row</p>',
       rows: [{ id: crypto.randomUUID(), label: 'Row 1' }],
@@ -267,8 +567,15 @@ export interface MatrixTableProps {
   columns: GridOption[];
   inputType: 'text' | 'number' | 'dropdown';
 }
-export const createMatrixTableComponent = (instanceId: string, metadata: ComponentMetadata, props?: Partial<MatrixTableProps>) =>
-  createComponent(ComponentIDs.MatrixTable, instanceId, metadata,
+export const createMatrixTableComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props?: Partial<MatrixTableProps>
+) =>
+  createComponent(
+    ComponentIDs.MatrixTable,
+    instanceId,
+    metadata,
     {
       questionText: '<p>Fill in the table</p>',
       rows: [{ id: crypto.randomUUID(), label: 'Row 1' }],
@@ -289,9 +596,21 @@ export interface RatingScaleProps {
   maxRating: number;
   icon: 'star' | 'heart' | 'circle';
 }
-export const createRatingScaleComponent = (instanceId: string, metadata: ComponentMetadata, props?: Partial<RatingScaleProps>) =>
-  createComponent(ComponentIDs.RatingScale, instanceId, metadata,
-    { questionText: '<p>Rate this</p>', maxRating: 5, icon: 'star' as const, ...props },
+export const createRatingScaleComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props?: Partial<RatingScaleProps>
+) =>
+  createComponent(
+    ComponentIDs.RatingScale,
+    instanceId,
+    metadata,
+    {
+      questionText: '<p>Rate this</p>',
+      maxRating: 5,
+      icon: 'star' as const,
+      ...props,
+    },
     { required: false } as BasicValidation
   );
 
@@ -303,9 +622,23 @@ export interface LinearScaleProps {
   minLabel: string;
   maxLabel: string;
 }
-export const createLinearScaleComponent = (instanceId: string, metadata: ComponentMetadata, props?: Partial<LinearScaleProps>) =>
-  createComponent(ComponentIDs.LinearScale, instanceId, metadata,
-    { questionText: '<p>How would you rate this?</p>', min: 1, max: 10, minLabel: 'Low', maxLabel: 'High', ...props },
+export const createLinearScaleComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props?: Partial<LinearScaleProps>
+) =>
+  createComponent(
+    ComponentIDs.LinearScale,
+    instanceId,
+    metadata,
+    {
+      questionText: '<p>How would you rate this?</p>',
+      min: 1,
+      max: 10,
+      minLabel: 'Low',
+      maxLabel: 'High',
+      ...props,
+    },
     { required: false } as BasicValidation
   );
 
@@ -317,9 +650,23 @@ export interface SliderProps {
   step: number;
   defaultValue: number;
 }
-export const createSliderComponent = (instanceId: string, metadata: ComponentMetadata, props?: Partial<SliderProps>) =>
-  createComponent(ComponentIDs.Slider, instanceId, metadata,
-    { questionText: '<p>Adjust the slider</p>', min: 0, max: 100, step: 1, defaultValue: 50, ...props },
+export const createSliderComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props?: Partial<SliderProps>
+) =>
+  createComponent(
+    ComponentIDs.Slider,
+    instanceId,
+    metadata,
+    {
+      questionText: '<p>Adjust the slider</p>',
+      min: 0,
+      max: 100,
+      step: 1,
+      defaultValue: 50,
+      ...props,
+    },
     { required: false } as BasicValidation
   );
 
@@ -335,9 +682,23 @@ export interface AddressBlockProps {
   showZip: boolean;
   showCountry: boolean;
 }
-export const createAddressBlockComponent = (instanceId: string, metadata: ComponentMetadata, props?: Partial<AddressBlockProps>) =>
-  createComponent(ComponentIDs.AddressBlock, instanceId, metadata,
-    { questionText: '<p>Enter your address</p>', showLine2: true, showState: true, showZip: true, showCountry: true, ...props },
+export const createAddressBlockComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props?: Partial<AddressBlockProps>
+) =>
+  createComponent(
+    ComponentIDs.AddressBlock,
+    instanceId,
+    metadata,
+    {
+      questionText: '<p>Enter your address</p>',
+      showLine2: true,
+      showState: true,
+      showZip: true,
+      showCountry: true,
+      ...props,
+    },
     { required: false } as BasicValidation
   );
 
@@ -348,9 +709,22 @@ export interface NameBlockProps {
   showPrefix: boolean;
   showSuffix: boolean;
 }
-export const createNameBlockComponent = (instanceId: string, metadata: ComponentMetadata, props?: Partial<NameBlockProps>) =>
-  createComponent(ComponentIDs.NameBlock, instanceId, metadata,
-    { questionText: '<p>Enter your name</p>', showMiddleName: false, showPrefix: false, showSuffix: false, ...props },
+export const createNameBlockComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props?: Partial<NameBlockProps>
+) =>
+  createComponent(
+    ComponentIDs.NameBlock,
+    instanceId,
+    metadata,
+    {
+      questionText: '<p>Enter your name</p>',
+      showMiddleName: false,
+      showPrefix: false,
+      showSuffix: false,
+      ...props,
+    },
     { required: false } as BasicValidation
   );
 
@@ -363,8 +737,15 @@ export interface ColorPickerProps {
   questionText: string;
   defaultColor: string;
 }
-export const createColorPickerComponent = (instanceId: string, metadata: ComponentMetadata, props?: Partial<ColorPickerProps>) =>
-  createComponent(ComponentIDs.ColorPicker, instanceId, metadata,
+export const createColorPickerComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props?: Partial<ColorPickerProps>
+) =>
+  createComponent(
+    ComponentIDs.ColorPicker,
+    instanceId,
+    metadata,
     { questionText: '<p>Pick a color</p>', defaultColor: '#4f46e5', ...props },
     { required: false } as BasicValidation
   );
@@ -375,9 +756,21 @@ export interface SignatureProps {
   penColor: string;
   lineWidth: number;
 }
-export const createSignatureComponent = (instanceId: string, metadata: ComponentMetadata, props?: Partial<SignatureProps>) =>
-  createComponent(ComponentIDs.Signature, instanceId, metadata,
-    { questionText: '<p>Sign here</p>', penColor: '#000000', lineWidth: 2, ...props },
+export const createSignatureComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props?: Partial<SignatureProps>
+) =>
+  createComponent(
+    ComponentIDs.Signature,
+    instanceId,
+    metadata,
+    {
+      questionText: '<p>Sign here</p>',
+      penColor: '#000000',
+      lineWidth: 2,
+      ...props,
+    },
     { required: false } as BasicValidation
   );
 
@@ -387,9 +780,21 @@ export interface LocationProps {
   placeholder: string;
   useCurrentLocation: boolean;
 }
-export const createLocationComponent = (instanceId: string, metadata: ComponentMetadata, props?: Partial<LocationProps>) =>
-  createComponent(ComponentIDs.Location, instanceId, metadata,
-    { questionText: '<p>Select your location</p>', placeholder: 'Search for a place...', useCurrentLocation: false, ...props },
+export const createLocationComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props?: Partial<LocationProps>
+) =>
+  createComponent(
+    ComponentIDs.Location,
+    instanceId,
+    metadata,
+    {
+      questionText: '<p>Select your location</p>',
+      placeholder: 'Search for a place...',
+      useCurrentLocation: false,
+      ...props,
+    },
     { required: false } as BasicValidation
   );
 
@@ -403,9 +808,21 @@ export interface ToggleProps {
   label: string;
   defaultValue: boolean;
 }
-export const createToggleComponent = (instanceId: string, metadata: ComponentMetadata, props?: Partial<ToggleProps>) =>
-  createComponent(ComponentIDs.Toggle, instanceId, metadata,
-    { questionText: '<p>Toggle option</p>', label: 'Enable', defaultValue: false, ...props },
+export const createToggleComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props?: Partial<ToggleProps>
+) =>
+  createComponent(
+    ComponentIDs.Toggle,
+    instanceId,
+    metadata,
+    {
+      questionText: '<p>Toggle option</p>',
+      label: 'Enable',
+      defaultValue: false,
+      ...props,
+    },
     { required: false } as BasicValidation
   );
 
@@ -415,9 +832,21 @@ export interface RichTextInputProps {
   placeholder: string;
   defaultValue: string;
 }
-export const createRichTextInputComponent = (instanceId: string, metadata: ComponentMetadata, props?: Partial<RichTextInputProps>) =>
-  createComponent(ComponentIDs.RichTextInput, instanceId, metadata,
-    { questionText: '<p>Enter formatted text</p>', placeholder: 'Type here...', defaultValue: '', ...props },
+export const createRichTextInputComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props?: Partial<RichTextInputProps>
+) =>
+  createComponent(
+    ComponentIDs.RichTextInput,
+    instanceId,
+    metadata,
+    {
+      questionText: '<p>Enter formatted text</p>',
+      placeholder: 'Type here...',
+      defaultValue: '',
+      ...props,
+    },
     { required: false } as BasicValidation
   );
 
@@ -426,8 +855,19 @@ export interface CaptchaProps {
   questionText: string;
   type: 'recaptcha' | 'hcaptcha' | 'simple';
 }
-export const createCaptchaComponent = (instanceId: string, metadata: ComponentMetadata, props?: Partial<CaptchaProps>) =>
-  createComponent(ComponentIDs.Captcha, instanceId, metadata,
-    { questionText: '<p>Verify you are human</p>', type: 'simple' as const, ...props },
+export const createCaptchaComponent = (
+  instanceId: string,
+  metadata: ComponentMetadata,
+  props?: Partial<CaptchaProps>
+) =>
+  createComponent(
+    ComponentIDs.Captcha,
+    instanceId,
+    metadata,
+    {
+      questionText: '<p>Verify you are human</p>',
+      type: 'simple' as const,
+      ...props,
+    },
     { proxy: 0 } as NoValidation
   );

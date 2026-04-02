@@ -14,23 +14,10 @@ import type { FormComponent, SerializedComponent } from '../components/base';
 // ── Existing renderers (the 5 original components) ──
 import { createTextBoxComponent } from '../components/textBox';
 import type { TextBoxProps, TextBoxValidation } from '../components/textBox';
-import { TextBoxComponentPropsRenderer, TextBoxComponentRenderer } from '../components/TextBoxRenderer';
-
-import { createInputComponent } from '../components/input';
-import type { InputProps, InputValidation } from '../components/input';
-import { InputComponentPropsRenderer, InputComponentRenderer } from '../components/InputRenderer';
-
-import { createRadioComponent } from '../components/radio';
-import type { RadioProps, RadioValidation } from '../components/radio';
-import { RadioComponentPropsRenderer, RadioComponentRenderer } from '../components/RadioRenderer';
-
-import { createCheckboxComponent } from '../components/checkbox';
-import type { CheckboxProps, CheckboxValidation } from '../components/checkbox';
-import { CheckboxComponentPropsRenderer, CheckboxComponentRenderer } from '../components/CheckboxRenderer';
-
-import { createDropdownComponent } from '../components/dropdown';
-import type { DropdownProps, DropdownValidation } from '../components/dropdown';
-import { DropdownComponentPropsRenderer, DropdownComponentRenderer } from '../components/DropdownRenderer';
+import {
+  TextBoxComponentPropsRenderer,
+  TextBoxComponentRenderer,
+} from '../components/TextBoxRenderer';
 
 // ── Generic renderer for settings (still placeholder) ──
 import { PlaceholderSettingsRenderer } from '../components/PlaceholderRenderer';
@@ -38,29 +25,53 @@ import { PlaceholderSettingsRenderer } from '../components/PlaceholderRenderer';
 // ── New component renderers ──
 import {
   HeaderRenderer,
+  HeaderPropsRenderer,
   LineDividerRenderer,
+  LineDividerPropsRenderer,
   ColumnLayoutRenderer,
+  InputComponentRenderer,
+  InputComponentPropsRenderer,
+  CheckboxComponentRenderer,
+  CheckboxComponentPropsRenderer,
+  DropdownComponentRenderer,
+  DropdownComponentPropsRenderer,
+  RadioComponentRenderer,
+  RadioComponentPropsRenderer,
   MultiLineTextRenderer,
+  MultiLineTextPropsRenderer,
   EmailRenderer,
+  EmailPropsRenderer,
   PhoneRenderer,
+  PhonePropsRenderer,
   NumberRenderer,
+  NumberPropsRenderer,
   DecimalRenderer,
+  DecimalPropsRenderer,
   URLRenderer,
+  URLPropsRenderer,
   DateRenderer,
+  DatePropsRenderer,
   TimeRenderer,
+  TimePropsRenderer,
   FileUploadRenderer,
   ImageUploadRenderer,
   SingleChoiceGridRenderer,
   MultiChoiceGridRenderer,
   MatrixTableRenderer,
   RatingScaleRenderer,
+  RatingScalePropsRenderer,
   LinearScaleRenderer,
+  LinearScalePropsRenderer,
   SliderRenderer,
+  SliderPropsRenderer,
   AddressBlockRenderer,
+  AddressBlockPropsRenderer,
   NameBlockRenderer,
+  NameBlockPropsRenderer,
   ColorPickerRenderer,
   SignatureRenderer,
   LocationRenderer,
+  LocationPropsRenderer,
   ToggleRenderer,
   RichTextInputRenderer,
   CaptchaRenderer,
@@ -72,6 +83,10 @@ import {
   createLineDividerComponent,
   createColumnLayoutComponent,
   createMultiLineTextComponent,
+  createInputComponent,
+  createCheckboxComponent,
+  createDropdownComponent,
+  createRadioComponent,
   createEmailComponent,
   createPhoneComponent,
   createNumberComponent,
@@ -106,6 +121,14 @@ import type {
   LineDividerProps,
   ColumnLayoutProps,
   MultiLineTextProps,
+  InputProps,
+  InputValidation,
+  CheckboxProps,
+  CheckboxValidation,
+  DropdownProps,
+  DropdownValidation,
+  RadioProps,
+  RadioValidation,
   EmailProps,
   PhoneProps,
   NumberProps,
@@ -206,11 +229,19 @@ export type ComponentValidationMap = {
 // ── Union types ──
 
 export type AnyFormComponent = {
-  [K in ComponentID]: FormComponent<K, ComponentPropsMap[K], ComponentValidationMap[K]>;
+  [K in ComponentID]: FormComponent<
+    K,
+    ComponentPropsMap[K],
+    ComponentValidationMap[K]
+  >;
 }[ComponentID];
 
 export type AnySerializedComponent = {
-  [K in ComponentID]: SerializedComponent<K, ComponentPropsMap[K], ComponentValidationMap[K]>;
+  [K in ComponentID]: SerializedComponent<
+    K,
+    ComponentPropsMap[K],
+    ComponentValidationMap[K]
+  >;
 }[ComponentID];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -224,12 +255,23 @@ export interface ComponentRegistryEntry<T extends ComponentID> {
   id: T;
   catalog: { label: string; description: string; category: string };
   renderers: {
-    main: ComponentRenderer<ComponentPropsMap[T], ComponentValidationMap[T]> | null;
-    settings: ComponentRenderer<ComponentPropsMap[T], ComponentValidationMap[T]> | null;
+    main: ComponentRenderer<
+      ComponentPropsMap[T],
+      ComponentValidationMap[T]
+    > | null;
+    settings: ComponentRenderer<
+      ComponentPropsMap[T],
+      ComponentValidationMap[T]
+    > | null;
   };
   create: (instanceId: string) => FormComponent<T, ComponentPropsMap[T]>;
-  deserialize: (json: SerializedComponent<T, ComponentPropsMap[T], ComponentValidationMap[T]>) =>
-    FormComponent<T, ComponentPropsMap[T], ComponentValidationMap[T]>;
+  deserialize: (
+    json: SerializedComponent<
+      T,
+      ComponentPropsMap[T],
+      ComponentValidationMap[T]
+    >
+  ) => FormComponent<T, ComponentPropsMap[T], ComponentValidationMap[T]>;
 }
 
 // ── Internal registry ──
@@ -242,9 +284,14 @@ function makeEntry<T extends ComponentID>(
   label: string,
   description: string,
   category: string,
-  createFn: (instanceId: string, metadata: { label: string }) => FormComponent<T, ComponentPropsMap[T]>,
+  createFn: (
+    instanceId: string,
+    metadata: { label: string }
+  ) => FormComponent<T, ComponentPropsMap[T]>,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mainRenderer: ComponentRenderer<any, any>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  settingsRenderer?: ComponentRenderer<any, any>
 ): ComponentRegistryEntry<T> {
   return {
     id,
@@ -253,7 +300,7 @@ function makeEntry<T extends ComponentID>(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       main: mainRenderer as any,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      settings: PlaceholderSettingsRenderer as any,
+      settings: (settingsRenderer || PlaceholderSettingsRenderer) as any,
     },
     create: (instanceId) => createFn(instanceId, { label }),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -274,198 +321,442 @@ const registry: Registry = {
   // ════════════════════════════════════════════════════════
   [ComponentIDs.TextBox]: {
     id: ComponentIDs.TextBox,
-    catalog: { label: 'Text Box', description: 'A static rich text block.', category: 'Layout' },
-    renderers: { main: TextBoxComponentRenderer, settings: TextBoxComponentPropsRenderer },
+    catalog: {
+      label: 'Text Box',
+      description: 'A static rich text block.',
+      category: 'Layout',
+    },
+    renderers: {
+      main: TextBoxComponentRenderer,
+      settings: TextBoxComponentPropsRenderer,
+    },
     create: (instanceId) =>
-      createTextBoxComponent(instanceId, { label: 'Text Box' }, { text: '' }, { proxy: 0 }),
+      createTextBoxComponent(
+        instanceId,
+        { label: 'Text Box' },
+        { text: '' },
+        { proxy: 0 }
+      ),
     deserialize: (json) =>
-      createTextBoxComponent(json.instanceId, json.metadata, json.props, json.validation),
+      createTextBoxComponent(
+        json.instanceId,
+        json.metadata,
+        json.props,
+        json.validation
+      ),
   },
   [ComponentIDs.Input]: {
     id: ComponentIDs.Input,
-    catalog: { label: 'Single-line Text', description: 'A single-line text input.', category: 'Text Inputs' },
-    renderers: { main: InputComponentRenderer, settings: InputComponentPropsRenderer },
+    catalog: {
+      label: 'Single-line Text',
+      description: 'A single-line text input.',
+      category: 'Text Inputs',
+    },
+    renderers: {
+      main: InputComponentRenderer,
+      settings: InputComponentPropsRenderer,
+    },
     create: (instanceId) =>
-      createInputComponent(instanceId, { label: 'Input Field' },
-        { questionText: '<p>Write the answer...</p>', placeholder: '', defaultValue: '' },
-        { required: false, minLength: 0 }),
+      createInputComponent(
+        instanceId,
+        { label: 'Input Field' },
+        {
+          questionText: 'Write the answer...',
+          placeholder: '',
+          defaultValue: '',
+        },
+        { required: false, minLength: 0 }
+      ),
     deserialize: (json) =>
-      createInputComponent(json.instanceId, json.metadata, json.props, json.validation),
+      createInputComponent(
+        json.instanceId,
+        json.metadata,
+        json.props,
+        json.validation
+      ),
   },
   [ComponentIDs.Radio]: {
     id: ComponentIDs.Radio,
-    catalog: { label: 'Radio Buttons', description: 'Single choice selection.', category: 'Selection' },
-    renderers: { main: RadioComponentRenderer, settings: RadioComponentPropsRenderer },
+    catalog: {
+      label: 'Radio Buttons',
+      description: 'Single choice selection.',
+      category: 'Selection',
+    },
+    renderers: {
+      main: RadioComponentRenderer,
+      settings: RadioComponentPropsRenderer,
+    },
     create: (instanceId) =>
-      createRadioComponent(instanceId, { label: 'Single Choice Question' },
-        { questionText: '<p>Select an option</p>', layout: 'vertical',
-          options: [{ id: crypto.randomUUID(), label: 'Option 1', value: 'option-1' }] },
-        { required: false }),
+      createRadioComponent(
+        instanceId,
+        { label: 'Single Choice Question' },
+        {
+          questionText: '<p>Select an option</p>',
+          layout: 'vertical',
+          options: [
+            { id: crypto.randomUUID(), label: 'Option 1', value: 'option-1' },
+          ],
+        },
+        { required: false }
+      ),
     deserialize: (json) =>
-      createRadioComponent(json.instanceId, json.metadata, json.props, json.validation),
+      createRadioComponent(
+        json.instanceId,
+        json.metadata,
+        json.props,
+        json.validation
+      ),
   },
   [ComponentIDs.Checkbox]: {
     id: ComponentIDs.Checkbox,
-    catalog: { label: 'Checkboxes', description: 'Multiple choice selection.', category: 'Selection' },
-    renderers: { main: CheckboxComponentRenderer, settings: CheckboxComponentPropsRenderer },
+    catalog: {
+      label: 'Checkboxes',
+      description: 'Multiple choice selection.',
+      category: 'Selection',
+    },
+    renderers: {
+      main: CheckboxComponentRenderer,
+      settings: CheckboxComponentPropsRenderer,
+    },
     create: (instanceId) =>
-      createCheckboxComponent(instanceId, { label: 'Multiple Choice Question' },
-        { questionText: '<p>Select all that apply</p>', layout: 'vertical', defaultValues: [],
+      createCheckboxComponent(
+        instanceId,
+        { label: 'Multiple Choice Question' },
+        {
+          questionText: '<p>Select all that apply</p>',
+          layout: 'vertical',
+          defaultValues: [],
           options: [
             { id: crypto.randomUUID(), label: 'Option 1', value: 'option-1' },
             { id: crypto.randomUUID(), label: 'Option 2', value: 'option-2' },
-          ] },
-        { required: false }),
+          ],
+        },
+        { required: false }
+      ),
     deserialize: (json) =>
-      createCheckboxComponent(json.instanceId, json.metadata, json.props, json.validation),
+      createCheckboxComponent(
+        json.instanceId,
+        json.metadata,
+        json.props,
+        json.validation
+      ),
   },
   [ComponentIDs.Dropdown]: {
     id: ComponentIDs.Dropdown,
-    catalog: { label: 'Dropdown', description: 'Select from a dropdown list.', category: 'Selection' },
-    renderers: { main: DropdownComponentRenderer, settings: DropdownComponentPropsRenderer },
+    catalog: {
+      label: 'Dropdown',
+      description: 'Select from a dropdown list.',
+      category: 'Selection',
+    },
+    renderers: {
+      main: DropdownComponentRenderer,
+      settings: DropdownComponentPropsRenderer,
+    },
     create: (instanceId) =>
-      createDropdownComponent(instanceId, { label: 'Dropdown Selection' },
-        { questionText: '<p>Please select an option from the list</p>', placeholder: 'Select an option',
+      createDropdownComponent(
+        instanceId,
+        { label: 'Dropdown Selection' },
+        {
+          questionText: '<p>Please select an option from the list</p>',
+          placeholder: 'Select an option',
           options: [
             { id: crypto.randomUUID(), label: 'Option 1', value: 'option-1' },
             { id: crypto.randomUUID(), label: 'Option 2', value: 'option-2' },
-          ] },
-        { requred: false }),
+          ],
+        },
+        { requred: false }
+      ),
     deserialize: (json) =>
-      createDropdownComponent(json.instanceId, json.metadata, json.props, json.validation),
+      createDropdownComponent(
+        json.instanceId,
+        json.metadata,
+        json.props,
+        json.validation
+      ),
   },
 
   // ════════════════════════════════════════════════════════
   //  LAYOUT
   // ════════════════════════════════════════════════════════
-  [ComponentIDs.Header]: makeEntry(ComponentIDs.Header,
-    'Header', 'A heading / title element.', 'Layout',
-    (id, m) => createHeaderComponent(id, m), HeaderRenderer),
+  [ComponentIDs.Header]: makeEntry(
+    ComponentIDs.Header,
+    'Header',
+    'A heading / title element.',
+    'Layout',
+    (id, m) => createHeaderComponent(id, m),
+    HeaderRenderer,
+    HeaderPropsRenderer
+  ),
 
-  [ComponentIDs.LineDivider]: makeEntry(ComponentIDs.LineDivider,
-    'Line Divider', 'A horizontal line separator.', 'Layout',
-    (id, m) => createLineDividerComponent(id, m), LineDividerRenderer),
+  [ComponentIDs.LineDivider]: makeEntry(
+    ComponentIDs.LineDivider,
+    'Line Divider',
+    'A horizontal line separator.',
+    'Layout',
+    (id, m) => createLineDividerComponent(id, m),
+    LineDividerRenderer,
+    LineDividerPropsRenderer
+  ),
 
-  [ComponentIDs.ColumnLayout]: makeEntry(ComponentIDs.ColumnLayout,
-    'Columns', 'Place components side by side.', 'Layout',
-    (id, m) => createColumnLayoutComponent(id, m), ColumnLayoutRenderer),
+  [ComponentIDs.ColumnLayout]: makeEntry(
+    ComponentIDs.ColumnLayout,
+    'Columns',
+    'Place components side by side.',
+    'Layout',
+    (id, m) => createColumnLayoutComponent(id, m),
+    ColumnLayoutRenderer
+  ),
 
   // ════════════════════════════════════════════════════════
   //  TEXT INPUTS
   // ════════════════════════════════════════════════════════
-  [ComponentIDs.MultiLineText]: makeEntry(ComponentIDs.MultiLineText,
-    'Multi-line Text', 'A multi-line text area.', 'Text Inputs',
-    (id, m) => createMultiLineTextComponent(id, m), MultiLineTextRenderer),
+  [ComponentIDs.MultiLineText]: makeEntry(
+    ComponentIDs.MultiLineText,
+    'Multi-line Text',
+    'A multi-line text area.',
+    'Text Inputs',
+    (id, m) => createMultiLineTextComponent(id, m),
+    MultiLineTextRenderer,
+    MultiLineTextPropsRenderer
+  ),
 
-  [ComponentIDs.Email]: makeEntry(ComponentIDs.Email,
-    'Email', 'An email address input.', 'Text Inputs',
-    (id, m) => createEmailComponent(id, m), EmailRenderer),
+  [ComponentIDs.Email]: makeEntry(
+    ComponentIDs.Email,
+    'Email',
+    'An email address input.',
+    'Text Inputs',
+    (id, m) => createEmailComponent(id, m),
+    EmailRenderer,
+    EmailPropsRenderer
+  ),
 
-  [ComponentIDs.Phone]: makeEntry(ComponentIDs.Phone,
-    'Phone', 'A phone number input with country code.', 'Text Inputs',
-    (id, m) => createPhoneComponent(id, m), PhoneRenderer),
+  [ComponentIDs.Phone]: makeEntry(
+    ComponentIDs.Phone,
+    'Phone',
+    'A phone number input with country code.',
+    'Text Inputs',
+    (id, m) => createPhoneComponent(id, m),
+    PhoneRenderer,
+    PhonePropsRenderer
+  ),
 
-  [ComponentIDs.Number]: makeEntry(ComponentIDs.Number,
-    'Number', 'An integer number input.', 'Text Inputs',
-    (id, m) => createNumberComponent(id, m), NumberRenderer),
+  [ComponentIDs.Number]: makeEntry(
+    ComponentIDs.Number,
+    'Number',
+    'An integer number input.',
+    'Text Inputs',
+    (id, m) => createNumberComponent(id, m),
+    NumberRenderer,
+    NumberPropsRenderer
+  ),
 
-  [ComponentIDs.Decimal]: makeEntry(ComponentIDs.Decimal,
-    'Decimal', 'A decimal / floating-point input.', 'Text Inputs',
-    (id, m) => createDecimalComponent(id, m), DecimalRenderer),
+  [ComponentIDs.Decimal]: makeEntry(
+    ComponentIDs.Decimal,
+    'Decimal',
+    'A decimal / floating-point input.',
+    'Text Inputs',
+    (id, m) => createDecimalComponent(id, m),
+    DecimalRenderer,
+    DecimalPropsRenderer
+  ),
 
-  [ComponentIDs.URL]: makeEntry(ComponentIDs.URL,
-    'URL', 'A URL / web address input.', 'Text Inputs',
-    (id, m) => createURLComponent(id, m), URLRenderer),
+  [ComponentIDs.URL]: makeEntry(
+    ComponentIDs.URL,
+    'URL',
+    'A URL / web address input.',
+    'Text Inputs',
+    (id, m) => createURLComponent(id, m),
+    URLRenderer,
+    URLPropsRenderer
+  ),
 
   // ════════════════════════════════════════════════════════
   //  DATE & TIME
   // ════════════════════════════════════════════════════════
-  [ComponentIDs.Date]: makeEntry(ComponentIDs.Date,
-    'Date', 'A date picker.', 'Date & Time',
-    (id, m) => createDateComponent(id, m), DateRenderer),
+  [ComponentIDs.Date]: makeEntry(
+    ComponentIDs.Date,
+    'Date',
+    'A date picker.',
+    'Date & Time',
+    (id, m) => createDateComponent(id, m),
+    DateRenderer,
+    DatePropsRenderer
+  ),
 
-  [ComponentIDs.Time]: makeEntry(ComponentIDs.Time,
-    'Time', 'A time picker.', 'Date & Time',
-    (id, m) => createTimeComponent(id, m), TimeRenderer),
+  [ComponentIDs.Time]: makeEntry(
+    ComponentIDs.Time,
+    'Time',
+    'A time picker.',
+    'Date & Time',
+    (id, m) => createTimeComponent(id, m),
+    TimeRenderer,
+    TimePropsRenderer
+  ),
 
   // ════════════════════════════════════════════════════════
   //  FILE / MEDIA
   // ════════════════════════════════════════════════════════
-  [ComponentIDs.FileUpload]: makeEntry(ComponentIDs.FileUpload,
-    'File Upload', 'Accept file uploads.', 'File / Media',
-    (id, m) => createFileUploadComponent(id, m), FileUploadRenderer),
+  [ComponentIDs.FileUpload]: makeEntry(
+    ComponentIDs.FileUpload,
+    'File Upload',
+    'Accept file uploads.',
+    'File / Media',
+    (id, m) => createFileUploadComponent(id, m),
+    FileUploadRenderer
+  ),
 
-  [ComponentIDs.ImageUpload]: makeEntry(ComponentIDs.ImageUpload,
-    'Image Upload', 'Accept image uploads with preview.', 'File / Media',
-    (id, m) => createImageUploadComponent(id, m), ImageUploadRenderer),
+  [ComponentIDs.ImageUpload]: makeEntry(
+    ComponentIDs.ImageUpload,
+    'Image Upload',
+    'Accept image uploads with preview.',
+    'File / Media',
+    (id, m) => createImageUploadComponent(id, m),
+    ImageUploadRenderer
+  ),
 
   // ════════════════════════════════════════════════════════
   //  SELECTION / GRIDS
   // ════════════════════════════════════════════════════════
-  [ComponentIDs.SingleChoiceGrid]: makeEntry(ComponentIDs.SingleChoiceGrid,
-    'Single-choice Grid', 'Select one answer per row.', 'Grids & Tables',
-    (id, m) => createSingleChoiceGridComponent(id, m), SingleChoiceGridRenderer),
+  [ComponentIDs.SingleChoiceGrid]: makeEntry(
+    ComponentIDs.SingleChoiceGrid,
+    'Single-choice Grid',
+    'Select one answer per row.',
+    'Grids & Tables',
+    (id, m) => createSingleChoiceGridComponent(id, m),
+    SingleChoiceGridRenderer
+  ),
 
-  [ComponentIDs.MultiChoiceGrid]: makeEntry(ComponentIDs.MultiChoiceGrid,
-    'Multi-choice Grid', 'Select multiple answers per row.', 'Grids & Tables',
-    (id, m) => createMultiChoiceGridComponent(id, m), MultiChoiceGridRenderer),
+  [ComponentIDs.MultiChoiceGrid]: makeEntry(
+    ComponentIDs.MultiChoiceGrid,
+    'Multi-choice Grid',
+    'Select multiple answers per row.',
+    'Grids & Tables',
+    (id, m) => createMultiChoiceGridComponent(id, m),
+    MultiChoiceGridRenderer
+  ),
 
-  [ComponentIDs.MatrixTable]: makeEntry(ComponentIDs.MatrixTable,
-    'Matrix / Table', 'A table with text/number inputs.', 'Grids & Tables',
-    (id, m) => createMatrixTableComponent(id, m), MatrixTableRenderer),
+  [ComponentIDs.MatrixTable]: makeEntry(
+    ComponentIDs.MatrixTable,
+    'Matrix / Table',
+    'A table with text/number inputs.',
+    'Grids & Tables',
+    (id, m) => createMatrixTableComponent(id, m),
+    MatrixTableRenderer
+  ),
 
   // ════════════════════════════════════════════════════════
   //  SCALES
   // ════════════════════════════════════════════════════════
-  [ComponentIDs.RatingScale]: makeEntry(ComponentIDs.RatingScale,
-    'Rating Scale', 'Star / heart / dot rating.', 'Scales & Sliders',
-    (id, m) => createRatingScaleComponent(id, m), RatingScaleRenderer),
+  [ComponentIDs.RatingScale]: makeEntry(
+    ComponentIDs.RatingScale,
+    'Rating Scale',
+    'Star / heart / dot rating.',
+    'Scales & Sliders',
+    (id, m) => createRatingScaleComponent(id, m),
+    RatingScaleRenderer,
+    RatingScalePropsRenderer
+  ),
 
-  [ComponentIDs.LinearScale]: makeEntry(ComponentIDs.LinearScale,
-    'Linear Scale', 'A numbered scale (e.g. 1–10).', 'Scales & Sliders',
-    (id, m) => createLinearScaleComponent(id, m), LinearScaleRenderer),
+  [ComponentIDs.LinearScale]: makeEntry(
+    ComponentIDs.LinearScale,
+    'Linear Scale',
+    'A numbered scale (e.g. 1–10).',
+    'Scales & Sliders',
+    (id, m) => createLinearScaleComponent(id, m),
+    LinearScaleRenderer,
+    LinearScalePropsRenderer
+  ),
 
-  [ComponentIDs.Slider]: makeEntry(ComponentIDs.Slider,
-    'Slider', 'A draggable range slider.', 'Scales & Sliders',
-    (id, m) => createSliderComponent(id, m), SliderRenderer),
+  [ComponentIDs.Slider]: makeEntry(
+    ComponentIDs.Slider,
+    'Slider',
+    'A draggable range slider.',
+    'Scales & Sliders',
+    (id, m) => createSliderComponent(id, m),
+    SliderRenderer,
+    SliderPropsRenderer
+  ),
 
   // ════════════════════════════════════════════════════════
   //  COMPOSITE / BLOCKS
   // ════════════════════════════════════════════════════════
-  [ComponentIDs.AddressBlock]: makeEntry(ComponentIDs.AddressBlock,
-    'Address Block', 'A multi-field address input.', 'Blocks',
-    (id, m) => createAddressBlockComponent(id, m), AddressBlockRenderer),
+  [ComponentIDs.AddressBlock]: makeEntry(
+    ComponentIDs.AddressBlock,
+    'Address Block',
+    'A multi-field address input.',
+    'Blocks',
+    (id, m) => createAddressBlockComponent(id, m),
+    AddressBlockRenderer,
+    AddressBlockPropsRenderer
+  ),
 
-  [ComponentIDs.NameBlock]: makeEntry(ComponentIDs.NameBlock,
-    'Name Block', 'First / middle / last name fields.', 'Blocks',
-    (id, m) => createNameBlockComponent(id, m), NameBlockRenderer),
+  [ComponentIDs.NameBlock]: makeEntry(
+    ComponentIDs.NameBlock,
+    'Name Block',
+    'First / middle / last name fields.',
+    'Blocks',
+    (id, m) => createNameBlockComponent(id, m),
+    NameBlockRenderer,
+    NameBlockPropsRenderer
+  ),
 
   // ════════════════════════════════════════════════════════
   //  SPECIALTY
   // ════════════════════════════════════════════════════════
-  [ComponentIDs.ColorPicker]: makeEntry(ComponentIDs.ColorPicker,
-    'Color Picker', 'A color selection input.', 'Specialty',
-    (id, m) => createColorPickerComponent(id, m), ColorPickerRenderer),
+  [ComponentIDs.ColorPicker]: makeEntry(
+    ComponentIDs.ColorPicker,
+    'Color Picker',
+    'A color selection input.',
+    'Specialty',
+    (id, m) => createColorPickerComponent(id, m),
+    ColorPickerRenderer
+  ),
 
-  [ComponentIDs.Signature]: makeEntry(ComponentIDs.Signature,
-    'Signature', 'A signature capture pad.', 'Specialty',
-    (id, m) => createSignatureComponent(id, m), SignatureRenderer),
+  [ComponentIDs.Signature]: makeEntry(
+    ComponentIDs.Signature,
+    'Signature',
+    'A signature capture pad.',
+    'Specialty',
+    (id, m) => createSignatureComponent(id, m),
+    SignatureRenderer
+  ),
 
-  [ComponentIDs.Location]: makeEntry(ComponentIDs.Location,
-    'Location', 'A map / location picker.', 'Specialty',
-    (id, m) => createLocationComponent(id, m), LocationRenderer),
+  [ComponentIDs.Location]: makeEntry(
+    ComponentIDs.Location,
+    'Location',
+    'A map / location picker.',
+    'Specialty',
+    (id, m) => createLocationComponent(id, m),
+    LocationRenderer,
+    LocationPropsRenderer
+  ),
 
-  [ComponentIDs.Toggle]: makeEntry(ComponentIDs.Toggle,
-    'Toggle', 'An on/off switch.', 'Specialty',
-    (id, m) => createToggleComponent(id, m), ToggleRenderer),
+  [ComponentIDs.Toggle]: makeEntry(
+    ComponentIDs.Toggle,
+    'Toggle',
+    'An on/off switch.',
+    'Specialty',
+    (id, m) => createToggleComponent(id, m),
+    ToggleRenderer
+  ),
 
-  [ComponentIDs.RichTextInput]: makeEntry(ComponentIDs.RichTextInput,
-    'Rich Text Input', 'A rich text editor field.', 'Specialty',
-    (id, m) => createRichTextInputComponent(id, m), RichTextInputRenderer),
+  [ComponentIDs.RichTextInput]: makeEntry(
+    ComponentIDs.RichTextInput,
+    'Rich Text Input',
+    'A rich text editor field.',
+    'Specialty',
+    (id, m) => createRichTextInputComponent(id, m),
+    RichTextInputRenderer
+  ),
 
-  [ComponentIDs.Captcha]: makeEntry(ComponentIDs.Captcha,
-    'Captcha', 'Bot verification challenge.', 'Specialty',
-    (id, m) => createCaptchaComponent(id, m), CaptchaRenderer),
+  [ComponentIDs.Captcha]: makeEntry(
+    ComponentIDs.Captcha,
+    'Captcha',
+    'Bot verification challenge.',
+    'Specialty',
+    (id, m) => createCaptchaComponent(id, m),
+    CaptchaRenderer
+  ),
 };
 
 // ════════════════════════════════════════════════════════
@@ -505,7 +796,12 @@ export function deserializeComponent<T extends ComponentID>(
 // Flat renderer map (used by DragOverlay etc.)
 export const componentRenderers = Object.fromEntries(
   Object.entries(registry).map(([key, entry]) => [key, entry.renderers.main])
-) as { [K in ComponentID]: ComponentRenderer<ComponentPropsMap[K], ComponentValidationMap[K]> | null };
+) as {
+  [K in ComponentID]: ComponentRenderer<
+    ComponentPropsMap[K],
+    ComponentValidationMap[K]
+  > | null;
+};
 
 // ════════════════════════════════════════════════════════
 //  CATALOG
@@ -524,8 +820,8 @@ const ENABLED_CATALOG_IDS: Set<string> = new Set([
   // Layout
   ComponentIDs.Header,
   ComponentIDs.LineDivider,
-  ComponentIDs.ColumnLayout,
-  
+  // ComponentIDs.ColumnLayout,
+
   // Text Inputs
   ComponentIDs.Input,
   ComponentIDs.MultiLineText,
@@ -534,39 +830,39 @@ const ENABLED_CATALOG_IDS: Set<string> = new Set([
   ComponentIDs.Number,
   ComponentIDs.Decimal,
   ComponentIDs.URL,
-  
+
   // Date & Time
   ComponentIDs.Date,
   ComponentIDs.Time,
-  
+
   // File / Media
-  ComponentIDs.FileUpload,
-  ComponentIDs.ImageUpload,
-  
+  // ComponentIDs.FileUpload,
+  // ComponentIDs.ImageUpload,
+
   // Selection
   ComponentIDs.Radio,
   ComponentIDs.Checkbox,
   ComponentIDs.Dropdown,
-  ComponentIDs.SingleChoiceGrid,
-  ComponentIDs.MultiChoiceGrid,
-  ComponentIDs.MatrixTable,
-  
+  // ComponentIDs.SingleChoiceGrid,
+  // ComponentIDs.MultiChoiceGrid,
+  // ComponentIDs.MatrixTable,
+
   // Scales & Sliders
   ComponentIDs.RatingScale,
   ComponentIDs.LinearScale,
   ComponentIDs.Slider,
-  
+
   // Blocks
   ComponentIDs.NameBlock,
   ComponentIDs.AddressBlock,
-  
+
   // Specialty
-  ComponentIDs.ColorPicker,
-  ComponentIDs.Signature,
-  ComponentIDs.Location,
-  ComponentIDs.Toggle,
-  ComponentIDs.RichTextInput,
-  ComponentIDs.Captcha,
+  // ComponentIDs.ColorPicker,
+  // ComponentIDs.Signature,
+  // ComponentIDs.Location,
+  // ComponentIDs.Toggle,
+  // ComponentIDs.RichTextInput,
+  // ComponentIDs.Captcha,
 ]);
 
 export const catalogRegistry: CatalogEntry[] = Object.values(registry)
@@ -578,4 +874,3 @@ export const catalogRegistry: CatalogEntry[] = Object.values(registry)
     category: def.catalog.category,
     create: def.create,
   }));
-

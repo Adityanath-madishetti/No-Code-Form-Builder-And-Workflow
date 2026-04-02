@@ -4,7 +4,16 @@ import { useFormStore } from '@/form/store/formStore';
 import type { PageID } from '@/form/components/base';
 import { TEMP_PAGE_PLACEHOLDER_ID } from '@/form/utils/DndUtils';
 
-import { ArrowDown, ArrowUp, ClipboardCopy, Copy, GripVertical, Move, Settings, Trash2 } from 'lucide-react';
+import {
+  ArrowDown,
+  ArrowUp,
+  ClipboardCopy,
+  Copy,
+  GripVertical,
+  Move,
+  Settings,
+  Trash2,
+} from 'lucide-react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import type { AnyFormComponent } from '../registry/componentRegistry';
 
@@ -35,10 +44,14 @@ export const SelectableComponent = ({
   const moveComponent = useFormStore((s) => s.moveComponent);
   const setActivePage = useFormStore((s) => s.setActivePage);
   const duplicateComponent = useFormStore((s) => s.duplicateComponent);
-  const toggleComponentCollapsed = useFormStore((s) => s.toggleComponentCollapsed);
+  const toggleComponentCollapsed = useFormStore(
+    (s) => s.toggleComponentCollapsed
+  );
   const showPropertiesPanel = useFormStore((s) => s.showPropertiesPanel);
   const togglePropertiesPanel = useFormStore((s) => s.togglePropertiesPanel);
-  const isCollapsed = useFormStore((s) => !!s.collapsedComponents[component.instanceId]);
+  const isCollapsed = useFormStore(
+    (s) => !!s.collapsedComponents[component.instanceId]
+  );
 
   const isSelected = selectedId === component.instanceId;
 
@@ -49,7 +62,9 @@ export const SelectableComponent = ({
   const [skipDeleteConfirm, setSkipDeleteConfirm] = useState(() => {
     try {
       if (typeof window === 'undefined') return false;
-      return window.localStorage.getItem('form-builder:skipDeleteConfirm') === '1';
+      return (
+        window.localStorage.getItem('form-builder:skipDeleteConfirm') === '1'
+      );
     } catch {
       return false;
     }
@@ -62,7 +77,8 @@ export const SelectableComponent = ({
   const [moveTargetPageId, setMoveTargetPageId] = useState<PageID>(pageId);
   const [moveTargetPosition, setMoveTargetPosition] = useState(index + 1); // 1-based UI position
 
-  const moveTargetChildrenCount = pagesById[moveTargetPageId]?.children?.length ?? 0;
+  const moveTargetChildrenCount =
+    pagesById[moveTargetPageId]?.children?.length ?? 0;
   const moveTargetMaxPosition = moveTargetChildrenCount + 1; // insert position: 0..len => 1..(len+1)
 
   const { ref, isDragging } = useSortable({
@@ -96,12 +112,12 @@ export const SelectableComponent = ({
     >
       {/* Slide/Drag Handle - Left Middle (Half In, Half Out) */}
       <div
-        className={`absolute -left-2 top-1/2 z-30 flex -translate-y-1/2 transition-opacity ${
+        className={`absolute top-1/2 -left-2 z-30 flex -translate-y-1/2 transition-opacity ${
           isSelected ? 'opacity-100' : 'opacity-100'
         }`}
       >
         <div
-          className="relative flex h-6 w-4 cursor-grab items-center justify-center border border-border/50 bg-background/95 text-muted-foreground/60 hover:text-muted-foreground/80 backdrop-blur-sm"
+          className="relative flex h-6 w-4 cursor-grab items-center justify-center border border-border/50 bg-background/95 text-muted-foreground/60 backdrop-blur-sm hover:text-muted-foreground/80"
           data-dnd-kit-drag-handle
           title="Drag to reorder"
         >
@@ -126,18 +142,22 @@ export const SelectableComponent = ({
               e.stopPropagation();
               toggleComponentCollapsed(component.instanceId);
             }}
-            className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-none border border-border/50 bg-background text-muted-foreground/60 hover:text-foreground hover:bg-muted/50 transition-colors"
+            className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-none border border-border/50 bg-background text-muted-foreground/60 transition-colors hover:bg-muted/50 hover:text-foreground"
             aria-label={isCollapsed ? 'Expand component' : 'Collapse component'}
             title={isCollapsed ? 'Expand' : 'Collapse'}
           >
-            {isCollapsed ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />}
+            {isCollapsed ? (
+              <ArrowDown className="h-3 w-3" />
+            ) : (
+              <ArrowUp className="h-3 w-3" />
+            )}
           </button>
 
           {/* Heading (instanceId only) */}
           <div className="flex min-w-0 flex-1 items-center gap-1">
             <span
               title={component.instanceId}
-              className="inline-block w-[92px] truncate rounded-none border border-border/50 bg-background px-1 text-[11px] font-semibold font-mono text-foreground/80"
+              className="inline-block w-[92px] truncate rounded-none border border-border/50 bg-background px-1 font-mono text-[11px] font-semibold text-foreground/80"
             >
               {component.instanceId}
             </span>
@@ -154,11 +174,15 @@ export const SelectableComponent = ({
                   // ignore clipboard errors; user can still select/copy manually
                 }
               }}
-              className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-none border border-border/50 bg-background text-muted-foreground/60 hover:text-foreground hover:bg-muted/50 transition-colors"
+              className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-none border border-border/50 bg-background text-muted-foreground/60 transition-colors hover:bg-muted/50 hover:text-foreground"
               aria-label="Copy component id"
               title="Copy component id"
             >
-              {copiedId ? <Copy className="h-3 w-3 text-primary" /> : <ClipboardCopy className="h-3 w-3" />}
+              {copiedId ? (
+                <Copy className="h-3 w-3 text-primary" />
+              ) : (
+                <ClipboardCopy className="h-3 w-3" />
+              )}
             </button>
           </div>
 
@@ -176,7 +200,7 @@ export const SelectableComponent = ({
                   setDeleteDoNotAskAgain(false);
                   setDeleteConfirmOpen(true);
                 }}
-                className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-none border border-border/50 bg-background text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 transition-colors"
+                className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-none border border-border/50 bg-background text-muted-foreground/60 transition-colors hover:bg-destructive/10 hover:text-destructive"
                 aria-label="Delete component"
                 title="Delete component"
               >
@@ -193,7 +217,7 @@ export const SelectableComponent = ({
                     setActivePage(null);
                   }
                 }}
-                className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-none border border-border/50 bg-background text-muted-foreground/60 hover:text-foreground hover:bg-muted/50 transition-colors"
+                className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-none border border-border/50 bg-background text-muted-foreground/60 transition-colors hover:bg-muted/50 hover:text-foreground"
                 aria-label="Duplicate component"
                 title="Duplicate component"
               >
@@ -210,7 +234,7 @@ export const SelectableComponent = ({
                   setMoveTargetPosition(Math.min(index + 1, maxPos));
                   setMoveModalOpen(true);
                 }}
-                className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-none border border-border/50 bg-background text-muted-foreground/60 hover:text-foreground hover:bg-muted/50 transition-colors"
+                className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-none border border-border/50 bg-background text-muted-foreground/60 transition-colors hover:bg-muted/50 hover:text-foreground"
                 aria-label="Move component"
                 title="Move component"
               >
@@ -225,7 +249,7 @@ export const SelectableComponent = ({
                   setActivePage(null);
                   if (!showPropertiesPanel) togglePropertiesPanel();
                 }}
-                className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-none border border-border/50 bg-background text-muted-foreground/60 hover:text-foreground hover:bg-muted/50 transition-colors"
+                className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-none border border-border/50 bg-background text-muted-foreground/60 transition-colors hover:bg-muted/50 hover:text-foreground"
                 aria-label="Component properties"
                 title="Component properties"
               >
@@ -236,7 +260,7 @@ export const SelectableComponent = ({
         </div>
 
         {/* Collapsible content */}
-        {!isCollapsed && <div className="p-1 pl-6 pr-1">{children}</div>}
+        {!isCollapsed && <div className="p-1 pr-1 pl-6">{children}</div>}
       </div>
 
       {/* Delete confirmation modal (with "do this for every time") */}
@@ -251,33 +275,40 @@ export const SelectableComponent = ({
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <div className="text-sm font-semibold text-foreground">Delete component?</div>
+                <div className="text-sm font-semibold text-foreground">
+                  Delete component?
+                </div>
                 <div className="mt-1 text-xs text-muted-foreground">
-                  This will remove <span className="font-medium">{component.metadata.label}</span> from the form.
+                  This will remove{' '}
+                  <span className="font-medium">
+                    {component.metadata.label}
+                  </span>{' '}
+                  from the form.
                 </div>
               </div>
               <button
                 onClick={() => setDeleteConfirmOpen(false)}
-                className="flex h-7 w-7 items-center justify-center rounded-none border border-border bg-background text-muted-foreground hover:text-foreground transition-colors"
+                className="flex h-7 w-7 items-center justify-center rounded-none border border-border bg-background text-muted-foreground transition-colors hover:text-foreground"
                 aria-label="Close delete confirmation"
               >
                 ×
               </button>
             </div>
 
-            <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
+            {/* Note: hide for now, add later when user settings is added? */}
+            {/* <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
               <input
                 type="checkbox"
                 checked={deleteDoNotAskAgain}
                 onChange={(e) => setDeleteDoNotAskAgain(e.target.checked)}
               />
               Do this for every delete (don't ask again)
-            </label>
+            </label> */}
 
             <div className="mt-4 flex justify-end gap-2">
               <button
                 onClick={() => setDeleteConfirmOpen(false)}
-                className="flex h-8 items-center justify-center rounded-none border border-border bg-background px-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="flex h-8 items-center justify-center rounded-none border border-border bg-background px-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 Cancel
               </button>
@@ -285,7 +316,10 @@ export const SelectableComponent = ({
                 onClick={() => {
                   if (deleteDoNotAskAgain) {
                     try {
-                      window.localStorage.setItem('form-builder:skipDeleteConfirm', '1');
+                      window.localStorage.setItem(
+                        'form-builder:skipDeleteConfirm',
+                        '1'
+                      );
                       setSkipDeleteConfirm(true);
                     } catch {
                       // ignore persistence errors
@@ -294,7 +328,7 @@ export const SelectableComponent = ({
                   removeComponent(component.instanceId);
                   setDeleteConfirmOpen(false);
                 }}
-                className="flex h-8 items-center justify-center rounded-none border border-destructive/50 bg-destructive/10 px-3 text-sm text-destructive hover:bg-destructive/15 transition-colors"
+                className="flex h-8 items-center justify-center rounded-none border border-destructive/50 bg-destructive/10 px-3 text-sm text-destructive transition-colors hover:bg-destructive/15"
               >
                 Delete
               </button>
@@ -315,14 +349,16 @@ export const SelectableComponent = ({
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <div className="text-sm font-semibold text-foreground">Move component</div>
+                <div className="text-sm font-semibold text-foreground">
+                  Move component
+                </div>
                 <div className="mt-1 text-xs text-muted-foreground">
                   Choose which page and position to move this component to.
                 </div>
               </div>
               <button
                 onClick={() => setMoveModalOpen(false)}
-                className="flex h-7 w-7 items-center justify-center rounded-none border border-border bg-background text-muted-foreground hover:text-foreground transition-colors"
+                className="flex h-7 w-7 items-center justify-center rounded-none border border-border bg-background text-muted-foreground transition-colors hover:text-foreground"
                 aria-label="Close move modal"
               >
                 ×
@@ -359,10 +395,15 @@ export const SelectableComponent = ({
                 </label>
                 <select
                   value={moveTargetPosition}
-                  onChange={(e) => setMoveTargetPosition(Number(e.target.value))}
+                  onChange={(e) =>
+                    setMoveTargetPosition(Number(e.target.value))
+                  }
                   className="h-9 w-full rounded-none border border-border bg-background px-2 text-sm text-foreground outline-none focus:border-primary"
                 >
-                  {Array.from({ length: moveTargetMaxPosition }, (_, i) => i + 1).map((pos) => (
+                  {Array.from(
+                    { length: moveTargetMaxPosition },
+                    (_, i) => i + 1
+                  ).map((pos) => (
                     <option key={pos} value={pos}>
                       Position {pos}
                     </option>
@@ -374,16 +415,21 @@ export const SelectableComponent = ({
             <div className="mt-4 flex justify-end gap-2">
               <button
                 onClick={() => setMoveModalOpen(false)}
-                className="flex h-8 items-center justify-center rounded-none border border-border bg-background px-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="flex h-8 items-center justify-center rounded-none border border-border bg-background px-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 Cancel
               </button>
               <button
                 onClick={() => {
-                  moveComponent(pageId, index, moveTargetPageId, moveTargetPosition - 1);
+                  moveComponent(
+                    pageId,
+                    index,
+                    moveTargetPageId,
+                    moveTargetPosition - 1
+                  );
                   setMoveModalOpen(false);
                 }}
-                className="flex h-8 items-center justify-center rounded-none border border-primary/60 bg-primary px-3 text-sm text-primary-foreground hover:bg-primary/90 transition-colors"
+                className="flex h-8 items-center justify-center rounded-none border border-primary/60 bg-primary px-3 text-sm text-primary-foreground transition-colors hover:bg-primary/90"
               >
                 Move
               </button>
@@ -436,7 +482,7 @@ export const SelectablePage = ({
     >
       {/* Drag handle — top center */}
       <div
-        className="absolute -top-4 left-1/2 z-20 -translate-x-1/2 cursor-grab border border-border/50 bg-background/95 px-1 py-0.5 shadow-lg backdrop-blur-sm opacity-0 transition-opacity group-hover:opacity-100"
+        className="absolute -top-4 left-1/2 z-20 -translate-x-1/2 cursor-grab border border-border/50 bg-background/95 px-1 py-0.5 opacity-0 shadow-lg backdrop-blur-sm transition-opacity group-hover:opacity-100"
         data-dnd-kit-drag-handle
         title="Drag to reorder page"
       >
@@ -451,7 +497,7 @@ export const SelectablePage = ({
               e.stopPropagation();
               removePage(pageId);
             }}
-            className="flex h-5 w-5 cursor-pointer items-center justify-center border border-border/50 bg-background/95 text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 shadow-lg backdrop-blur-sm transition-colors"
+            className="flex h-5 w-5 cursor-pointer items-center justify-center border border-border/50 bg-background/95 text-muted-foreground/60 shadow-lg backdrop-blur-sm transition-colors hover:bg-destructive/10 hover:text-destructive"
             aria-label="Remove page"
             title="Remove page"
           >

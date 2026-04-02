@@ -1,5 +1,8 @@
 // src/form/components/checkbox.ts
 /**
+ * @deprecated This file is deprecated
+ */
+/**
  * Checkbox Component
  * ------------------------------------------------------------------------------------------------
  * A multi-select input component that allows users to choose one or more options

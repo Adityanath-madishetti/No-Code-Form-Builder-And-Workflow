@@ -19,20 +19,20 @@ export const InputComponentRenderer = ({
 }: RendererProps<InputProps, InputValidation>) => {
   return (
     <FormThemeProvider>
-      <div className="w-full border border-border bg-card shadow-sm relative pointer-events-auto">
-        <div className="p-6 space-y-4 text-foreground">
+      <div className="pointer-events-auto relative w-full border border-border bg-card shadow-sm">
+        <div className="space-y-4 p-6 text-foreground">
           {props.questionText && (
             <div
               className={sharedProseClasses}
               dangerouslySetInnerHTML={{ __html: props.questionText }}
             />
           )}
-          <ShadInput
+          <input
             type="text"
             name={instanceId}
             placeholder={props.placeholder}
             defaultValue={props.defaultValue}
-            className="w-full"
+            className="w-full border-border"
             required={validation.required}
             minLength={validation.minLength}
             maxLength={validation.maxLength}
