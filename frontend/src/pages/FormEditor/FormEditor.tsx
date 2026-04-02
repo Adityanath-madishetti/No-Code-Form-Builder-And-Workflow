@@ -10,13 +10,14 @@ import {
   DRAG_CATALOG_COMPONENT_ID,
   DRAG_COMPONENT_ID,
   DRAG_CATALOG_PAGE_ID,
+  DRAG_CATALOG_GROUP_ID,
 } from '@/form/utils/DndUtils';
 
 import { Rnd } from 'react-rnd';
-
 import { EditorSidebar, type SidebarPanelId } from './components/EditorSidebar';
 import { ComponentCatalogPanel } from './components/ComponentCatalogPanel';
 import { TemplateCatalogPanel } from './components/TemplateCatalogPanel';
+import { GroupCatalogPanel } from './components/GroupCatalogPanel';
 import { ThemePanel } from './components/ThemePanel';
 import { LogicPanel } from './components/LogicPanel';
 import { WorkflowPanel } from './components/WorkflowPanel';
@@ -60,6 +61,7 @@ const PANEL_TITLES: Record<SidebarPanelId, string> = {
   logic: 'Logic',
   workflow: 'Workflow',
   ai: 'AI Assistant',
+  groups: 'Groups',
 };
 
 function PanelContent({ panelId }: { panelId: SidebarPanelId }) {
@@ -68,6 +70,8 @@ function PanelContent({ panelId }: { panelId: SidebarPanelId }) {
       return <ComponentCatalogPanel />;
     case 'templates':
       return <TemplateCatalogPanel />;
+    case 'groups':
+      return <GroupCatalogPanel />;
     case 'theme':
       return <ThemePanel />;
     case 'logic':
@@ -90,6 +94,10 @@ export default function FormEditor() {
   const addPage = useFormStore((s) => s.addPage);
   const setActiveComponent = useFormStore((s) => s.setActiveComponent);
   const { user } = useAuth();
+
+  const clearSelectedComponents = useFormStore(
+    (s) => s.clearSelectedComponents
+  );
 
   const { onDragStart, onDragOver, onDragEnd } = useFormDragHandlers();
   const activeDragData = useFormStore((s) => s.activeDragData);
@@ -244,6 +252,7 @@ export default function FormEditor() {
 
   const handleCanvasClick = () => {
     setActiveComponent(null);
+    clearSelectedComponents();
   };
 
   const hasSelection = !!activeComponentId || !!activePageId;
@@ -669,6 +678,41 @@ export default function FormEditor() {
         {activeDragData?.type === DRAG_CATALOG_PAGE_ID && (
           <div className="pointer-events-none w-64 border-2 border-dashed border-primary bg-card p-4 text-center text-sm text-primary opacity-80">
             New Page
+          </div>
+        )}
+
+        {activeDragData?.type === DRAG_CATALOG_GROUP_ID && (
+          <div className="pointer-events-none flex w-[400px] flex-col gap-2 opacity-90 drop-shadow-2xl">
+            {activeDragData.group?.components.map(
+              (comp: any, index: number) => {
+                const Renderer =
+                  componentRenderers[
+                    comp.id as keyof typeof componentRenderers
+                  ];
+                if (!Renderer) return null;
+                return (
+                  <div
+                    key={comp.instanceId || index}
+                    className="overflow-hidden rounded-md border border-border bg-background shadow-sm ring-1 ring-primary/20"
+                  >
+                    <div className="pointer-events-none flex items-center justify-between border-b border-border/50 bg-muted/20 px-2 py-1">
+                      <span className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
+                        {comp.metadata?.label || comp.id}
+                      </span>
+                    </div>
+                    <div className="p-3">
+                      <Renderer
+                        instanceId={comp.instanceId}
+                        metadata={comp.metadata}
+                        // @ts-expect-error type union
+                        props={comp.props as any}
+                        validation={comp.validation as any}
+                      />
+                    </div>
+                  </div>
+                );
+              }
+            )}
           </div>
         )}
       </DragOverlay>

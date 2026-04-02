@@ -86,9 +86,11 @@ const createFormPage = (id: PageID): FormPage => ({
 import type {
   DRAG_CATALOG_COMPONENT_TYPE,
   DRAG_CATALOG_PAGE_TYPE,
+  DRAG_CATALOG_GROUP_TYPE,
   DRAG_COMPONENT_TYPE,
   DRAG_PAGE_TYPE,
 } from '../utils/DndUtils';
+import type { Group } from './groupStore';
 import { DEFAULT_FORM_THEME } from '../theme/formTheme';
 // import {
 //   TEMP_COMPONENT_PLACEHOLDER_ID,
@@ -130,9 +132,15 @@ export interface FormPageDragData {
   pageId: PageID;
 }
 
+export interface CatalogGroupDragData {
+  type: DRAG_CATALOG_GROUP_TYPE;
+  group: Group;
+}
+
 export type FormDragData =
   | CatalogComponentDragData
   | CatalogPageDragData
+  | CatalogGroupDragData
   | FormComponentDragData
   | FormPageDragData;
 
@@ -167,6 +175,8 @@ interface FormUIState {
 
   catalogRefreshKey: number;
   collapsedComponents: Record<InstanceID, boolean>;
+
+  selectedComponentIds: InstanceID[];
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -237,6 +247,10 @@ interface FormUIActions {
   setActiveSidePanelTab: (tab: string) => void;
 
   refreshCatalog: () => void;
+
+  addSelectedComponent: (instanceId: InstanceID) => void;
+  removeSelectedComponent: (instanceId: InstanceID) => void;
+  clearSelectedComponents: () => void;
 }
 
 export type FormStore = FormSchemaState &
@@ -291,6 +305,10 @@ export const formSelectors = {
   componentById: (instanceId: InstanceID) => (s: FormStore) =>
     s.components[instanceId] ?? null,
   pageById: (pageId: PageID) => (s: FormStore) => s.pages[pageId] ?? null,
+  selectedComponents: (s: FormStore) =>
+    s.selectedComponentIds
+      .map((id) => s.components[id])
+      .filter((c): c is AnyFormComponent => c !== undefined),
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -314,6 +332,8 @@ export const useFormStore = create<FormStore>()(
     showPropertiesPanel: false,
     catalogRefreshKey: 0,
     collapsedComponents: {},
+
+    selectedComponentIds: [],
 
     initForm: (id, name, metadata) =>
       set((state) => {
@@ -628,5 +648,19 @@ export const useFormStore = create<FormStore>()(
       set((state) => {
         state.showPropertiesPanel = !state.showPropertiesPanel;
       }),
+
+    addSelectedComponent: (instanceId) =>
+      set((state) => ({
+        selectedComponentIds: [...state.selectedComponentIds, instanceId],
+      })),
+
+    removeSelectedComponent: (instanceId) =>
+      set((state) => ({
+        selectedComponentIds: state.selectedComponentIds.filter(
+          (id) => id !== instanceId
+        ),
+      })),
+
+    clearSelectedComponents: () => set({ selectedComponentIds: [] }),
   }))
 );
