@@ -237,6 +237,11 @@ interface FormSchemaActions {
   duplicateComponent: (instanceId: InstanceID) => InstanceID | undefined;
   toggleComponentCollapsed: (instanceId: InstanceID) => void;
   togglePropertiesPanel: () => void;
+
+  updatePageThemeOverrides: (
+    pageId: PageID,
+    overrides: Partial<FormTheme> | undefined
+  ) => void;
 }
 
 interface FormUIActions {
@@ -662,5 +667,21 @@ export const useFormStore = create<FormStore>()(
       })),
 
     clearSelectedComponents: () => set({ selectedComponentIds: [] }),
+
+    updatePageThemeOverrides: (pageId, overrides) =>
+      set((state) => {
+        if (!state.pages[pageId]) return;
+        if (overrides === undefined) {
+          delete state.pages[pageId].themeOverrides;
+        } else {
+          state.pages[pageId].themeOverrides = {
+            ...state.pages[pageId].themeOverrides,
+            ...overrides,
+          };
+        }
+        if (state.form) {
+          state.form.metadata.updatedAt = new Date().toISOString();
+        }
+      }),
   }))
 );

@@ -33,6 +33,8 @@ import { DebugPanel } from './components/DebugPanel';
 import { ComponentPropertiesPanel } from './components/ComponentPropertiesPanel';
 import { RightFloatingPanel } from './components/RightFloatingPanel';
 import { LogicPlayground } from './components/LogicPlayground';
+import { ThemingPage } from './components/ThemingPage';
+import { useTheme } from '@/components/theme-provider';
 import { useLogicStore } from '@/form/logic/logicStore';
 import {
   Bug,
@@ -47,6 +49,9 @@ import {
   LayoutGrid,
   GitBranch,
   Settings2,
+  Palette,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import {
@@ -119,8 +124,10 @@ export default function FormEditor() {
   const showPropertiesPanel = useFormStore((s) => s.showPropertiesPanel);
   const togglePropertiesPanel = useFormStore((s) => s.togglePropertiesPanel);
   const [editorView, setEditorView] = useState<
-    'canvas' | 'logic' | 'workflow' | 'formProperties'
+    'canvas' | 'logic' | 'workflow' | 'formProperties' | 'theming'
   >('canvas');
+
+  const { theme: editorTheme, setTheme: setEditorTheme } = useTheme();
 
   const [leftWidth, setLeftWidth] = useState<number | string>('20%');
   const [rightWidth, setRightWidth] = useState(340);
@@ -311,7 +318,13 @@ export default function FormEditor() {
         {/* ── Left icon rail ── */}
         <EditorSidebar
           activePanel={activePanel}
-          onPanelChange={setActivePanel}
+          onPanelChange={(panel) => {
+            if (panel === 'theme') {
+              setEditorView('theming');
+              return;
+            }
+            setActivePanel(panel);
+          }}
         />
 
         {/* ── Main area with react-rnd custom resizable panels ── */}
@@ -400,6 +413,17 @@ export default function FormEditor() {
                   <GitBranch className="h-3 w-3" />
                   Workflow
                 </button>
+                <button
+                  onClick={() => setEditorView('theming')}
+                  className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors ${
+                    editorView === 'theming'
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  }`}
+                >
+                  <Palette className="h-3 w-3" />
+                  Theme
+                </button>
               </div>
 
               <div
@@ -409,6 +433,26 @@ export default function FormEditor() {
                   transition: 'transform 100ms ease-out',
                 }}
               >
+                {/* Dark / Light toggle */}
+                <button
+                  onClick={() => {
+                    const next = editorTheme === 'dark' ? 'light' : 'dark';
+                    setEditorTheme(next);
+                    // Also sync form theme mode
+                    useFormStore.getState().updateFormTheme({ mode: next });
+                  }}
+                  title={editorTheme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                  className="group flex h-7 items-center gap-0 rounded-sm border border-border bg-background px-1.5 text-muted-foreground shadow-sm transition-all duration-300 hover:gap-1 hover:bg-muted hover:px-2 hover:text-foreground"
+                >
+                  {editorTheme === 'dark' ? (
+                    <Sun className="h-3 w-3" />
+                  ) : (
+                    <Moon className="h-3 w-3" />
+                  )}
+                  <span className="max-w-0 overflow-hidden text-[11px] font-medium whitespace-nowrap transition-all duration-300 group-hover:max-w-[60px]">
+                    {editorTheme === 'dark' ? 'Light' : 'Dark'}
+                  </span>
+                </button>
                 <button
                   onClick={handleSave}
                   disabled={saving}
@@ -524,6 +568,13 @@ export default function FormEditor() {
             {editorView === 'workflow' && (
               <div className="flex-1 overflow-y-auto">
                 <WorkflowPanel />
+              </div>
+            )}
+
+            {/* Theming editor view */}
+            {editorView === 'theming' && (
+              <div className="flex-1 overflow-hidden">
+                <ThemingPage />
               </div>
             )}
 
