@@ -31,6 +31,18 @@ export function serializeForm(): SerializedForm {
   const state = useFormStore.getState();
   if (!state.form) throw new Error('No form loaded');
 
+  return serializeFormFromState({
+    form: state.form,
+    pages: state.pages,
+    components: state.components,
+  });
+}
+
+export function serializeFormFromState(state: {
+  form: Form;
+  pages: Record<string, FormPage>;
+  components: Record<string, AnyFormComponent>;
+}): SerializedForm {
   return {
     form: state.form,
     pages: state.form.pages.map((id) => state.pages[id]),

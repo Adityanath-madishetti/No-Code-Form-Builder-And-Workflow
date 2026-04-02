@@ -86,11 +86,13 @@ export function HeaderRenderer({ instanceId, props }: RendererProps<HeaderProps,
   );
 }
 
-export function LineDividerRenderer({}: RendererProps<LineDividerProps, NoValidation>) {
+export function LineDividerRenderer(_props: RendererProps<LineDividerProps, NoValidation>) {
+  void _props;
   return <div className="py-3"><hr className="border-border" /></div>;
 }
 
-export function ColumnLayoutRenderer({}: RendererProps<ColumnLayoutProps, NoValidation>) {
+export function ColumnLayoutRenderer(_props: RendererProps<ColumnLayoutProps, NoValidation>) {
+  void _props;
   return (
     <div className="border-2 border-dashed border-border/30 p-4 text-center text-xs text-muted-foreground/40">
       <p className="font-medium">Column Layout</p>
@@ -438,7 +440,8 @@ export function RichTextInputRenderer({ props }: RendererProps<RichTextInputProp
   );
 }
 
-export function CaptchaRenderer({}: RendererProps<CaptchaProps, NoValidation>) {
+export function CaptchaRenderer(_props: RendererProps<CaptchaProps, NoValidation>) {
+  void _props;
   return (
     <Card>
       <div className="flex items-center gap-3 border border-border bg-muted/10 p-3">

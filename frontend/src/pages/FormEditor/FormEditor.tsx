@@ -56,13 +56,19 @@ function PanelContent({ panelId }: { panelId: SidebarPanelId }) {
 }
 
 export default function FormEditor() {
-  const store = useFormStore();
-  const addPage = store.addPage;
-  const setActiveComponent = store.setActiveComponent;
+  const form = useFormStore((s) => s.form);
+  const pages = useFormStore((s) => s.pages);
+  const components = useFormStore((s) => s.components);
+
+  const loadForm = useFormStore((s) => s.loadForm);
+  const initForm = useFormStore((s) => s.initForm);
+  const setCurrentVersionInStore = useFormStore((s) => s.setCurrentVersion);
+  const addPage = useFormStore((s) => s.addPage);
+  const setActiveComponent = useFormStore((s) => s.setActiveComponent);
   const { user } = useAuth();
 
   const { onDragStart, onDragOver, onDragEnd } = useFormDragHandlers();
-  const activeDragData = store.activeDragData;
+  const activeDragData = useFormStore((s) => s.activeDragData);
   const activeComponentId = useFormStore((s) => s.activeComponentId);
   const activePageId = useFormStore((s) => s.activePageId);
 
@@ -99,7 +105,7 @@ export default function FormEditor() {
 
     // Clear the old form immediately so stale data doesn't flash
     setFormLoaded(false);
-    store.loadForm(
+    loadForm(
       {
         id: formId,
         name: '',
@@ -124,7 +130,7 @@ export default function FormEditor() {
     loadFormVersion(formId)
       .then(({ form, pages, components, version, logicRules, logicFormulas }) => {
         if (cancelled) return;
-        store.loadForm(form, pages, components, version);
+        loadForm(form, pages, components, version);
         // Hydrate logic store
         useLogicStore.getState().loadRules(logicRules, logicFormulas);
         setFormLoaded(true);
@@ -132,8 +138,8 @@ export default function FormEditor() {
       .catch(() => {
         if (cancelled) return;
         // Form just created — init locally
-        store.initForm(formId, 'Untitled Form');
-        store.setCurrentVersion(1);
+        initForm(formId, 'Untitled Form');
+        setCurrentVersionInStore(1);
         setFormLoaded(true);
       });
 
@@ -148,28 +154,28 @@ export default function FormEditor() {
       });
 
     return () => { cancelled = true; };
-  }, [formId]);
+  }, [formId, initForm, loadForm, setCurrentVersionInStore]);
 
   // Ensure at least one page exists after load
   useEffect(() => {
-    if (formLoaded && store.form && store.form.pages.length === 0) {
+    if (formLoaded && form && form.pages.length === 0) {
       addPage();
     }
-  }, [formLoaded]);
+  }, [addPage, form, formLoaded]);
 
   // Clamp page index
   useEffect(() => {
     if (totalPages > 0 && currentPageIndex >= totalPages) {
       setCurrentPageIndex(totalPages - 1);
     }
-  }, [totalPages]);
+  }, [currentPageIndex, totalPages]);
 
   // Update tab title with form name
   useEffect(() => {
-    document.title = store.form?.name
-      ? `${store.form.name} — Form Builder`
+    document.title = form?.name
+      ? `${form.name} — Form Builder`
       : 'Editor — Form Builder';
-  }, [store.form?.name]);
+  }, [form?.name]);
 
   // Auto-show/hide properties based on selection
   useEffect(() => {
@@ -210,21 +216,21 @@ export default function FormEditor() {
   const currentVersion = useFormStore((s) => s.currentVersion);
 
   const handleSave = useCallback(async () => {
-    if (!formId || !store.form) return;
+    if (!formId || !form) return;
     setSaving(true);
     try {
       // Always create a new version on save
       const newVersionNum = await createNewVersion(formId);
-      store.setCurrentVersion(newVersionNum);
+      setCurrentVersionInStore(newVersionNum);
 
       // Save current editor state to the new version
       const logicState = useLogicStore.getState();
       await saveFormVersion(
         formId,
         newVersionNum,
-        store.form,
-        store.pages,
-        store.components,
+        form,
+        pages,
+        components,
         user?.uid || 'unknown',
         logicState.rules,
         logicState.formulas
@@ -234,7 +240,7 @@ export default function FormEditor() {
     } finally {
       setSaving(false);
     }
-  }, [formId, store.form, store.pages, store.components, user]);
+  }, [components, form, formId, pages, setCurrentVersionInStore, user?.uid]);
 
   return (
     <DragDropProvider
@@ -586,7 +592,7 @@ export default function FormEditor() {
 
         {activeDragData?.type === DRAG_COMPONENT_ID &&
           (() => {
-            const existing = store.components[activeDragData.instanceId];
+            const existing = components[activeDragData.instanceId];
             if (!existing) return null;
             const Renderer = componentRenderers[existing.id as keyof typeof componentRenderers];
             return Renderer ? (

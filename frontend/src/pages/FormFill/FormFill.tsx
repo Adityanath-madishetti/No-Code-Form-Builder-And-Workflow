@@ -57,6 +57,12 @@ interface SubmissionEntry {
   }>;
 }
 
+const DEFAULT_VERSION_SETTINGS: VersionSettings = {
+  collectEmailMode: 'none',
+  submissionPolicy: 'none',
+  canViewOwnSubmission: false,
+};
+
 const backendToFrontend: Record<string, string> = {
   heading: 'Header',
   'single-line-text': 'Input',
@@ -127,12 +133,10 @@ export default function FormFill() {
       : 'Form — Form Builder';
   }, [data]);
 
-  const settings: VersionSettings =
-    data?.version.settings || {
-      collectEmailMode: 'none',
-      submissionPolicy: 'none',
-      canViewOwnSubmission: false,
-    };
+  const settings: VersionSettings = useMemo(
+    () => data?.version.settings || DEFAULT_VERSION_SETTINGS,
+    [data?.version.settings]
+  );
   const canEditSubmission =
     settings?.submissionPolicy === 'edit_only' ||
     settings?.submissionPolicy === 'edit_and_resubmit';

@@ -124,23 +124,18 @@ export const RenderFormOverview = () => {
 };
 
 // Extracted Theme Renderer for cleaner organization
-const RenderFormTheme = () => {
-  // Grab the theme from the store, fallback to default if it hasn't been initialized yet
-  const theme = useFormStore(formSelectors.formTheme) || DEFAULT_FORM_THEME;
-  const updateFormTheme = useFormStore((s) => s.updateFormTheme);
-
-  // Reusable native select with shadcn-like styling
-  const SelectField = ({
-    title,
-    value,
-    options,
-    onChange,
-  }: {
-    title: string;
-    value: string;
-    options: Record<string, string>;
-    onChange: (val: string) => void;
-  }) => (
+function ThemeSelectField({
+  title,
+  value,
+  options,
+  onChange,
+}: {
+  title: string;
+  value: string;
+  options: Record<string, string>;
+  onChange: (val: string) => void;
+}) {
+  return (
     <div className="space-y-2">
       <ComponentPropTitle title={title} />
       <ShadSelect value={value} onValueChange={onChange}>
@@ -157,24 +152,30 @@ const RenderFormTheme = () => {
       </ShadSelect>
     </div>
   );
+}
+
+const RenderFormTheme = () => {
+  // Grab the theme from the store, fallback to default if it hasn't been initialized yet
+  const theme = useFormStore(formSelectors.formTheme) || DEFAULT_FORM_THEME;
+  const updateFormTheme = useFormStore((s) => s.updateFormTheme);
 
   return (
     <div className="space-y-4">
-      <SelectField
+      <ThemeSelectField
         title="Color Mode"
         value={theme.mode}
         options={formThemeModes}
         onChange={(val) => updateFormTheme({ mode: val as formThemeMode })}
       />
 
-      <SelectField
+      <ThemeSelectField
         title="Primary Color"
         value={theme.color}
         options={formThemeColors}
         onChange={(val) => updateFormTheme({ color: val as formThemeColor })}
       />
 
-      <SelectField
+      <ThemeSelectField
         title="Heading Font"
         value={theme.headingFont.family}
         options={formFontNames}
@@ -183,7 +184,7 @@ const RenderFormTheme = () => {
         }
       />
 
-      <SelectField
+      <ThemeSelectField
         title="Body Font"
         value={theme.bodyFont.family}
         options={formFontNames}

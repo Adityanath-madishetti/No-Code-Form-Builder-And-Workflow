@@ -1,29 +1,26 @@
 // src/pages/FormEditor/components/DebugPanel.tsx
 import { useFormStore } from '@/form/store/formStore';
-import { serializeForm } from '@/form/store/formSerialization';
-import { useState, useEffect } from 'react';
+import { serializeFormFromState } from '@/form/store/formSerialization';
+import { useMemo, useState } from 'react';
 import { Copy, Check, RefreshCw } from 'lucide-react';
 
 export function DebugPanel() {
-  const store = useFormStore();
-  const [json, setJson] = useState('');
+  const form = useFormStore((s) => s.form);
+  const pages = useFormStore((s) => s.pages);
+  const components = useFormStore((s) => s.components);
   const [copied, setCopied] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const refresh = () => {
+  const { json, error } = useMemo(() => {
+    void refreshKey;
     try {
-      const serialized = serializeForm();
-      setJson(JSON.stringify(serialized, null, 2));
-      setError(null);
+      if (!form) throw new Error('No form loaded');
+      const serialized = serializeFormFromState({ form, pages, components });
+      return { json: JSON.stringify(serialized, null, 2), error: null as string | null };
     } catch (e) {
-      setError(String(e));
+      return { json: '', error: String(e) };
     }
-  };
-
-  // Re-generate JSON whenever store state changes
-  useEffect(() => {
-    refresh();
-  }, [store.form, store.pages, store.components]);
+  }, [components, form, pages, refreshKey]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(json);
@@ -39,7 +36,7 @@ export function DebugPanel() {
           Form JSON
         </span>
         <button
-          onClick={refresh}
+          onClick={() => setRefreshKey((k) => k + 1)}
           className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
           title="Refresh"
         >

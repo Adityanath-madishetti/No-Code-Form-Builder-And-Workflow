@@ -44,6 +44,15 @@ export function FormPropertiesPanel() {
   const updateFormSettings = useFormStore((s) => s.updateFormSettings);
   const { user } = useAuth();
 
+  const ownerLabel = useMemo(() => {
+    if (!form) return '';
+    if (!form.metadata.authorId) return user?.email || 'Unknown';
+    if (user?.uid === form.metadata.authorId) {
+      return `${user.email} (You)`;
+    }
+    return form.metadata.authorId;
+  }, [form, user?.uid, user?.email]);
+
   if (!form) {
     return (
       <p className="text-center text-xs text-muted-foreground">
@@ -51,14 +60,6 @@ export function FormPropertiesPanel() {
       </p>
     );
   }
-
-  const ownerLabel = useMemo(() => {
-    if (!form.metadata.authorId) return user?.email || 'Unknown';
-    if (user?.uid === form.metadata.authorId) {
-      return `${user.email} (You)`;
-    }
-    return form.metadata.authorId;
-  }, [form.metadata.authorId, user?.uid, user?.email]);
 
   return (
     <div className="flex flex-col gap-5">

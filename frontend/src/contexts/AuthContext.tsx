@@ -1,5 +1,5 @@
 // src/contexts/AuthContext.tsx
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback } from 'react';
 import { api } from '@/lib/api';
 
 interface AuthUser {
@@ -23,23 +23,18 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  // On mount, check localStorage for existing session
-  useEffect(() => {
-    const token = localStorage.getItem('auth_token');
-    const storedUser = localStorage.getItem('auth_user');
-    if (token && storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch {
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('auth_user');
-      }
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const storedUser = localStorage.getItem('auth_user');
+      if (token && storedUser) return JSON.parse(storedUser) as AuthUser;
+    } catch {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_user');
     }
-    setLoading(false);
-  }, []);
+    return null;
+  });
+  const [loading] = useState(false);
 
   const login = useCallback(async (email: string) => {
     const res = await api.post<{ token: string; user: AuthUser }>(

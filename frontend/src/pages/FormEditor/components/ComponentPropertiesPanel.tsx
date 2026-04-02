@@ -63,12 +63,11 @@ export function ComponentPropertiesPanel() {
       {/* Component settings renderer */}
       {SettingsRenderer && (
         <div className="border-t border-border pt-3">
+          {/* eslint-disable-next-line react-hooks/static-components */}
           <SettingsRenderer
             instanceId={component.instanceId}
             metadata={component.metadata}
-            // @ts-ignore type union
             props={component.props}
-            // @ts-ignore type union
             validation={component.validation}
           />
         </div>

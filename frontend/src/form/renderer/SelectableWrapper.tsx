@@ -1,5 +1,5 @@
 // src/form/renderer/SelectableWrapper.tsx
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useFormStore } from '@/form/store/formStore';
 import type { PageID } from '@/form/components/base';
 import { TEMP_PAGE_PLACEHOLDER_ID } from '@/form/utils/DndUtils';
@@ -64,11 +64,6 @@ export const SelectableComponent = ({
 
   const moveTargetChildrenCount = pagesById[moveTargetPageId]?.children?.length ?? 0;
   const moveTargetMaxPosition = moveTargetChildrenCount + 1; // insert position: 0..len => 1..(len+1)
-
-  useEffect(() => {
-    if (!moveModalOpen) return;
-    setMoveTargetPosition((p) => Math.min(p, moveTargetMaxPosition));
-  }, [moveModalOpen, moveTargetMaxPosition]);
 
   const { ref, isDragging } = useSortable({
     id: component.instanceId,
@@ -209,8 +204,10 @@ export const SelectableComponent = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  const count = pagesById[pageId]?.children?.length ?? 0;
+                  const maxPos = count + 1;
                   setMoveTargetPageId(pageId);
-                  setMoveTargetPosition(index + 1);
+                  setMoveTargetPosition(Math.min(index + 1, maxPos));
                   setMoveModalOpen(true);
                 }}
                 className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-none border border-border/50 bg-background text-muted-foreground/60 hover:text-foreground hover:bg-muted/50 transition-colors"
@@ -339,7 +336,13 @@ export const SelectableComponent = ({
                 </label>
                 <select
                   value={moveTargetPageId}
-                  onChange={(e) => setMoveTargetPageId(e.target.value)}
+                  onChange={(e) => {
+                    const nextPageId = e.target.value;
+                    const count = pagesById[nextPageId]?.children?.length ?? 0;
+                    const maxPos = count + 1;
+                    setMoveTargetPageId(nextPageId);
+                    setMoveTargetPosition((p) => Math.min(p, maxPos));
+                  }}
                   className="h-9 w-full rounded-none border border-border bg-background px-2 text-sm text-foreground outline-none focus:border-primary"
                 >
                   {formPageIds.map((pid, i) => (
