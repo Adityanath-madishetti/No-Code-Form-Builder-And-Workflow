@@ -62,6 +62,7 @@ export const ComponentIDs = {
 
   // ── Layout ──
   Header: 'Header',
+  SectionDivider: 'SectionDivider',
   LineDivider: 'LineDivider',
   ColumnLayout: 'ColumnLayout',
 
@@ -99,8 +100,10 @@ export const ComponentIDs = {
   ColorPicker: 'ColorPicker',
   Signature: 'Signature',
   Location: 'Location',
+  PasswordInput: 'PasswordInput',
   Toggle: 'Toggle',
   RichTextInput: 'RichTextInput',
+  Payment: 'Payment',
   Captcha: 'Captcha',
 } as const;
 
