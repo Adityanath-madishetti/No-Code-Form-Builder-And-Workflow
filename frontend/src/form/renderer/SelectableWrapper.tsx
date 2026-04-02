@@ -2,14 +2,13 @@
 import { useState } from 'react';
 import { useFormStore } from '@/form/store/formStore';
 import type { PageID } from '@/form/components/base';
-import { TEMP_PAGE_PLACEHOLDER_ID } from '@/form/utils/DndUtils';
+// import { TEMP_PAGE_PLACEHOLDER_ID } from '@/form/utils/DndUtils';
 
 import {
   ArrowDown,
   ArrowUp,
   ClipboardCopy,
   Copy,
-  GripVertical,
   Move,
   Settings,
   Trash2,
