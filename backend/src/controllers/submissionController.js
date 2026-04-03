@@ -44,6 +44,27 @@ function enforceCollectEmailMode(settings, req) {
     return email;
 }
 
+function toCsvCell(value) {
+    if (value === null || value === undefined) return "";
+    const raw =
+        typeof value === "string"
+            ? value
+            : typeof value === "number" || typeof value === "boolean"
+                ? String(value)
+                : JSON.stringify(value);
+    return `"${String(raw).replace(/"/g, "\"\"")}"`;
+}
+
+function flattenSubmissionResponses(pages = []) {
+    const out = {};
+    for (const page of pages) {
+        for (const response of page?.responses || []) {
+            out[response.componentId] = response.response;
+        }
+    }
+    return out;
+}
+
 /**
  * POST /api/forms/:formId/submissions
  * Submit a form response. Auth is optional for public forms.
@@ -121,7 +142,7 @@ export const submitForm = async (req, res, next) => {
 
 /**
  * GET /api/forms/:formId/submissions
- * List submissions for a form (owner or reviewer).
+ * List submissions for a form (owner, editor, or reviewer).
  */
 export const listSubmissions = async (req, res, next) => {
     try {
@@ -170,8 +191,84 @@ export const listSubmissions = async (req, res, next) => {
 };
 
 /**
+ * GET /api/forms/:formId/submissions/export.csv
+ * Export submissions as CSV (owner/editor/reviewer).
+ */
+export const exportSubmissionsCsv = async (req, res, next) => {
+    try {
+        const { formId } = req.params;
+
+        const [form, latestVersionDoc, submissions] = await Promise.all([
+            Form.findOne({ formId, isDeleted: false }),
+            getLatestVersion(formId),
+            Submission.find({ formId }).sort({ createdAt: -1 }),
+        ]);
+        if (!form) throw createError(404, "Form not found");
+        if (!latestVersionDoc) throw createError(404, "Form version not found");
+
+        const latestVersion = normalizeVersionForResponse(latestVersionDoc);
+        if (!canReviewSubmissions(form, latestVersion, req.user)) {
+            throw createError(403, "Access denied");
+        }
+
+        const orderedComponentIds = [];
+        const componentSet = new Set();
+
+        for (const page of latestVersion.pages || []) {
+            for (const component of page.components || []) {
+                const componentId = component?.componentId;
+                if (!componentId || componentSet.has(componentId)) continue;
+                componentSet.add(componentId);
+                orderedComponentIds.push(componentId);
+            }
+        }
+
+        for (const submission of submissions) {
+            const flat = flattenSubmissionResponses(submission.pages || []);
+            for (const componentId of Object.keys(flat)) {
+                if (componentSet.has(componentId)) continue;
+                componentSet.add(componentId);
+                orderedComponentIds.push(componentId);
+            }
+        }
+
+        const header = [
+            "submissionId",
+            "submittedAt",
+            "status",
+            "submittedBy",
+            "email",
+            ...orderedComponentIds,
+        ];
+
+        const lines = [header.map(toCsvCell).join(",")];
+        for (const submission of submissions) {
+            const flat = flattenSubmissionResponses(submission.pages || []);
+            const row = [
+                submission.submissionId,
+                submission.createdAt?.toISOString?.() || "",
+                submission.status || "",
+                submission.submittedBy || "",
+                submission.email || "",
+                ...orderedComponentIds.map((id) => flat[id] ?? ""),
+            ];
+            lines.push(row.map(toCsvCell).join(","));
+        }
+
+        res.setHeader("Content-Type", "text/csv; charset=utf-8");
+        res.setHeader(
+            "Content-Disposition",
+            `attachment; filename="form-${formId}-submissions.csv"`
+        );
+        res.status(200).send(lines.join("\n"));
+    } catch (err) {
+        next(err);
+    }
+};
+
+/**
  * GET /api/forms/:formId/submissions/:submissionId
- * Get a single submission (owner or reviewer).
+ * Get a single submission (owner, editor, or reviewer).
  */
 export const getSubmission = async (req, res, next) => {
     try {
@@ -303,7 +400,7 @@ export const getMySubmissions = async (req, res, next) => {
 
         const submissions = await Submission.find({ submittedBy: uid })
             .sort({ createdAt: -1 })
-            .select("submissionId formId version status createdAt")
+            .select("submissionId formId version status createdAt pages")
             .limit(100);
 
         const formIds = [...new Set(submissions.map((s) => s.formId))];
@@ -350,6 +447,7 @@ export const getMySubmissions = async (req, res, next) => {
             version: submission.version,
             status: submission.status,
             submittedAt: submission.createdAt,
+            pages: submission.pages || [],
         }));
 
         res.status(200).json({ submissions: enriched });

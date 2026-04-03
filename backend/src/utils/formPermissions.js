@@ -134,7 +134,7 @@ export function canEditForm(form, version, user) {
 }
 
 export function canReviewSubmissions(form, version, user) {
-    return isOwner(form, user) || isReviewer(version, user);
+    return isOwner(form, user) || isEditor(version, user) || isReviewer(version, user);
 }
 
 export function canFillForm(form, version, user) {
