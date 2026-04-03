@@ -131,7 +131,10 @@ export function FormThemeProvider({
   const color = theme?.color || formThemeColors.Default;
   const mode = theme?.mode || formThemeModes.Light;
 
-  const bgStyle = useMemo(() => backgroundStyles(theme?.background), [theme?.background]);
+  const bgStyle = useMemo(
+    () => backgroundStyles(theme?.background),
+    [theme?.background]
+  );
   const wStyle = useMemo(() => widthStyle(theme?.layout), [theme?.layout]);
   const patCls = patternClass(theme?.background);
   const layoutCls = layoutClasses(theme?.layout);
