@@ -85,8 +85,7 @@ function widthStyle(layout?: FormThemeLayout): React.CSSProperties {
  * Merges a page-level theme override with the global theme.
  * Page overrides win; nested objects are shallow-merged.
  */
-// eslint-disable-next-line react-refresh/only-export-components
-export function mergeThemes(
+function mergeThemes(
   global: FormTheme | null,
   pageOverride?: Partial<FormTheme>
 ): FormTheme | null {
@@ -173,6 +172,7 @@ export function FormThemeProvider({
         patCls,
         layoutCls,
         compCls,
+        'min-h-full',
       ]
         .filter(Boolean)
         .join(' ')}

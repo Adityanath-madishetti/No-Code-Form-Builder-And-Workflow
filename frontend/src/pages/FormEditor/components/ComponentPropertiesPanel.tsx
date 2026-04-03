@@ -9,6 +9,7 @@ import { useFormStore } from '@/form/store/formStore';
 import { useShallow } from 'zustand/react/shallow';
 import { getComponentPropsRenderer } from '@/form/registry/componentRegistry';
 import { Settings2, EyeOff } from 'lucide-react';
+import { useMemo } from 'react';
 
 function supportsOptionShuffle(props: unknown): boolean {
   if (!props || typeof props !== 'object') return false;
@@ -34,7 +35,11 @@ export function ComponentPropertiesPanel() {
       activeComponentId ? s.components[activeComponentId] : null
     )
   );
-  const updateComponentProps = useFormStore((s) => s.updateComponentProps);
+
+  const SettingsRenderer = useMemo(() => {
+    if (!component) return null;
+    return getComponentPropsRenderer(component.id);
+  }, [component?.id]);
 
   // Nothing selected
   if (!component && !activePageId) {
@@ -60,7 +65,7 @@ export function ComponentPropertiesPanel() {
   // Component selected
   if (!component) return null;
 
-  const SettingsRenderer = getComponentPropsRenderer(component.id);
+  // const SettingsRenderer = getComponentPropsRenderer(component.id);
   const optionShuffleEnabled =
     ((component.props as unknown as Record<string, unknown>)?.shuffleOptions as
       | boolean
