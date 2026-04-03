@@ -11,6 +11,7 @@ import { useLogicStore } from '@/form/logic/logicStore';
 import { useFormStore } from '@/form/store/formStore';
 import { createRuleAction } from '@/form/logic/logicTypes';
 import type { Condition, RuleAction } from '@/form/logic/logicTypes';
+import { RULE_TYPES } from '@/form/logic/logicTypes';
 import { ConditionBuilder } from './ConditionBuilder';
 import { ActionRow } from './ActionRow';
 import { FormulaEditor } from './FormulaEditor';
@@ -44,7 +45,10 @@ export function LogicPlayground({ onClose }: LogicPlaygroundProps) {
         .filter((c) => c.id !== 'Header' && c.id !== 'LineDivider')
         .map((c) => ({
           id: c.instanceId,
-          label: c.metadata.label || c.id,
+          label:
+            c.metadata.label && c.metadata.label !== c.id
+              ? `${c.metadata.label} (${c.id})`
+              : c.id,
         })),
     [components]
   );
@@ -52,7 +56,10 @@ export function LogicPlayground({ onClose }: LogicPlaygroundProps) {
   const targetOptions = useMemo(() => {
     const compTargets = Object.values(components).map((c) => ({
       id: c.instanceId,
-      label: c.metadata.label || c.id,
+      label:
+        c.metadata.label && c.metadata.label !== c.id
+          ? `${c.metadata.label} (${c.id})`
+          : c.id,
       type: 'component' as const,
     }));
     const pageTargets = formPages.map((pageId, idx) => ({
@@ -208,6 +215,19 @@ export function LogicPlayground({ onClose }: LogicPlaygroundProps) {
           className="flex-1 bg-transparent text-sm font-medium outline-none"
           placeholder="Rule name…"
         />
+        <select
+          value={rule!.ruleType}
+          onChange={(e) =>
+            updateRule(rule!.ruleId, {
+              ruleType: e.target.value as (typeof RULE_TYPES)[number],
+            })
+          }
+          className="h-7 rounded border border-input bg-background px-2 text-[11px]"
+        >
+          <option value="field">Field</option>
+          <option value="validation">Validation</option>
+          <option value="navigation">Navigation</option>
+        </select>
       </div>
 
       {/* Body */}
@@ -252,7 +272,9 @@ export function LogicPlayground({ onClose }: LogicPlaygroundProps) {
               onClick={() =>
                 updateRuleThenActions(rule!.ruleId, [
                   ...rule!.thenActions,
-                  createRuleAction('SHOW'),
+                  createRuleAction(
+                    rule!.ruleType === 'navigation' ? 'SKIP_PAGE' : 'SHOW'
+                  ),
                 ])
               }
             >
@@ -286,13 +308,15 @@ export function LogicPlayground({ onClose }: LogicPlaygroundProps) {
                   variant="ghost"
                   size="sm"
                   className="mt-1.5 h-6 px-2 text-[10px]"
-                  onClick={() =>
-                    updateRuleElseActions(rule!.ruleId, [
-                      ...rule!.elseActions,
-                      createRuleAction('HIDE'),
-                    ])
-                  }
-                >
+                onClick={() =>
+                  updateRuleElseActions(rule!.ruleId, [
+                    ...rule!.elseActions,
+                    createRuleAction(
+                      rule!.ruleType === 'navigation' ? 'SKIP_PAGE' : 'HIDE'
+                    ),
+                  ])
+                }
+              >
                   <Plus className="mr-0.5 h-2.5 w-2.5" />
                   Add action
                 </Button>
@@ -304,7 +328,9 @@ export function LogicPlayground({ onClose }: LogicPlaygroundProps) {
                 className="h-7 text-xs"
                 onClick={() =>
                   updateRuleElseActions(rule!.ruleId, [
-                    createRuleAction('HIDE'),
+                    createRuleAction(
+                      rule!.ruleType === 'navigation' ? 'SKIP_PAGE' : 'HIDE'
+                    ),
                   ])
                 }
               >

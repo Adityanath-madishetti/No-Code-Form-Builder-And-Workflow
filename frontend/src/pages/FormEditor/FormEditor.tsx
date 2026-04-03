@@ -178,11 +178,21 @@ export default function FormEditor() {
 
     loadFormVersion(formId)
       .then(
-        ({ form, pages, components, version, logicRules, logicFormulas }) => {
+        ({
+          form,
+          pages,
+          components,
+          version,
+          logicRules,
+          logicFormulas,
+          logicShuffleStacks,
+        }) => {
           if (cancelled) return;
           loadForm(form, pages, components, version);
           // Hydrate logic store
-          useLogicStore.getState().loadRules(logicRules, logicFormulas);
+          useLogicStore
+            .getState()
+            .loadRules(logicRules, logicFormulas, logicShuffleStacks);
           setFormLoaded(true);
         }
       )
@@ -299,7 +309,8 @@ export default function FormEditor() {
         components,
         user?.uid || 'unknown',
         logicState.rules,
-        logicState.formulas
+        logicState.formulas,
+        logicState.componentShuffleStacks
       );
     } catch (err) {
       console.error('Save failed:', err);

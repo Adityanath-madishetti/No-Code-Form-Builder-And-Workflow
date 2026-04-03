@@ -10,6 +10,7 @@ import {
     normalizeEmail,
     normalizeVersionForResponse,
 } from "../utils/formPermissions.js";
+import { evaluateFormLogicRuntime } from "../services/logicEngine.js";
 
 async function getLatestVersion(formId) {
     return FormVersion.findOne({ formId }).sort({ version: -1 });
@@ -65,6 +66,18 @@ function flattenSubmissionResponses(pages = []) {
     return out;
 }
 
+function throwLogicViolationError(violations) {
+    const err = createError(422, "Validation failed");
+    err.details = violations;
+    throw err;
+}
+
+function throwLogicEngineError(errors) {
+    const err = createError(409, "Logic execution failed");
+    err.details = errors;
+    throw err;
+}
+
 /**
  * POST /api/forms/:formId/submissions
  * Submit a form response. Auth is optional for public forms.
@@ -118,6 +131,18 @@ export const submitForm = async (req, res, next) => {
 
         const email = enforceCollectEmailMode(settings, req);
 
+        const logicResult = evaluateFormLogicRuntime({
+            version,
+            pages: req.body?.pages || [],
+            stage: "submit",
+        });
+        if (logicResult.errors.length) {
+            throwLogicEngineError(logicResult.errors);
+        }
+        if (logicResult.violations.length) {
+            throwLogicViolationError(logicResult.violations);
+        }
+
         const submission = await Submission.create({
             submissionId: crypto.randomUUID(),
             formId,
@@ -128,7 +153,7 @@ export const submitForm = async (req, res, next) => {
             meta: {
                 isQuiz: version.meta?.isQuiz || false,
             },
-            pages: req.body?.pages || [],
+            pages: logicResult.pages,
         });
 
         res.status(201).json({
@@ -377,8 +402,20 @@ export const updateMySubmission = async (req, res, next) => {
 
         const email = enforceCollectEmailMode(settings, req);
 
+        const logicResult = evaluateFormLogicRuntime({
+            version,
+            pages: req.body?.pages || [],
+            stage: "submit",
+        });
+        if (logicResult.errors.length) {
+            throwLogicEngineError(logicResult.errors);
+        }
+        if (logicResult.violations.length) {
+            throwLogicViolationError(logicResult.violations);
+        }
+
         if (req.body?.pages !== undefined) {
-            submission.pages = req.body.pages;
+            submission.pages = logicResult.pages;
         }
         submission.email = email;
 

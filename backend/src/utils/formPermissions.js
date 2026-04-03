@@ -1,4 +1,5 @@
 import User from "../models/User.js";
+import { normalizeLogicPayload } from "../services/logicEngine.js";
 
 const VISIBILITY_VALUES = new Set(["public", "private", "link-only"]);
 const COLLECT_EMAIL_MODE_VALUES = new Set(["none", "optional", "required"]);
@@ -263,6 +264,7 @@ export function normalizeVersionForResponse(versionDoc) {
 
     plain.settings = normalizeSettings(plain.settings || {});
     plain.access = normalizeAccess(plain.access || {});
+    plain.logic = normalizeLogicPayload(plain.logic || {});
 
     return plain;
 }
