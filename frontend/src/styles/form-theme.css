@@ -2,6 +2,11 @@
  * Theme Customization
  */
 
+[class*="form-theme-"] {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
 .form-theme-default.light,
 .light .form-theme-default {
   color-scheme: light;

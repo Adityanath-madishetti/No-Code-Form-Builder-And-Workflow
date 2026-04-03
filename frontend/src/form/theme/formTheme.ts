@@ -65,7 +65,7 @@ export const DEFAULT_FORM_THEME: {
   bodyFont: { family: formFontNames.Inter },
   background: {
     type: 'solid',
-    solidColor: '#ffffff',
+    solidColor: '',
     blur: false,
     overlayOpacity: 0,
     fixed: false,

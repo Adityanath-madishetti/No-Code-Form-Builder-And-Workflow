@@ -5,9 +5,7 @@ import { useThemeUIStore } from '@/form/theme/themeStore';
 import { FormThemeProvider } from '@/form/theme/FormThemeProvider';
 import { FormModeProvider } from '@/form/context/FormModeContext';
 import { RenderPage } from '@/form/renderer/editRenderer/RenderPage';
-import {
-  type formThemeColor,
-} from '@/form/theme/formTheme';
+import { type formThemeColor } from '@/form/theme/formTheme';
 import type {
   FormThemeBackground,
   FormThemeLayout,
@@ -37,17 +35,33 @@ const THEME_COLORS: { key: string; color: formThemeColor; bg: string }[] = [
   { key: 'Pink', color: 'pink', bg: '#ec4899' },
 ];
 
-const PATTERN_OPTIONS: { id: FormThemeBackground['pattern']; label: string }[] = [
-  { id: 'dots', label: 'Dots' },
-  { id: 'grid', label: 'Grid' },
-  { id: 'diagonal', label: 'Lines' },
-  { id: 'waves', label: 'Waves' },
-  { id: 'noise', label: 'Noise' },
-];
+const PATTERN_OPTIONS: { id: FormThemeBackground['pattern']; label: string }[] =
+  [
+    { id: 'dots', label: 'Dots' },
+    { id: 'grid', label: 'Grid' },
+    { id: 'diagonal', label: 'Lines' },
+    { id: 'waves', label: 'Waves' },
+    { id: 'noise', label: 'Noise' },
+  ];
 
-const SHADOW_OPTIONS: FormThemeComponentProps['shadow'][] = ['none', 'sm', 'md', 'lg'];
-const RADIUS_OPTIONS: FormThemeComponentProps['borderRadius'][] = ['none', 'sm', 'md', 'lg', 'full'];
-const BORDER_OPTIONS: FormThemeComponentProps['borderWidth'][] = ['0', '1', '2'];
+const SHADOW_OPTIONS: FormThemeComponentProps['shadow'][] = [
+  'none',
+  'sm',
+  'md',
+  'lg',
+];
+const RADIUS_OPTIONS: FormThemeComponentProps['borderRadius'][] = [
+  'none',
+  'sm',
+  'md',
+  'lg',
+  'full',
+];
+const BORDER_OPTIONS: FormThemeComponentProps['borderWidth'][] = [
+  '0',
+  '1',
+  '2',
+];
 
 // ════════════════════════════════════════════════════════════════
 // Section wrapper for collapsible panels
@@ -105,21 +119,33 @@ function ColorsSection() {
 
   const currentColor = useMemo(() => {
     if (activeTab === 'page' && selectedPageId) {
-      return pages[selectedPageId]?.themeOverrides?.color ?? theme?.color ?? 'default';
+      return (
+        pages[selectedPageId]?.themeOverrides?.color ??
+        theme?.color ??
+        'default'
+      );
     }
     return theme?.color ?? 'default';
   }, [activeTab, selectedPageId, pages, theme?.color]);
 
   const currentPrimary = useMemo(() => {
     if (activeTab === 'page' && selectedPageId) {
-      return pages[selectedPageId]?.themeOverrides?.primaryColor ?? theme?.primaryColor ?? '';
+      return (
+        pages[selectedPageId]?.themeOverrides?.primaryColor ??
+        theme?.primaryColor ??
+        ''
+      );
     }
     return theme?.primaryColor ?? '';
   }, [activeTab, selectedPageId, pages, theme?.primaryColor]);
 
   const currentText = useMemo(() => {
     if (activeTab === 'page' && selectedPageId) {
-      return pages[selectedPageId]?.themeOverrides?.textColor ?? theme?.textColor ?? '';
+      return (
+        pages[selectedPageId]?.themeOverrides?.textColor ??
+        theme?.textColor ??
+        ''
+      );
     }
     return theme?.textColor ?? '';
   }, [activeTab, selectedPageId, pages, theme?.textColor]);
@@ -598,7 +624,11 @@ function LayoutSection() {
   const updatePageOverrides = useFormStore((s) => s.updatePageThemeOverrides);
 
   const layout: FormThemeLayout = useMemo(() => {
-    const g = theme?.layout ?? { formWidth: '800px' as const, cardStyle: 'elevated' as const, spacing: 'comfortable' as const };
+    const g = theme?.layout ?? {
+      formWidth: '800px' as const,
+      cardStyle: 'elevated' as const,
+      spacing: 'comfortable' as const,
+    };
     if (activeTab === 'page' && selectedPageId) {
       const po = pages[selectedPageId]?.themeOverrides?.layout;
       return po ? { ...g, ...po } : g;
@@ -635,7 +665,9 @@ function LayoutSection() {
             <div className="mb-1 flex justify-center">
               <div
                 className="h-8 rounded border border-current"
-                style={{ width: w === '600px' ? '60%' : w === '800px' ? '80%' : '100%' }}
+                style={{
+                  width: w === '600px' ? '60%' : w === '800px' ? '80%' : '100%',
+                }}
               />
             </div>
             {w === 'full' ? 'Full' : w}
@@ -666,14 +698,17 @@ function LayoutSection() {
                 <div
                   className="h-8 w-full rounded border"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05))',
+                    background:
+                      'linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05))',
                     borderColor: 'rgba(255,255,255,0.3)',
                     backdropFilter: 'blur(4px)',
                   }}
                 />
               )}
             </div>
-            {style === 'glassmorphism' ? 'Glass' : style.charAt(0).toUpperCase() + style.slice(1)}
+            {style === 'glassmorphism'
+              ? 'Glass'
+              : style.charAt(0).toUpperCase() + style.slice(1)}
           </button>
         ))}
       </div>
@@ -711,7 +746,11 @@ function ComponentPropsSection() {
   const updatePageOverrides = useFormStore((s) => s.updatePageThemeOverrides);
 
   const cp: FormThemeComponentProps = useMemo(() => {
-    const g = theme?.componentProps ?? { shadow: 'sm' as const, borderRadius: 'md' as const, borderWidth: '1' as const };
+    const g = theme?.componentProps ?? {
+      shadow: 'sm' as const,
+      borderRadius: 'md' as const,
+      borderWidth: '1' as const,
+    };
     if (activeTab === 'page' && selectedPageId) {
       const po = pages[selectedPageId]?.themeOverrides?.componentProps;
       return po ? { ...g, ...po } : g;
@@ -820,7 +859,9 @@ function PageSelector() {
         <button
           onClick={() => {
             // Clear page overrides
-            useFormStore.getState().updatePageThemeOverrides(selectedPageId, undefined);
+            useFormStore
+              .getState()
+              .updatePageThemeOverrides(selectedPageId, undefined);
           }}
           className="mt-2 text-[11px] text-destructive hover:underline"
           type="button"
@@ -858,7 +899,7 @@ function LivePreview() {
       <div className="h-full overflow-y-auto">
         <div className="px-4 py-6">
           <div className="mb-4 text-center">
-            <span className="inline-block rounded-full bg-black/5 px-3 py-1 text-[10px] font-medium uppercase tracking-widest dark:bg-white/10">
+            <span className="inline-block rounded-full bg-black/5 px-3 py-1 text-[10px] font-medium tracking-widest uppercase dark:bg-white/10">
               Live Preview
             </span>
           </div>
