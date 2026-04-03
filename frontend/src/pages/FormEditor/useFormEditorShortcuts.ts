@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useFormStore } from '@/form/store/formStore';
 import type { SidebarPanelId } from './components/EditorSidebar';
 
-export type FormEditorView = 'canvas' | 'logic' | 'workflow' | 'formProperties';
+export type FormEditorView = 'canvas' | 'logic' | 'workflow' | 'formProperties' | 'theming';
 
 function isEditableElement(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;

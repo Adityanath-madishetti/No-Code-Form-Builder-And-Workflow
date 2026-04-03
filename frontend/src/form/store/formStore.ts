@@ -608,7 +608,7 @@ export const useFormStore = create<FormStore>()(
         const clonedComponent = JSON.parse(JSON.stringify(originalComponent));
 
         // 2. Assign the value to the outer variable
-        newInstanceId = `${clonedComponent.type}-${crypto.randomUUID()}`;
+        newInstanceId = `${clonedComponent.id}-${crypto.randomUUID()}`;
         clonedComponent.instanceId = newInstanceId;
 
         // Register the new component in the state map
@@ -795,7 +795,7 @@ export const useFormStore = create<FormStore>()(
       let newInstanceId: InstanceID | undefined;
       set((state) => {
         const cloned = JSON.parse(JSON.stringify(parsed.c)) as AnyFormComponent;
-        newInstanceId = `${cloned.type}-${crypto.randomUUID()}`;
+        newInstanceId = `${cloned.id}-${crypto.randomUUID()}`;
         cloned.instanceId = newInstanceId;
         state.components[newInstanceId] = cloned;
         const children = state.pages[pageId]?.children;

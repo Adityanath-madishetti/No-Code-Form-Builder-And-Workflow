@@ -36,7 +36,7 @@ import { LogicPlayground } from './components/LogicPlayground';
 import { ThemingPage } from './components/ThemingPage';
 import { useTheme } from '@/components/theme-provider';
 import { useLogicStore } from '@/form/logic/logicStore';
-import { Bug, PanelLeftClose, PanelRightClose, Save, ArrowLeft, Loader2, Eye, Globe, Zap, LayoutGrid, GitBranch, Settings2 } from 'lucide-react';
+import { Bug, PanelLeftClose, PanelRightClose, Save, ArrowLeft, Loader2, Eye, Globe, Zap, LayoutGrid, GitBranch, Settings2, Palette, Sun, Moon } from 'lucide-react';
 import { useFormEditorShortcuts } from './useFormEditorShortcuts';
 import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
 import { useShallow } from 'zustand/react/shallow';
