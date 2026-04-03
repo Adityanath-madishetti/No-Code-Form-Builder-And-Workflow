@@ -203,6 +203,7 @@ export function ComponentCatalogPanel() {
         <Search className="absolute top-2.5 left-2.5 h-3.5 w-3.5 text-muted-foreground" />
         <Input
           type="search"
+          data-sidebar-search
           placeholder="Search components..."
           className="h-9 pl-8 text-sm"
           value={searchQuery}
