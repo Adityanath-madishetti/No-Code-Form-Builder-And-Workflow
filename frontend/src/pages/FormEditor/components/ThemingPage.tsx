@@ -20,7 +20,9 @@ import {
   BoxSelect,
   Upload,
   X,
+  Type,
 } from 'lucide-react';
+import { formFontNames, type formFontName } from '@/form/theme/formTheme';
 import type { ThemeSection, BackgroundSubTab } from '@/form/theme/themeStore';
 
 // ── Theme color swatch map ──
@@ -612,6 +614,140 @@ function BackgroundSection() {
 }
 
 // ════════════════════════════════════════════════════════════════
+// Typography Section
+// ════════════════════════════════════════════════════════════════
+
+function TypographySection() {
+  const theme = useFormStore(formSelectors.formTheme);
+  const update = useFormStore((s) => s.updateFormTheme);
+  const activeTab = useThemeUIStore((s) => s.activeTab);
+  const selectedPageId = useThemeUIStore((s) => s.selectedPageId);
+  const pages = useFormStore((s) => s.pages);
+  const updatePageOverrides = useFormStore((s) => s.updatePageThemeOverrides);
+
+  const headingFont = useMemo(() => {
+    if (activeTab === 'page' && selectedPageId) {
+      return (
+        pages[selectedPageId]?.themeOverrides?.headingFont?.family ??
+        theme?.headingFont?.family ??
+        formFontNames.Inter
+      );
+    }
+    return theme?.headingFont?.family ?? formFontNames.Inter;
+  }, [activeTab, selectedPageId, pages, theme?.headingFont?.family]);
+
+  const bodyFont = useMemo(() => {
+    if (activeTab === 'page' && selectedPageId) {
+      return (
+        pages[selectedPageId]?.themeOverrides?.bodyFont?.family ??
+        theme?.bodyFont?.family ??
+        formFontNames.Inter
+      );
+    }
+    return theme?.bodyFont?.family ?? formFontNames.Inter;
+  }, [activeTab, selectedPageId, pages, theme?.bodyFont?.family]);
+
+  const setHeadingFont = useCallback(
+    (family: formFontName) => {
+      if (activeTab === 'page' && selectedPageId) {
+        updatePageOverrides(selectedPageId, { headingFont: { family } });
+      } else {
+        update({ headingFont: { family } });
+      }
+    },
+    [activeTab, selectedPageId, update, updatePageOverrides]
+  );
+
+  const setBodyFont = useCallback(
+    (family: formFontName) => {
+      if (activeTab === 'page' && selectedPageId) {
+        updatePageOverrides(selectedPageId, { bodyFont: { family } });
+      } else {
+        update({ bodyFont: { family } });
+      }
+    },
+    [activeTab, selectedPageId, update, updatePageOverrides]
+  );
+
+  return (
+    <Section id="typography" icon={Type} title="Typography">
+      <div className="space-y-4">
+        {/* Heading Font */}
+        <div>
+          <label className="mb-2 block text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+            Heading Font
+          </label>
+          <div className="relative">
+            <select
+              value={headingFont}
+              onChange={(e) => setHeadingFont(e.target.value as formFontName)}
+              className="w-full appearance-none rounded-md border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-none"
+              style={{
+                fontFamily: `var(--font-${headingFont.toLowerCase().replace(/\s+/g, '-')})`,
+              }}
+            >
+              {Object.entries(formFontNames).map(([key, name]) => (
+                <option
+                  key={key}
+                  value={name}
+                  style={{
+                    fontFamily: `var(--font-${name.toLowerCase().replace(/\s+/g, '-')})`,
+                  }}
+                >
+                  {name}
+                </option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-muted-foreground">
+              <ChevronDown className="h-3 w-3" />
+            </div>
+          </div>
+        </div>
+
+        {/* Body Font */}
+        <div>
+          <label className="mb-2 block text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+            Body Font
+          </label>
+          <div className="relative">
+            <select
+              value={bodyFont}
+              onChange={(e) => setBodyFont(e.target.value as formFontName)}
+              className="w-full appearance-none rounded-md border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-none"
+              style={{
+                fontFamily: `var(--font-${bodyFont.toLowerCase().replace(/\s+/g, '-')})`,
+              }}
+            >
+              {Object.entries(formFontNames).map(([key, name]) => (
+                <option
+                  key={key}
+                  value={name}
+                  style={{
+                    fontFamily: `var(--font-${name.toLowerCase().replace(/\s+/g, '-')})`,
+                  }}
+                >
+                  {name}
+                </option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-muted-foreground">
+              <ChevronDown className="h-3 w-3" />
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-md bg-muted/30 p-2.5 text-[10px] leading-relaxed text-muted-foreground">
+          <p>Heading font applies to labels and titles.</p>
+          <p className="mt-1">
+            Body font applies to input text and paragraphs.
+          </p>
+        </div>
+      </div>
+    </Section>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════
 // Layout Section
 // ════════════════════════════════════════════════════════════════
 
@@ -991,6 +1127,7 @@ export function ThemingPage() {
         <div>
           <ColorsSection />
           <BackgroundSection />
+          <TypographySection />
           <LayoutSection />
           <ComponentPropsSection />
         </div>

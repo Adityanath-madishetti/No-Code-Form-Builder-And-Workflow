@@ -3,7 +3,7 @@
 export const formFontNames = {
   Inter: 'Inter',
   Roboto: 'Roboto',
-  OpenSans: 'Open Sans',
+  // OpenSans: 'Open Sans',
   Lato: 'Lato',
   Montserrat: 'Montserrat',
   SourceSansPro: 'Source Sans Pro',
@@ -11,6 +11,9 @@ export const formFontNames = {
   Raleway: 'Raleway',
   NotoSans: 'Noto Sans',
   Ubuntu: 'Ubuntu',
+  PlayfairDisplay: 'Playfair Display',
+  GoogleSans: 'Google Sans',
+  Merriweather: 'Merriweather',
 } as const;
 export type formFontName = (typeof formFontNames)[keyof typeof formFontNames];
 

@@ -9,7 +9,12 @@ import { create } from 'zustand';
 import type { PageID } from '../components/base';
 
 export type ThemeTab = 'global' | 'page';
-export type ThemeSection = 'colors' | 'background' | 'layout' | 'componentProps';
+export type ThemeSection =
+  | 'colors'
+  | 'background'
+  | 'typography'
+  | 'layout'
+  | 'componentProps';
 export type BackgroundSubTab = 'solid' | 'gradient' | 'image' | 'pattern';
 
 interface ThemeUIState {
@@ -30,7 +35,13 @@ export type ThemeUIStore = ThemeUIState & ThemeUIActions;
 
 export const useThemeUIStore = create<ThemeUIStore>()((set) => ({
   activeTab: 'global',
-  expandedSections: new Set<ThemeSection>(['colors', 'background', 'layout', 'componentProps']),
+  expandedSections: new Set<ThemeSection>([
+    'colors',
+    'background',
+    'typography',
+    'layout',
+    'componentProps',
+  ]),
   backgroundSubTab: 'solid',
   selectedPageId: null,
 

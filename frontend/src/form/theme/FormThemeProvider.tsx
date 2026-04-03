@@ -139,6 +139,23 @@ export function FormThemeProvider({
   const layoutCls = layoutClasses(theme?.layout);
   const compCls = componentClasses(theme?.componentProps);
 
+  const fontVars = useMemo<React.CSSProperties>(() => {
+    const vars: Record<string, string> = {};
+    if (theme?.headingFont?.family) {
+      const familyName = theme.headingFont.family
+        .toLowerCase()
+        .replace(/\s+/g, '-');
+      vars['--form-font-heading'] = `var(--font-${familyName})`;
+    }
+    if (theme?.bodyFont?.family) {
+      const familyName = theme.bodyFont.family
+        .toLowerCase()
+        .replace(/\s+/g, '-');
+      vars['--form-font-body'] = `var(--font-${familyName})`;
+    }
+    return vars as React.CSSProperties;
+  }, [theme]);
+
   const overlayStyle = useMemo<React.CSSProperties>(() => {
     if (!theme?.background?.overlayOpacity) return {};
     return {
@@ -150,12 +167,12 @@ export function FormThemeProvider({
           : `rgba(255,255,255,${theme.background.overlayOpacity / 100})`,
       pointerEvents: 'none' as const,
     };
-  }, [theme?.background?.overlayOpacity, mode]);
+  }, [theme, mode]);
 
   const blurStyle = useMemo<React.CSSProperties>(() => {
     if (!theme?.background?.blur) return {};
     return { backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' };
-  }, [theme?.background?.blur]);
+  }, [theme]);
 
   const customColorVars = useMemo<React.CSSProperties>(() => {
     const vars: Record<string, string> = {};
@@ -172,11 +189,17 @@ export function FormThemeProvider({
         patCls,
         layoutCls,
         compCls,
+        'form-theme-container',
         'min-h-full',
       ]
         .filter(Boolean)
         .join(' ')}
-      style={{ ...bgStyle, ...customColorVars, position: 'relative' }}
+      style={{
+        ...bgStyle,
+        ...customColorVars,
+        ...fontVars,
+        position: 'relative',
+      }}
       data-form-width={theme?.layout?.formWidth ?? '800px'}
     >
       {/* Overlay + blur layers */}

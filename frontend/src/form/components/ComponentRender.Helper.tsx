@@ -9,7 +9,7 @@ export const ComponentPropTitle = ({ title }: { title: string }) => {
 };
 
 export const inp =
-  'w-full border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary placeholder:text-muted-foreground/40 transition-colors';
+  'w-full border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary placeholder:text-muted-foreground/40 transition-colors rounded-none shadow-none';
 export const lbl = 'text-[11px] font-medium text-muted-foreground mb-1 block';
 
 export function Q({ html }: { html?: string }) {

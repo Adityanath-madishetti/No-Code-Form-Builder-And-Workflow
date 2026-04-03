@@ -1,0 +1,79 @@
+/* Font variables and utility classes */
+
+:root {
+  /* Default font familias */
+  --font-inter: 'Inter', sans-serif;
+  --font-roboto: 'Roboto', sans-serif;
+  --font-open-sans: 'Open Sans', sans-serif;
+  --font-lato: 'Lato', sans-serif;
+  --font-montserrat: 'Montserrat', sans-serif;
+  --font-source-sans-pro: 'Source Sans Pro', sans-serif;
+  --font-poppins: 'Poppins', sans-serif;
+  --font-raleway: 'Raleway', sans-serif;
+  --font-noto-sans: 'Noto Sans', sans-serif;
+  --font-ubuntu: 'Ubuntu', sans-serif;
+  --font-playfair-display: 'Playfair Display', serif;
+  --font-google-sans: 'Google Sans', sans-serif;
+  --font-merriweather: 'Merriweather', serif;
+
+  /* Theme defaults */
+  --form-font-heading: var(--font-inter);
+  --form-font-body: var(--font-inter);
+}
+
+/* Font name mapping classes (optional, if needed for direct use) */
+.font-inter {
+  font-family: var(--font-inter);
+}
+.font-roboto {
+  font-family: var(--font-roboto);
+}
+.font-open-sans {
+  font-family: var(--font-open-sans);
+}
+.font-lato {
+  font-family: var(--font-lato);
+}
+.font-montserrat {
+  font-family: var(--font-montserrat);
+}
+.font-source-sans-pro {
+  font-family: var(--font-source-sans-pro);
+}
+.font-poppins {
+  font-family: var(--font-poppins);
+}
+.font-raleway {
+  font-family: var(--font-raleway);
+}
+.font-noto-sans {
+  font-family: var(--font-noto-sans);
+}
+.font-ubuntu {
+  font-family: var(--font-ubuntu);
+}
+.font-playfair-display {
+  font-family: var(--font-playfair-display);
+}
+.font-google-sans {
+  font-family: var(--font-google-sans);
+}
+.font-merriweather {
+  font-family: var(--font-merriweather);
+}
+
+/* Application of theme fonts */
+.form-theme-container h1,
+.form-theme-container h2,
+.form-theme-container h3,
+.form-theme-container h4,
+.form-theme-container h5,
+.form-theme-container h6,
+.form-theme-heading {
+  font-family: var(--form-font-heading);
+}
+
+.form-theme-container,
+.form-theme-body {
+  font-family: var(--form-font-body);
+}
