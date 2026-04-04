@@ -36,7 +36,8 @@ import { LogicPlayground } from './components/LogicPlayground';
 import { ThemingPage } from './components/ThemingPage';
 import { useTheme } from '@/components/theme-provider';
 import { useLogicStore } from '@/form/logic/logicStore';
-import { Bug, PanelLeftClose, PanelRightClose, Save, ArrowLeft, Loader2, Eye, Globe, Zap, LayoutGrid, GitBranch, Settings2, Palette, Sun, Moon } from 'lucide-react';
+import { Bug, PanelLeftClose, PanelRightClose, ArrowLeft } from 'lucide-react';
+import { Workspaces } from './components/Workspaces';
 import { useFormEditorShortcuts } from './useFormEditorShortcuts';
 import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
 import { useShallow } from 'zustand/react/shallow';
@@ -384,176 +385,25 @@ export default function FormEditor() {
 
           {/* ── Centre area: Form canvas OR Logic playground ── */}
           <div className="relative flex h-full min-w-[400px] flex-1 flex-col overflow-hidden bg-neutral-100 dark:bg-neutral-900">
-            {/* Top bar: editor view + save/preview/publish */}
-            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border bg-background px-3 py-1">
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => setEditorView('formProperties')}
-                  className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors ${
-                    editorView === 'formProperties'
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                  }`}
-                >
-                  <Settings2 className="h-3 w-3" />
-                  Settings
-                </button>
-                <button
-                  onClick={() => setEditorView('canvas')}
-                  className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors ${
-                    editorView === 'canvas'
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                  }`}
-                >
-                  <LayoutGrid className="h-3 w-3" />
-                  Builder
-                </button>
-                <button
-                  onClick={() => {
-                    setActivePanel(null);
-                    setEditorView('theming');
-                  }}
-                  className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors ${
-                    editorView === 'theming'
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                  }`}
-                >
-                  <Palette className="h-3 w-3" />
-                  Themes
-                </button>
-                <button
-                  onClick={() => setEditorView('logic')}
-                  className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors ${
-                    editorView === 'logic'
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                  }`}
-                >
-                  <Zap className="h-3 w-3" />
-                  Logic
-                  {(logicActiveRuleId || logicActiveFormulaId) && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                  )}
-                </button>
-                <button
-                  onClick={() => setEditorView('workflow')}
-                  className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors ${
-                    editorView === 'workflow'
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                  }`}
-                >
-                  <GitBranch className="h-3 w-3" />
-                  Workflows
-                </button>
-              </div>
-
-              <div
-                className="flex items-center gap-1 will-change-transform"
-                style={{
-                  transform: `translateX(-${(showProperties ? rightWidth : 0) + (showDebug ? debugWidth : 0)}px)`,
-                  transition: 'transform 100ms ease-out',
-                }}
-              >
-                {/* Dark / Light toggle */}
-                <button
-                  onClick={() => {
-                    // Resolve current actual theme (could be 'system')
-                    const isDark =
-                      document.documentElement.classList.contains('dark');
-                    const next = isDark ? 'light' : 'dark';
-                    setEditorTheme(next);
-                    // Also sync form theme mode
-                    useFormStore.getState().updateFormTheme({ mode: next });
-                  }}
-                  title={
-                    document.documentElement.classList.contains('dark')
-                      ? 'Switch to Light Mode'
-                      : 'Switch to Dark Mode'
-                  }
-                  className="group flex h-7 items-center gap-0 rounded-sm border border-border bg-background px-1.5 text-muted-foreground shadow-sm transition-all duration-300 hover:gap-1 hover:bg-muted hover:px-2 hover:text-foreground"
-                >
-                  {document.documentElement.classList.contains('dark') ? (
-                    <Sun className="h-3 w-3" />
-                  ) : (
-                    <Moon className="h-3 w-3" />
-                  )}
-                  <span className="max-w-0 overflow-hidden text-[11px] font-medium whitespace-nowrap transition-all duration-300 group-hover:max-w-[60px]">
-                    {editorTheme === 'dark' ? 'Light' : 'Dark'}
-                  </span>
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  title="Save form"
-                  className={`group flex h-7 items-center gap-0 rounded-sm border px-1.5 shadow-sm transition-all duration-300 hover:gap-1 hover:px-2 ${
-                    saving
-                      ? 'cursor-wait border-primary/40 bg-primary/10 text-primary'
-                      : 'border-primary/60 bg-primary text-primary-foreground hover:bg-primary/90'
-                  }`}
-                >
-                  {saving ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <Save className="h-3 w-3" />
-                  )}
-                  <span className="max-w-0 overflow-hidden text-[11px] font-medium whitespace-nowrap transition-all duration-300 group-hover:max-w-[60px]">
-                    {saving ? 'Saving...' : 'Save'}
-                  </span>
-                </button>
-                <button
-                  onClick={() =>
-                    window.open(`/forms/${formId}/preview`, '_blank')
-                  }
-                  title="Preview form"
-                  className="group flex h-7 items-center gap-0 rounded-sm border border-border bg-background px-1.5 text-muted-foreground shadow-sm transition-all duration-300 hover:gap-1 hover:bg-muted hover:px-2 hover:text-foreground"
-                >
-                  <Eye className="h-3 w-3" />
-                  <span className="max-w-0 overflow-hidden text-[11px] font-medium whitespace-nowrap transition-all duration-300 group-hover:max-w-[60px]">
-                    Preview
-                  </span>
-                </button>
-                <button
-                  onClick={async () => {
-                    if (!formId) return;
-                    setPublishing(true);
-                    try {
-                      await handleSave();
-                      const { api: apiClient } = await import('@/lib/api');
-                      await apiClient.post(`/api/forms/${formId}/publish`);
-                      alert(
-                        'Form published! Share this link:\\n' +
-                          window.location.origin +
-                          '/forms/' +
-                          formId
-                      );
-                    } catch (err) {
-                      console.error('Publish failed:', err);
-                    } finally {
-                      setPublishing(false);
-                    }
-                  }}
-                  disabled={publishing || saving}
-                  title="Publish form"
-                  className={`group flex h-7 items-center gap-0 rounded-sm border px-1.5 shadow-sm transition-all duration-300 hover:gap-1 hover:px-2 ${
-                    publishing
-                      ? 'cursor-wait border-green-400/40 bg-green-400/10 text-green-600'
-                      : 'border-green-600/60 bg-green-600 text-white hover:bg-green-700'
-                  }`}
-                >
-                  {publishing ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <Globe className="h-3 w-3" />
-                  )}
-                  <span className="max-w-0 overflow-hidden text-[11px] font-medium whitespace-nowrap transition-all duration-300 group-hover:max-w-[70px]">
-                    {publishing ? 'Publishing...' : 'Publish'}
-                  </span>
-                </button>
-              </div>
-            </div>
+            {/* Workspaces navbar */}
+            <Workspaces
+              editorView={editorView}
+              setEditorView={setEditorView}
+              setActivePanel={setActivePanel}
+              logicActiveRuleId={logicActiveRuleId}
+              logicActiveFormulaId={logicActiveFormulaId}
+              showProperties={showProperties}
+              showDebug={showDebug}
+              rightWidth={rightWidth}
+              debugWidth={debugWidth}
+              editorTheme={editorTheme}
+              setEditorTheme={setEditorTheme}
+              saving={saving}
+              handleSave={handleSave}
+              formId={formId}
+              publishing={publishing}
+              setPublishing={setPublishing}
+            />
 
             {/* Form canvas view */}
             {editorView === 'canvas' && (
