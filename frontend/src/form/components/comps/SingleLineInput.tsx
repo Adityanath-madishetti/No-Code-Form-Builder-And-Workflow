@@ -9,11 +9,8 @@ import type { FormComponent } from '../base';
 import type { RendererProps } from '../base';
 import { useFormStore } from '@/form/store/formStore';
 
-import { inp, lbl, Q } from '../ComponentRender.Helper';
+import { inp, lbl, Card, Q } from '../ComponentRender.Helper';
 // import { Card } from '../ComponentRender.Helper';
-
-import { Card as HeroCard } from '@heroui/react';
-import { Input as HeroInput } from '@heroui/react';
 
 export interface SingleLineInputProps extends BaseComponentProps {
   type?: string;
@@ -43,9 +40,9 @@ export function SingleLineInputRenderer({
   validation,
 }: RendererProps<SingleLineInputProps, TextValidation>) {
   return (
-    <HeroCard className="rounded-none shadow-none">
+    <Card className="rounded-none shadow-none">
       <Q html={props.questionText} />
-      <HeroInput
+      <input
         type="text"
         name={instanceId}
         placeholder={props.placeholder}
@@ -55,7 +52,7 @@ export function SingleLineInputRenderer({
         minLength={validation.minLength}
         maxLength={validation.maxLength}
       />
-    </HeroCard>
+    </Card>
   );
 }
 
