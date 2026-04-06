@@ -31,7 +31,7 @@ export const createNumberComponent = (
       questionText: '<p>Enter a number</p>',
       placeholder: '0',
       defaultValue: '',
-      hidden: false,
+      hiddenByDefault: false,
       ...props,
     },
     {

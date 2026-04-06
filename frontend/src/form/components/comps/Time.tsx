@@ -29,7 +29,7 @@ export const createTimeComponent = (
       questionText: '<p>Select a time</p>',
       placeholder: 'HH:MM',
       format24h: false,
-      hidden: false,
+      hiddenByDefault: false,
       ...props,
     },
     { required: false } as BasicValidation

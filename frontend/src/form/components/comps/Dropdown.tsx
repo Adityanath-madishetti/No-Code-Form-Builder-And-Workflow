@@ -44,7 +44,9 @@ export const createDropdownComponent = (
 });
 
 export function DropdownComponentRenderer({
+  // instanceId,
   props,
+  // validation,
 }: RendererProps<DropdownProps, BasicValidation>) {
   return (
     <Card>

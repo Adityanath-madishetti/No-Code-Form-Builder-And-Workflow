@@ -42,7 +42,7 @@ export function FillFieldRenderer({
         </h3>
       );
 
-    case 'single-line-text':
+    case 'single-line-input':
     case 'email':
     case 'phone':
     case 'url':
@@ -58,7 +58,7 @@ export function FillFieldRenderer({
         time: 'time',
         number: 'number',
         decimal: 'number',
-        'single-line-text': 'text',
+        'single-line-input': 'text',
       };
       return (
         <div>
@@ -76,7 +76,7 @@ export function FillFieldRenderer({
       );
     }
 
-    case 'multi-line-text':
+    case 'multi-line-input':
     case 'rich-text-input':
       return (
         <div>

@@ -1,5 +1,5 @@
 // src/form/components/textBox.ts
-import type { ComponentMetadata } from '../base';
+import type { BaseComponentProps, ComponentMetadata } from '../base';
 import { ComponentIDs } from '../base';
 import type { FormComponent } from '../base';
 
@@ -13,9 +13,8 @@ import {
 
 import { FormThemeProvider } from '@/form/theme/FormThemeProvider';
 
-export interface TextBoxProps {
+export interface TextBoxProps extends BaseComponentProps {
   text: string;
-  hidden: boolean;
 }
 
 export interface TextBoxValidation {

@@ -31,7 +31,7 @@ export const createEmailComponent = (
       questionText: '<p>Email address</p>',
       placeholder: 'user@example.com',
       defaultValue: '',
-      hidden: false,
+      hiddenByDefault: false,
       ...props,
     },
     {

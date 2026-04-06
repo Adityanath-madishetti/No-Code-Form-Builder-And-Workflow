@@ -33,7 +33,7 @@ export const createMultiLineInputComponent = (
       placeholder: '',
       defaultValue: '',
       rows: 4,
-      hidden: false,
+      hiddenByDefault: false,
       ...props,
     },
     { required: false, minLength: 0 } as TextValidation

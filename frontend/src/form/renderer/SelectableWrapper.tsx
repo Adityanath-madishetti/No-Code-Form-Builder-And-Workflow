@@ -83,7 +83,7 @@ export const SelectableComponent = ({
     }
   });
 
-  const isHidden = component.props.hidden === true;
+  const isHiddenByDefault = component.props.hiddenByDefault === true;
 
   const [moveModalOpen, setMoveModalOpen] = useState(false);
   const formPageIds = useFormStore((s) => s.form?.pages ?? []);
@@ -218,7 +218,7 @@ export const SelectableComponent = ({
               ? 'ring-2 ring-primary/50 ring-offset-1 ring-offset-background'
               : 'hover:ring-1 hover:ring-border'
           } ${
-            isHidden ? 'opacity-40' : ''
+            isHiddenByDefault ? 'opacity-40' : ''
           } border border-border/50 bg-background ${isSelected ? 'border-foreground opacity-50' : ''} `}
         >
           {/* Slide/Drag Handle - Left Middle (Half In, Half Out) */}

@@ -31,7 +31,7 @@ export const createURLComponent = (
       questionText: '<p>Enter a URL</p>',
       placeholder: 'https://example.com',
       defaultValue: '',
-      hidden: false,
+      hiddenByDefault: false,
       ...props,
     },
     { required: false, pattern: '^https?://' } as TextValidation

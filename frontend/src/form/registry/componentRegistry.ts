@@ -382,7 +382,7 @@ const registry: Registry = {
       createTextBoxComponent(
         instanceId,
         { label: 'Text Box' },
-        { text: '', hidden: false },
+        { text: '', hiddenByDefault: false },
         { proxy: 0 }
       ),
     deserialize: (json) =>
@@ -412,7 +412,7 @@ const registry: Registry = {
           questionText: 'Write the answer...',
           placeholder: '',
           defaultValue: '',
-          hidden: false,
+          hiddenByDefault: false,
         },
         { required: false, minLength: 0 }
       ),
@@ -445,7 +445,7 @@ const registry: Registry = {
           options: [
             { id: crypto.randomUUID(), label: 'Option 1', value: 'option-1' },
           ],
-          hidden: false,
+          hiddenByDefault: false,
         },
         { required: false }
       ),
@@ -480,7 +480,7 @@ const registry: Registry = {
             { id: crypto.randomUUID(), label: 'Option 1', value: 'option-1' },
             { id: crypto.randomUUID(), label: 'Option 2', value: 'option-2' },
           ],
-          hidden: false,
+          hiddenByDefault: false,
         },
         { required: false }
       ),
@@ -514,7 +514,7 @@ const registry: Registry = {
             { id: crypto.randomUUID(), label: 'Option 1', value: 'option-1' },
             { id: crypto.randomUUID(), label: 'Option 2', value: 'option-2' },
           ],
-          hidden: false,
+          hiddenByDefault: false,
         },
         { required: false }
       ),
@@ -877,7 +877,7 @@ const ENABLED_CATALOG_IDS: Set<string> = new Set([
 
   // Text Inputs
   ComponentIDs.SingleLineInput,
-  ComponentIDs.MultiLineInput,
+  // ComponentIDs.MultiLineInput,
   ComponentIDs.Email,
   ComponentIDs.Phone,
   ComponentIDs.Number,

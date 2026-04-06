@@ -3,7 +3,14 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { api } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Loader2, Send, Pencil, LogIn, ArrowLeft, ArrowRight } from 'lucide-react';
+import {
+  Loader2,
+  Send,
+  Pencil,
+  LogIn,
+  ArrowLeft,
+  ArrowRight,
+} from 'lucide-react';
 import { FillFieldRenderer } from './FillFieldRenderer';
 import {
   evaluateRuntimeLogic,
@@ -101,6 +108,7 @@ export default function FormFill() {
       .get<PublicFormData>(`/api/forms/${formId}/public`)
       .then((res) => {
         setData(res);
+        console.log(res);
         if (user?.email) setEmail(user.email);
       })
       .catch((err) => setError(err.message || 'Form not found'))
@@ -132,7 +140,10 @@ export default function FormFill() {
     [data?.version.settings]
   );
 
-  const sessionSeed = useMemo(() => (formId ? getOrCreateSeed(formId) : ''), [formId]);
+  const sessionSeed = useMemo(
+    () => (formId ? getOrCreateSeed(formId) : ''),
+    [formId]
+  );
 
   const runtime = useMemo(() => {
     if (!data) {
@@ -144,7 +155,11 @@ export default function FormFill() {
         nextPageId: null,
       };
     }
-    return evaluateRuntimeLogic(data.version.logic, data.version.pages, responses);
+    return evaluateRuntimeLogic(
+      data.version.logic,
+      data.version.pages,
+      responses
+    );
   }, [data, responses]);
 
   const canEditSubmission =
@@ -173,12 +188,15 @@ export default function FormFill() {
       currentPage,
       data.version.logic?.componentShuffleStacks,
       sessionSeed
-    ).filter((component) => runtime.visibility[component.componentId] !== false);
+    ).filter(
+      (component) => runtime.visibility[component.componentId] !== false
+    );
   }, [currentPage, data, runtime.visibility, sessionSeed]);
 
   const validatePages = useCallback(
     (scope: 'current' | 'all') => {
-      if (!data) return { ok: true, errors: {} as Record<string, string>, firstPage: 0 };
+      if (!data)
+        return { ok: true, errors: {} as Record<string, string>, firstPage: 0 };
       const errors: Record<string, string> = {};
       const pagesToCheck =
         scope === 'all'
@@ -232,9 +250,13 @@ export default function FormFill() {
       pageNo: page.pageNo,
       responses: page.components
         .filter((component) => component.componentType !== 'heading')
-        .filter((component) => runtime.visibility[component.componentId] !== false)
+        .filter(
+          (component) => runtime.visibility[component.componentId] !== false
+        )
         .filter((component) => runtime.enabled[component.componentId] !== false)
-        .filter((component) => runtime.values[component.componentId] !== undefined)
+        .filter(
+          (component) => runtime.values[component.componentId] !== undefined
+        )
         .map((component) => ({
           componentId: component.componentId,
           response: runtime.values[component.componentId],
@@ -374,9 +396,13 @@ export default function FormFill() {
           <section className="mb-8 rounded-lg border border-border bg-background p-4">
             <h2 className="text-sm font-semibold">Your Submissions</h2>
             {mineLoading ? (
-              <div className="mt-2 text-xs text-muted-foreground">Loading...</div>
+              <div className="mt-2 text-xs text-muted-foreground">
+                Loading...
+              </div>
             ) : mySubmissions.length === 0 ? (
-              <div className="mt-2 text-xs text-muted-foreground">No submissions yet.</div>
+              <div className="mt-2 text-xs text-muted-foreground">
+                No submissions yet.
+              </div>
             ) : (
               <div className="mt-3 space-y-2">
                 {mySubmissions.map((submission) => (
@@ -500,7 +526,9 @@ export default function FormFill() {
           {pageIndex < data.version.pages.length - 1 ? (
             <Button
               onClick={handleNext}
-              disabled={submitting || (submitDisabledByPolicy && !editingSubmissionId)}
+              disabled={
+                submitting || (submitDisabledByPolicy && !editingSubmissionId)
+              }
             >
               Next
               <ArrowRight className="ml-1.5 h-4 w-4" />
@@ -508,7 +536,9 @@ export default function FormFill() {
           ) : (
             <Button
               onClick={handleSubmit}
-              disabled={submitting || (submitDisabledByPolicy && !editingSubmissionId)}
+              disabled={
+                submitting || (submitDisabledByPolicy && !editingSubmissionId)
+              }
             >
               {submitting ? (
                 <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
@@ -523,4 +553,3 @@ export default function FormFill() {
     </div>
   );
 }
-

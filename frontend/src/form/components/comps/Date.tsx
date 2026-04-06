@@ -29,7 +29,7 @@ export const createDateComponent = (
       questionText: '<p>Select a date</p>',
       placeholder: 'YYYY-MM-DD',
       includeTime: false,
-      hidden: false,
+      hiddenByDefault: false,
       ...props,
     },
     { required: false } as BasicValidation

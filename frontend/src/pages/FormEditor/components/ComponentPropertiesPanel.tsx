@@ -71,7 +71,7 @@ export function ComponentPropertiesPanel() {
       | boolean
       | undefined) === true;
   const hiddenByDefault =
-    ((component.props as unknown as Record<string, unknown>)?.hidden as
+    ((component.props as unknown as Record<string, unknown>)?.hiddenByDefault as
       | boolean
       | undefined) === true;
 
@@ -160,7 +160,7 @@ export function ComponentPropertiesPanel() {
             checked={hiddenByDefault}
             onChange={(e) =>
               updateComponentProps(component.instanceId, {
-                hidden: e.target.checked,
+                hiddenByDefault: e.target.checked,
               })
             }
           />

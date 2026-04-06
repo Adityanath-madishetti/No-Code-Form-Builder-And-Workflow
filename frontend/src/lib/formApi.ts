@@ -18,45 +18,11 @@ import type { Workflow } from '@/form/workflow/workflowTypes';
 import type { AnyFormComponent } from '@/form/registry/componentRegistry';
 import { deserializeComponent } from '@/form/registry/componentRegistry';
 import type { ComponentID } from '@/form/components/base';
-import { ComponentIDs } from '@/form/components/base';
 
-const frontendToBackend: Record<string, string> = {
-  [ComponentIDs.Header]: 'heading',
-  [ComponentIDs.SingleLineInput]: 'single-line-text',
-  [ComponentIDs.Radio]: 'radio',
-  [ComponentIDs.Checkbox]: 'checkbox',
-  [ComponentIDs.Dropdown]: 'dropdown',
-  [ComponentIDs.MultiLineInput]: 'multi-line-text',
-  [ComponentIDs.Email]: 'email',
-  [ComponentIDs.Phone]: 'phone',
-  [ComponentIDs.Number]: 'number',
-  [ComponentIDs.Decimal]: 'decimal',
-  [ComponentIDs.URL]: 'url',
-  [ComponentIDs.Date]: 'date',
-  [ComponentIDs.Time]: 'time',
-  [ComponentIDs.FileUpload]: 'file-upload',
-  [ComponentIDs.ImageUpload]: 'image-upload',
-  [ComponentIDs.SingleChoiceGrid]: 'single-choice-grid',
-  [ComponentIDs.MultiChoiceGrid]: 'multi-choice-grid',
-  [ComponentIDs.MatrixTable]: 'matrix-table',
-  [ComponentIDs.RatingScale]: 'rating',
-  [ComponentIDs.LinearScale]: 'linear-scale',
-  [ComponentIDs.Slider]: 'slider',
-  [ComponentIDs.AddressBlock]: 'address-block',
-  [ComponentIDs.NameBlock]: 'name-block',
-  [ComponentIDs.ColorPicker]: 'color-picker',
-  [ComponentIDs.Signature]: 'signature',
-  // [ComponentIDs.Payment]: 'payment',
-  [ComponentIDs.Captcha]: 'captcha',
-  // [ComponentIDs.SectionDivider]: 'section-divider',
-  [ComponentIDs.LineDivider]: 'page-break',
-  [ComponentIDs.ColumnLayout]: 'custom',
-};
-
-const backendToFrontend: Record<string, string> = {};
-for (const [fe, be] of Object.entries(frontendToBackend)) {
-  if (!backendToFrontend[be]) backendToFrontend[be] = fe;
-}
+import {
+  frontendToBackend,
+  backendToFrontend,
+} from './frontendBackendCompArray';
 
 interface BackendIdentity {
   uid?: string;

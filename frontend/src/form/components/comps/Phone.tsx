@@ -33,7 +33,7 @@ export const createPhoneComponent = (
       placeholder: '+1 (555) 000-0000',
       defaultValue: '',
       countryCode: '+1',
-      hidden: false,
+      hiddenByDefault: false,
       ...props,
     },
     { required: false } as TextValidation

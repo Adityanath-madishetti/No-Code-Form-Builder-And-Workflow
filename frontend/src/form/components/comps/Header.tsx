@@ -20,7 +20,7 @@ export const createHeaderComponent = (
     ComponentIDs.Header,
     instanceId,
     metadata,
-    { text: 'Heading', level: 'h2' as const, hidden: false, ...props },
+    { text: 'Heading', level: 'h2' as const, hiddenByDefault: false, ...props },
     { proxy: 0 } as NoValidation
   );
 

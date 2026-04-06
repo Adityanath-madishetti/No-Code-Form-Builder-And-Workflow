@@ -30,7 +30,7 @@ export const createColumnLayoutComponent = (
     ComponentIDs.ColumnLayout,
     instanceId,
     metadata,
-    { columns: 2, gap: 16, hidden: false, ...props },
+    { columns: 2, gap: 16, hiddenByDefault: false, ...props },
     { proxy: 0 } as NoValidation
   );
 
@@ -85,7 +85,7 @@ export const createFileUploadComponent = (
       accept: '*',
       maxSizeMB: 10,
       multiple: false,
-      hidden: false,
+      hiddenByDefault: false,
       ...props,
     },
     { required: false } as BasicValidation
@@ -112,7 +112,7 @@ export const createImageUploadComponent = (
       accept: 'image/*',
       maxSizeMB: 5,
       multiple: false,
-      hidden: false,
+      hiddenByDefault: false,
       ...props,
     },
     { required: false } as BasicValidation
@@ -166,7 +166,7 @@ export const createSingleChoiceGridComponent = (
         { id: crypto.randomUUID(), label: 'Col 1', value: 'col-1' },
         { id: crypto.randomUUID(), label: 'Col 2', value: 'col-2' },
       ],
-      hidden: false,
+      hiddenByDefault: false,
       ...props,
     },
     { required: false } as BasicValidation
@@ -194,7 +194,7 @@ export const createMultiChoiceGridComponent = (
         { id: crypto.randomUUID(), label: 'Col 1', value: 'col-1' },
         { id: crypto.randomUUID(), label: 'Col 2', value: 'col-2' },
       ],
-      hidden: false,
+      hiddenByDefault: false,
       ...props,
     },
     { required: false } as BasicValidation
@@ -221,7 +221,7 @@ export const createMatrixTableComponent = (
       rows: [{ id: crypto.randomUUID(), label: 'Row 1' }],
       columns: [{ id: crypto.randomUUID(), label: 'Col 1', value: 'col-1' }],
       inputType: 'text' as const,
-      hidden: false,
+      hiddenByDefault: false,
       ...props,
     },
     { required: false } as BasicValidation
@@ -250,7 +250,7 @@ export const createRatingScaleComponent = (
       questionText: '<p>Rate this</p>',
       maxRating: 5,
       icon: 'star' as const,
-      hidden: false,
+      hiddenByDefault: false,
       ...props,
     },
     { required: false } as BasicValidation
@@ -279,7 +279,7 @@ export const createLinearScaleComponent = (
       max: 10,
       minLabel: 'Low',
       maxLabel: 'High',
-      hidden: false,
+      hiddenByDefault: false,
       ...props,
     },
     { required: false } as BasicValidation
@@ -308,7 +308,7 @@ export const createSliderComponent = (
       max: 100,
       step: 1,
       defaultValue: 50,
-      hidden: false,
+      hiddenByDefault: false,
       ...props,
     },
     { required: false } as BasicValidation
@@ -341,7 +341,7 @@ export const createAddressBlockComponent = (
       showState: true,
       showZip: true,
       showCountry: true,
-      hidden: false,
+      hiddenByDefault: false,
       ...props,
     },
     { required: false } as BasicValidation
@@ -368,7 +368,7 @@ export const createNameBlockComponent = (
       showMiddleName: false,
       showPrefix: false,
       showSuffix: false,
-      hidden: false,
+      hiddenByDefault: false,
       ...props,
     },
     { required: false } as BasicValidation
@@ -395,7 +395,7 @@ export const createColorPickerComponent = (
     {
       questionText: '<p>Pick a color</p>',
       defaultColor: '#4f46e5',
-      hidden: false,
+      hiddenByDefault: false,
       ...props,
     },
     { required: false } as BasicValidation
@@ -420,7 +420,7 @@ export const createSignatureComponent = (
       questionText: '<p>Sign here</p>',
       penColor: '#000000',
       lineWidth: 2,
-      hidden: false,
+      hiddenByDefault: false,
       ...props,
     },
     { required: false } as BasicValidation
@@ -445,7 +445,7 @@ export const createLocationComponent = (
       questionText: '<p>Select your location</p>',
       placeholder: 'Search for a place...',
       useCurrentLocation: false,
-      hidden: false,
+      hiddenByDefault: false,
       ...props,
     },
     { required: false } as BasicValidation
@@ -474,7 +474,7 @@ export const createToggleComponent = (
       questionText: '<p>Toggle option</p>',
       label: 'Enable',
       defaultValue: false,
-      hidden: false,
+      hiddenByDefault: false,
       ...props,
     },
     { required: false } as BasicValidation
@@ -499,7 +499,7 @@ export const createRichTextInputComponent = (
       questionText: '<p>Enter formatted text</p>',
       placeholder: 'Type here...',
       defaultValue: '',
-      hidden: false,
+      hiddenByDefault: false,
       ...props,
     },
     { required: false } as BasicValidation
@@ -522,7 +522,7 @@ export const createCaptchaComponent = (
     {
       questionText: '<p>Verify you are human</p>',
       type: 'simple' as const,
-      hidden: false,
+      hiddenByDefault: false,
       ...props,
     },
     { proxy: 0 } as NoValidation

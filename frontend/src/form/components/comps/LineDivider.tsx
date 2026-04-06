@@ -25,7 +25,7 @@ export const createLineDividerComponent = (
     ComponentIDs.LineDivider,
     instanceId,
     metadata,
-    { style: 'solid' as const, thickness: 1, hidden: false, ...props },
+    { style: 'solid' as const, thickness: 1, hiddenByDefault: false, ...props },
     { proxy: 0 } as NoValidation
   );
 

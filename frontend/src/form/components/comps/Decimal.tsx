@@ -33,7 +33,7 @@ export const createDecimalComponent = (
       placeholder: '0.00',
       defaultValue: '',
       precision: 2,
-      hidden: false,
+      hiddenByDefault: false,
       ...props,
     },
     {

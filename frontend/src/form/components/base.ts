@@ -299,7 +299,7 @@ export interface NoValidation {
 
 // ── Shared props base ──
 export interface BaseComponentProps {
-  hidden: boolean; // Hidden by default = false
+  hiddenByDefault: boolean; // Hidden by default = false
 }
 
 export function createComponent<T extends ComponentID, P, V>(

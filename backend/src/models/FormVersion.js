@@ -33,13 +33,15 @@ const ComponentSchema = new Schema(
             required: true,
             enum: [
                 // ── Text / Input ──
-                "single-line-text",
-                "multi-line-text",
+                "single-line-input",
+                "multi-line-input",
                 "email",
                 "phone",
                 "number",
                 "decimal",
                 "url",
+
+                "text-box",
 
                 // ── Date / Time ──
                 "date",
