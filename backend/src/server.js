@@ -1,7 +1,5 @@
-// Load .env FIRST, before any other module that reads env vars.
-// We must use dynamic imports because ESM hoists all static imports
-// above any code — meaning dotenv.config() would run AFTER firebase.js.
 import dotenv from "dotenv";
+
 dotenv.config();
 
 const { default: app } = await import("./app.js");
