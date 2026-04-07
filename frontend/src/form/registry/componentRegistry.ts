@@ -11,6 +11,8 @@ import { ComponentIDs } from '../components/base';
 import type { ComponentID, RendererProps } from '../components/base';
 import type { FormComponent, SerializedComponent } from '../components/base';
 
+import { nanoid } from 'nanoid';
+
 import { PlaceholderSettingsRenderer } from '../components/PlaceholderRenderer';
 
 import type {
@@ -362,14 +364,16 @@ function makeEntry<T extends ComponentID>(
     ComponentValidationMap[T]
   >
 ): ComponentRegistryEntry<T> {
+  const labelWithShortId = `${label} ${nanoid(12)}`;
+
   return {
     id,
-    catalog: { label, description, category },
+    catalog: { label: labelWithShortId, description, category },
     renderers: {
       main: mainRenderer,
       settings: settingsRenderer || PlaceholderSettingsRenderer,
     },
-    create: (instanceId) => createFn(instanceId, { label }),
+    create: (instanceId) => createFn(instanceId, { label: labelWithShortId }),
     deserialize: (json) => ({
       id: json.id,
       instanceId: json.instanceId,

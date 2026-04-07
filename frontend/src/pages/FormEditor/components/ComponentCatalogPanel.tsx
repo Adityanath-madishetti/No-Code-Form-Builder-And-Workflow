@@ -112,13 +112,13 @@ const CATEGORY_ORDER = [
 function DraggableCatalogItem({
   id,
   data,
-  label,
+  // label,
   description,
   icon: Icon,
 }: {
   id: string;
   data: unknown;
-  label: string;
+  // label: string;
   description: string;
   icon?: React.ElementType;
 }) {
@@ -142,7 +142,7 @@ function DraggableCatalogItem({
           <IconComp className="h-[60%] w-[60%] text-muted-foreground" />
         </div>
         <span className="line-clamp-2 w-full text-[10px] leading-tight font-medium break-words">
-          {label}
+          {id}
         </span>
       </div>
 
@@ -158,7 +158,7 @@ function DraggableCatalogItem({
           <IconComp className="h-[60%] w-[60%] text-primary/80" />
         </div>
         <span className="line-clamp-2 w-full text-[10px] leading-tight font-medium break-words text-foreground/80">
-          {label}
+          {id}
         </span>
       </div>
     </div>
@@ -232,9 +232,9 @@ export function ComponentCatalogPanel() {
             {entries.map((entry) => (
               <DraggableCatalogItem
                 key={entry.id}
-                id={`catalog-${entry.id}`}
+                id={`${entry.id}`}
                 data={{ type: DRAG_CATALOG_COMPONENT_ID, entry }}
-                label={entry.label}
+                // label={entry.label}
                 description={entry.description}
                 icon={COMPONENT_ICONS[entry.id]}
               />
