@@ -55,6 +55,7 @@ export const SelectableComponent = ({
   const setActiveComponent = useFormStore((s) => s.setActiveComponent);
   const removeComponent = useFormStore((s) => s.removeComponent);
   const moveComponent = useFormStore((s) => s.moveComponent);
+  const updateLabel = useFormStore((s) => s.updateComponentMetadata);
   const setActivePage = useFormStore((s) => s.setActivePage);
   const duplicateComponent = useFormStore((s) => s.duplicateComponent);
   const toggleComponentCollapsed = useFormStore(
@@ -268,19 +269,29 @@ export const SelectableComponent = ({
 
               {/* Heading (instanceId only) */}
               <div className="flex min-w-0 flex-1 items-center gap-1">
-                <span
+                {/* <span
                   title={component.metadata.label}
-                  className="inline-block  truncate rounded-none border border-border/50 bg-background px-1 font-mono text-[11px] font-semibold text-foreground/80"
+                  className="inline-block truncate rounded-none border border-border/50 bg-background px-1 font-mono text-[11px] font-semibold text-foreground/80"
                 >
                   {component.metadata.label}
-                </span>
+                </span> */}
+
+                <input
+                  value={component.metadata.label}
+                  onChange={(e) =>
+                    updateLabel(component.instanceId, { label: e.target.value })
+                  }
+                  className="h-5 flex-1 truncate rounded-none border border-border/50 bg-background px-1 font-mono text-[11px] font-semibold text-foreground/80"
+                />
 
                 {/* Copy instanceId */}
                 <button
                   onClick={async (e) => {
                     e.stopPropagation();
                     try {
-                      await navigator.clipboard.writeText(component.metadata.label);
+                      await navigator.clipboard.writeText(
+                        component.metadata.label
+                      );
                       setCopiedId(true);
                       window.setTimeout(() => setCopiedId(false), 900);
                     } catch {
