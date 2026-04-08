@@ -11,7 +11,6 @@ import { ComponentIDs } from '../components/base';
 import type { ComponentID, RendererProps } from '../components/base';
 import type { FormComponent, SerializedComponent } from '../components/base';
 
-import { nanoid } from 'nanoid';
 
 import { PlaceholderSettingsRenderer } from '../components/PlaceholderRenderer';
 
@@ -28,7 +27,6 @@ import type {
 // ------------------------------------------------------------------------------------------------
 import {
   type TextBoxProps,
-  type TextBoxValidation,
   createTextBoxComponent,
   TextBoxComponentRenderer,
   TextBoxComponentPropsRenderer,
@@ -254,7 +252,7 @@ export type ComponentPropsMap = {
 };
 
 export type ComponentValidationMap = {
-  [ComponentIDs.TextBox]: TextBoxValidation;
+  [ComponentIDs.TextBox]: BasicValidation;
   [ComponentIDs.SingleLineInput]: TextValidation;
   [ComponentIDs.Radio]: BasicValidation;
   [ComponentIDs.Checkbox]: BasicValidation;
@@ -364,16 +362,16 @@ function makeEntry<T extends ComponentID>(
     ComponentValidationMap[T]
   >
 ): ComponentRegistryEntry<T> {
-  const labelWithShortId = `${label} ${nanoid(12)}`;
+  // const labelWithShortId = `${label} ${nanoid(12)}`;
 
   return {
     id,
-    catalog: { label: labelWithShortId, description, category },
+    catalog: { label, description, category },
     renderers: {
       main: mainRenderer,
       settings: settingsRenderer || PlaceholderSettingsRenderer,
     },
-    create: (instanceId) => createFn(instanceId, { label: labelWithShortId }),
+    create: (instanceId) => createFn(instanceId, { label }),
     deserialize: (json) => ({
       id: json.id,
       instanceId: json.instanceId,
@@ -388,23 +386,17 @@ function makeEntry<T extends ComponentID>(
 const registry: Registry = {
   [ComponentIDs.TextBox]: makeEntry(
     ComponentIDs.TextBox,
-    'Text Box',
+    ComponentIDs.TextBox,
     'A static rich text block.',
     'Layout',
-    (id, m) =>
-      createTextBoxComponent(
-        id,
-        m,
-        { text: '', hiddenByDefault: false },
-        { proxy: 0 }
-      ),
+    (id, m) => createTextBoxComponent(id, m),
     TextBoxComponentRenderer,
     TextBoxComponentPropsRenderer
   ),
 
   [ComponentIDs.SingleLineInput]: makeEntry(
     ComponentIDs.SingleLineInput,
-    'Single-line Text',
+    ComponentIDs.SingleLineInput,
     'A single-line text input.',
     'Text Inputs',
     (id, m) => createSingleLineInputComponent(id, m),
@@ -414,7 +406,7 @@ const registry: Registry = {
 
   [ComponentIDs.Radio]: makeEntry(
     ComponentIDs.Radio,
-    'Radio Buttons',
+    ComponentIDs.Radio,
     'Single choice selection.',
     'Selection',
     (id, m) => createRadioComponent(id, m),
@@ -424,7 +416,7 @@ const registry: Registry = {
 
   [ComponentIDs.Checkbox]: makeEntry(
     ComponentIDs.Checkbox,
-    'Checkboxes',
+    ComponentIDs.Checkbox,
     'Multiple choice selection.',
     'Selection',
     (id, m) => createCheckboxComponent(id, m),
@@ -434,7 +426,7 @@ const registry: Registry = {
 
   [ComponentIDs.Dropdown]: makeEntry(
     ComponentIDs.Dropdown,
-    'Dropdown',
+    ComponentIDs.Dropdown,
     'Select from a dropdown list.',
     'Selection',
     (id, m) => createDropdownComponent(id, m),
@@ -447,7 +439,7 @@ const registry: Registry = {
   // ════════════════════════════════════════════════════════
   [ComponentIDs.Header]: makeEntry(
     ComponentIDs.Header,
-    'Header',
+    ComponentIDs.Header,
     'A heading / title element.',
     'Layout',
     (id, m) => createHeaderComponent(id, m),
@@ -457,7 +449,7 @@ const registry: Registry = {
 
   [ComponentIDs.LineDivider]: makeEntry(
     ComponentIDs.LineDivider,
-    'Line Divider',
+    ComponentIDs.LineDivider,
     'A horizontal line separator.',
     'Layout',
     (id, m) => createLineDividerComponent(id, m),
@@ -467,7 +459,7 @@ const registry: Registry = {
 
   [ComponentIDs.ColumnLayout]: makeEntry(
     ComponentIDs.ColumnLayout,
-    'Columns',
+    ComponentIDs.ColumnLayout,
     'Place components side by side.',
     'Layout',
     (id, m) => createColumnLayoutComponent(id, m),
@@ -479,7 +471,7 @@ const registry: Registry = {
   // ════════════════════════════════════════════════════════
   [ComponentIDs.MultiLineInput]: makeEntry(
     ComponentIDs.MultiLineInput,
-    'Multi-line Text',
+    ComponentIDs.MultiLineInput,
     'A multi-line text area.',
     'Text Inputs',
     (id, m) => createMultiLineInputComponent(id, m),
@@ -489,7 +481,7 @@ const registry: Registry = {
 
   [ComponentIDs.Email]: makeEntry(
     ComponentIDs.Email,
-    'Email',
+    ComponentIDs.Email,
     'An email address input.',
     'Text Inputs',
     (id, m) => createEmailComponent(id, m),
@@ -499,7 +491,7 @@ const registry: Registry = {
 
   [ComponentIDs.Phone]: makeEntry(
     ComponentIDs.Phone,
-    'Phone',
+    ComponentIDs.Phone,
     'A phone number input with country code.',
     'Text Inputs',
     (id, m) => createPhoneComponent(id, m),
@@ -509,7 +501,7 @@ const registry: Registry = {
 
   [ComponentIDs.Number]: makeEntry(
     ComponentIDs.Number,
-    'Number',
+    ComponentIDs.Number,
     'An integer number input.',
     'Text Inputs',
     (id, m) => createNumberComponent(id, m),
@@ -519,7 +511,7 @@ const registry: Registry = {
 
   [ComponentIDs.Decimal]: makeEntry(
     ComponentIDs.Decimal,
-    'Decimal',
+    ComponentIDs.Decimal,
     'A decimal / floating-point input.',
     'Text Inputs',
     (id, m) => createDecimalComponent(id, m),
@@ -529,7 +521,7 @@ const registry: Registry = {
 
   [ComponentIDs.URL]: makeEntry(
     ComponentIDs.URL,
-    'URL',
+    ComponentIDs.URL,
     'A URL / web address input.',
     'Text Inputs',
     (id, m) => createURLComponent(id, m),
@@ -542,7 +534,7 @@ const registry: Registry = {
   // ════════════════════════════════════════════════════════
   [ComponentIDs.Date]: makeEntry(
     ComponentIDs.Date,
-    'Date',
+    ComponentIDs.Date,
     'A date picker.',
     'Date & Time',
     (id, m) => createDateComponent(id, m),
@@ -552,7 +544,7 @@ const registry: Registry = {
 
   [ComponentIDs.Time]: makeEntry(
     ComponentIDs.Time,
-    'Time',
+    ComponentIDs.Time,
     'A time picker.',
     'Date & Time',
     (id, m) => createTimeComponent(id, m),
@@ -565,7 +557,7 @@ const registry: Registry = {
   // ════════════════════════════════════════════════════════
   [ComponentIDs.FileUpload]: makeEntry(
     ComponentIDs.FileUpload,
-    'File Upload',
+    ComponentIDs.FileUpload,
     'Accept file uploads.',
     'File / Media',
     (id, m) => createFileUploadComponent(id, m),
@@ -574,7 +566,7 @@ const registry: Registry = {
 
   [ComponentIDs.ImageUpload]: makeEntry(
     ComponentIDs.ImageUpload,
-    'Image Upload',
+    ComponentIDs.ImageUpload,
     'Accept image uploads with preview.',
     'File / Media',
     (id, m) => createImageUploadComponent(id, m),
@@ -586,7 +578,7 @@ const registry: Registry = {
   // ════════════════════════════════════════════════════════
   [ComponentIDs.SingleChoiceGrid]: makeEntry(
     ComponentIDs.SingleChoiceGrid,
-    'Single-choice Grid',
+    ComponentIDs.SingleChoiceGrid,
     'Select one answer per row.',
     'Grids & Tables',
     (id, m) => createSingleChoiceGridComponent(id, m),
@@ -595,7 +587,7 @@ const registry: Registry = {
 
   [ComponentIDs.MultiChoiceGrid]: makeEntry(
     ComponentIDs.MultiChoiceGrid,
-    'Multi-choice Grid',
+    ComponentIDs.MultiChoiceGrid,
     'Select multiple answers per row.',
     'Grids & Tables',
     (id, m) => createMultiChoiceGridComponent(id, m),
@@ -604,7 +596,7 @@ const registry: Registry = {
 
   [ComponentIDs.MatrixTable]: makeEntry(
     ComponentIDs.MatrixTable,
-    'Matrix / Table',
+    ComponentIDs.MatrixTable,
     'A table with text/number inputs.',
     'Grids & Tables',
     (id, m) => createMatrixTableComponent(id, m),
@@ -616,7 +608,7 @@ const registry: Registry = {
   // ════════════════════════════════════════════════════════
   [ComponentIDs.RatingScale]: makeEntry(
     ComponentIDs.RatingScale,
-    'Rating Scale',
+    ComponentIDs.RatingScale,
     'Star / heart / dot rating.',
     'Scales & Sliders',
     (id, m) => createRatingScaleComponent(id, m),
@@ -626,7 +618,7 @@ const registry: Registry = {
 
   [ComponentIDs.LinearScale]: makeEntry(
     ComponentIDs.LinearScale,
-    'Linear Scale',
+    ComponentIDs.LinearScale,
     'A numbered scale (e.g. 1–10).',
     'Scales & Sliders',
     (id, m) => createLinearScaleComponent(id, m),
@@ -636,7 +628,7 @@ const registry: Registry = {
 
   [ComponentIDs.Slider]: makeEntry(
     ComponentIDs.Slider,
-    'Slider',
+    ComponentIDs.Slider,
     'A draggable range slider.',
     'Scales & Sliders',
     (id, m) => createSliderComponent(id, m),
@@ -649,7 +641,7 @@ const registry: Registry = {
   // ════════════════════════════════════════════════════════
   [ComponentIDs.AddressBlock]: makeEntry(
     ComponentIDs.AddressBlock,
-    'Address Block',
+    ComponentIDs.AddressBlock,
     'A multi-field address input.',
     'Blocks',
     (id, m) => createAddressBlockComponent(id, m),
@@ -659,7 +651,7 @@ const registry: Registry = {
 
   [ComponentIDs.NameBlock]: makeEntry(
     ComponentIDs.NameBlock,
-    'Name Block',
+    ComponentIDs.NameBlock,
     'First / middle / last name fields.',
     'Blocks',
     (id, m) => createNameBlockComponent(id, m),
@@ -672,7 +664,7 @@ const registry: Registry = {
   // ════════════════════════════════════════════════════════
   [ComponentIDs.ColorPicker]: makeEntry(
     ComponentIDs.ColorPicker,
-    'Color Picker',
+    ComponentIDs.ColorPicker,
     'A color selection input.',
     'Specialty',
     (id, m) => createColorPickerComponent(id, m),
@@ -681,7 +673,7 @@ const registry: Registry = {
 
   [ComponentIDs.Signature]: makeEntry(
     ComponentIDs.Signature,
-    'Signature',
+    ComponentIDs.Signature,
     'A signature capture pad.',
     'Specialty',
     (id, m) => createSignatureComponent(id, m),
@@ -690,7 +682,7 @@ const registry: Registry = {
 
   [ComponentIDs.Location]: makeEntry(
     ComponentIDs.Location,
-    'Location',
+    ComponentIDs.Location,
     'A map / location picker.',
     'Specialty',
     (id, m) => createLocationComponent(id, m),
@@ -700,7 +692,7 @@ const registry: Registry = {
 
   [ComponentIDs.Toggle]: makeEntry(
     ComponentIDs.Toggle,
-    'Toggle',
+    ComponentIDs.Toggle,
     'An on/off switch.',
     'Specialty',
     (id, m) => createToggleComponent(id, m),
@@ -709,7 +701,7 @@ const registry: Registry = {
 
   [ComponentIDs.RichTextInput]: makeEntry(
     ComponentIDs.RichTextInput,
-    'Rich Text Input',
+    ComponentIDs.RichTextInput,
     'A rich text editor field.',
     'Specialty',
     (id, m) => createRichTextInputComponent(id, m),
@@ -718,7 +710,7 @@ const registry: Registry = {
 
   [ComponentIDs.Captcha]: makeEntry(
     ComponentIDs.Captcha,
-    'Captcha',
+    ComponentIDs.Captcha,
     'Bot verification challenge.',
     'Specialty',
     (id, m) => createCaptchaComponent(id, m),

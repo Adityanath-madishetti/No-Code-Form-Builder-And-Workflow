@@ -10,6 +10,7 @@ import type { BaseComponentProps } from '../base';
 import { inp, lbl, Card, Q } from '../ComponentRender.Helper';
 import { useFormContext } from 'react-hook-form';
 import { useFormMode } from '@/form/context/FormModeContext';
+import { nanoid } from 'nanoid';
 
 export interface DateProps extends BaseComponentProps {
   questionText: string;
@@ -28,8 +29,9 @@ export const createDateComponent = (
   instanceId: string,
   metadata: ComponentMetadata,
   props?: Partial<DateProps>
-) =>
-  createComponent(
+) => {
+  metadata.label = `${metadata.label} ${nanoid(12)}`;
+  return createComponent(
     ComponentIDs.Date,
     instanceId,
     metadata,
@@ -41,12 +43,13 @@ export const createDateComponent = (
       hiddenByDefault: false,
       ...props,
     },
-    { 
+    {
       required: false,
       minDate: undefined,
       maxDate: undefined,
     } as DateValidation
   );
+};
 
 export function DateRenderer({
   instanceId,

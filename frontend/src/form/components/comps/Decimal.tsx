@@ -10,6 +10,7 @@ import { ComponentIDs, createComponent } from '../base';
 import { inp, lbl, Card, Q } from '../ComponentRender.Helper';
 import { useFormContext } from 'react-hook-form';
 import { useFormMode } from '@/form/context/FormModeContext';
+import { nanoid } from 'nanoid';
 
 export interface DecimalProps extends BaseComponentProps {
   questionText: string;
@@ -23,8 +24,9 @@ export const createDecimalComponent = (
   instanceId: string,
   metadata: ComponentMetadata,
   props?: Partial<DecimalProps>
-) =>
-  createComponent(
+) => {
+  metadata.label = `${metadata.label} ${nanoid(12)}`;
+  return createComponent(
     ComponentIDs.Decimal,
     instanceId,
     metadata,
@@ -42,6 +44,7 @@ export const createDecimalComponent = (
       max: undefined,
     } as NumericValidation
   );
+};
 
 export function DecimalRenderer({
   instanceId,

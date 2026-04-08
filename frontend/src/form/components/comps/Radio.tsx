@@ -13,6 +13,7 @@ import { Plus, Trash2 } from 'lucide-react';
 
 import { useFormContext } from 'react-hook-form';
 import { useFormMode } from '@/form/context/FormModeContext';
+import { nanoid } from 'nanoid';
 
 export interface RadioOption {
   id: string;
@@ -32,8 +33,9 @@ export const createRadioComponent = (
   instanceId: string,
   metadata: ComponentMetadata,
   props?: Partial<RadioProps>
-): FormComponent<'Radio', RadioProps, BasicValidation> =>
-  createComponent(
+): FormComponent<'Radio', RadioProps, BasicValidation> => {
+  metadata.label = `${metadata.label} ${nanoid(12)}`;
+  return createComponent(
     ComponentIDs.Radio,
     instanceId,
     metadata,
@@ -48,6 +50,7 @@ export const createRadioComponent = (
       required: false,
     } as BasicValidation
   );
+};
 
 export function RadioComponentRenderer({
   props,

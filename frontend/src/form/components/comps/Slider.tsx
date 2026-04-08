@@ -10,6 +10,7 @@ import { ComponentIDs, createComponent } from '../base';
 import { inp, lbl, Card, Q } from '../ComponentRender.Helper';
 import { useFormContext } from 'react-hook-form';
 import { useFormMode } from '@/form/context/FormModeContext';
+import { nanoid } from 'nanoid';
 
 export interface SliderProps extends BaseComponentProps {
   questionText: string;
@@ -29,8 +30,9 @@ export const createSliderComponent = (
   instanceId: string,
   metadata: ComponentMetadata,
   props?: Partial<SliderProps>
-) =>
-  createComponent(
+) => {
+  metadata.label = `${metadata.label} ${nanoid(12)}`;
+  return createComponent(
     ComponentIDs.Slider,
     instanceId,
     metadata,
@@ -49,6 +51,7 @@ export const createSliderComponent = (
       maxValue: undefined,
     } as SliderValidation
   );
+};
 
 export function SliderRenderer({
   instanceId,

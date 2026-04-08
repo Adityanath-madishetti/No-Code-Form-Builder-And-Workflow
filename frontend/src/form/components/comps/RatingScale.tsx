@@ -14,6 +14,7 @@ import { Circle, Heart, Star } from 'lucide-react';
 import { useFormMode } from '@/form/context/FormModeContext';
 import { useFormContext } from 'react-hook-form';
 import { useState } from 'react';
+import { nanoid } from 'nanoid';
 
 export interface RatingScaleProps extends BaseComponentProps {
   questionText: string;
@@ -31,8 +32,9 @@ export const createRatingScaleComponent = (
   instanceId: string,
   metadata: ComponentMetadata,
   props?: Partial<RatingScaleProps>
-) =>
-  createComponent(
+) => {
+  metadata.label = `${metadata.label} ${nanoid(12)}`;
+  return createComponent(
     ComponentIDs.RatingScale,
     instanceId,
     metadata,
@@ -49,6 +51,7 @@ export const createRatingScaleComponent = (
       maxRating: undefined,
     } as RatingScaleValidation
   );
+};
 
 export function RatingScaleRenderer({
   instanceId,

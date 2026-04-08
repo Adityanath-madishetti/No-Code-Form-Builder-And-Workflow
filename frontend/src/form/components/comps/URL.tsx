@@ -10,6 +10,7 @@ import { ComponentIDs, createComponent } from '../base';
 import { inp, lbl, Card, Q } from '../ComponentRender.Helper';
 import { useFormContext } from 'react-hook-form';
 import { useFormMode } from '@/form/context/FormModeContext';
+import { nanoid } from 'nanoid';
 
 export interface URLProps extends BaseComponentProps {
   questionText: string;
@@ -22,8 +23,9 @@ export const createURLComponent = (
   instanceId: string,
   metadata: ComponentMetadata,
   props?: Partial<URLProps>
-) =>
-  createComponent(
+) => {
+  metadata.label = `${metadata.label} ${nanoid(12)}`;
+  return createComponent(
     ComponentIDs.URL,
     instanceId,
     metadata,
@@ -37,9 +39,11 @@ export const createURLComponent = (
     {
       required: false,
       // Robust URL validation pattern
-      pattern: '^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$',
+      pattern:
+        '^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$',
     } as TextValidation
   );
+};
 
 export function URLRenderer({
   instanceId,
@@ -86,7 +90,8 @@ export function URLRenderer({
             pattern: validation?.pattern
               ? {
                   value: new RegExp(validation.pattern),
-                  message: 'Please enter a valid URL (e.g., https://example.com)',
+                  message:
+                    'Please enter a valid URL (e.g., https://example.com)',
                 }
               : undefined,
           })}
@@ -134,7 +139,7 @@ export function URLPropsRenderer({
           className={inp}
         />
       </div>
-      
+
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className={lbl}>Placeholder</label>

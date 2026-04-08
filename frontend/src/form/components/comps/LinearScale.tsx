@@ -10,6 +10,7 @@ import { ComponentIDs, createComponent } from '../base';
 import { inp, lbl, Card, Q } from '../ComponentRender.Helper';
 import { useFormContext } from 'react-hook-form';
 import { useFormMode } from '@/form/context/FormModeContext';
+import { nanoid } from 'nanoid';
 
 export interface LinearScaleProps extends BaseComponentProps {
   questionText: string;
@@ -29,8 +30,9 @@ export const createLinearScaleComponent = (
   instanceId: string,
   metadata: ComponentMetadata,
   props?: Partial<LinearScaleProps>
-) =>
-  createComponent(
+) => {
+  metadata.label = `${metadata.label} ${nanoid(12)}`;
+  return createComponent(
     ComponentIDs.LinearScale,
     instanceId,
     metadata,
@@ -43,12 +45,13 @@ export const createLinearScaleComponent = (
       hiddenByDefault: false,
       ...props,
     },
-    { 
+    {
       required: false,
       minRating: undefined,
       maxRating: undefined,
     } as LinearScaleValidation
   );
+};
 
 export function LinearScaleRenderer({
   instanceId,
@@ -101,13 +104,21 @@ export function LinearScaleRenderer({
                     value={val}
                     className="sr-only" // Visually hidden radio button
                     {...register(instanceId, {
-                      required: validation?.required ? 'Please select a rating' : false,
+                      required: validation?.required
+                        ? 'Please select a rating'
+                        : false,
                       validate: (value) => {
                         const numVal = Number(value);
-                        if (validation?.minRating && numVal < validation.minRating) {
+                        if (
+                          validation?.minRating &&
+                          numVal < validation.minRating
+                        ) {
                           return `Rating must be at least ${validation.minRating}`;
                         }
-                        if (validation?.maxRating && numVal > validation.maxRating) {
+                        if (
+                          validation?.maxRating &&
+                          numVal > validation.maxRating
+                        ) {
                           return `Rating cannot exceed ${validation.maxRating}`;
                         }
                         return true;

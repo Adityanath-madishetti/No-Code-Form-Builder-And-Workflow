@@ -4,6 +4,7 @@ import { ComponentIDs, createComponent } from '../base';
 
 import type { BaseComponentProps, NoValidation } from '../base';
 import { inp, lbl } from '../ComponentRender.Helper';
+import { nanoid } from 'nanoid';
 
 export interface HeaderProps extends BaseComponentProps {
   text: string;
@@ -15,14 +16,16 @@ export const createHeaderComponent = (
   instanceId: string,
   metadata: ComponentMetadata,
   props?: Partial<HeaderProps>
-) =>
-  createComponent(
+) => {
+  metadata.label = `${metadata.label} ${nanoid(12)}`;
+  return createComponent(
     ComponentIDs.Header,
     instanceId,
     metadata,
     { text: 'Heading', level: 'h2' as const, hiddenByDefault: false, ...props },
     { proxy: 0 } as NoValidation
   );
+};
 
 export function HeaderRenderer({
   instanceId,

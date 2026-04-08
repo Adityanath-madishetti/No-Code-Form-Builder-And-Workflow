@@ -16,6 +16,7 @@ import { useFormContext } from 'react-hook-form';
 import { useFormMode } from '@/form/context/FormModeContext';
 
 import { createComponent } from '../base';
+import { nanoid } from 'nanoid';
 
 export interface SingleLineInputProps extends BaseComponentProps {
   type?: string;
@@ -29,13 +30,14 @@ export const createSingleLineInputComponent = (
   instanceId: string,
   metadata: ComponentMetadata,
   props?: Partial<SingleLineInputProps>
-): FormComponent<'Input', SingleLineInputProps, TextValidation> =>
-  createComponent(
+) => {
+  metadata.label = `${metadata.label} ${nanoid(12)}`;
+  return createComponent(
     ComponentIDs.SingleLineInput,
     instanceId,
     metadata,
     {
-      questionText: 'Write the answer...',
+      questionText: 'Write the answer',
       placeholder: '',
       defaultValue: '',
       hiddenByDefault: false,
@@ -45,6 +47,7 @@ export const createSingleLineInputComponent = (
       required: false,
     } as TextValidation
   );
+};
 
 export function SingleLineInputRenderer({
   instanceId,

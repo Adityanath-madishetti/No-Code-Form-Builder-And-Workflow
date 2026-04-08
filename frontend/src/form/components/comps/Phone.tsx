@@ -10,6 +10,7 @@ import { ComponentIDs, createComponent } from '../base';
 import { inp, lbl, Card, Q } from '../ComponentRender.Helper';
 import { useFormContext } from 'react-hook-form';
 import { useFormMode } from '@/form/context/FormModeContext';
+import { nanoid } from 'nanoid';
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const COUNTRY_DIAL_CODES = [
@@ -40,8 +41,9 @@ export const createPhoneComponent = (
   instanceId: string,
   metadata: ComponentMetadata,
   props?: Partial<PhoneProps>
-) =>
-  createComponent(
+) => {
+  metadata.label = `${metadata.label} ${nanoid(12)}`;
+  return createComponent(
     ComponentIDs.Phone,
     instanceId,
     metadata,
@@ -58,6 +60,7 @@ export const createPhoneComponent = (
       pattern: '^\\+?[0-9\\-\\(\\)\\s]{7,15}$', // Generic phone regex allowing digits, spaces, dashes, parentheses
     } as TextValidation
   );
+};
 
 export function PhoneRenderer({
   instanceId,

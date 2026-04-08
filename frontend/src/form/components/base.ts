@@ -60,7 +60,7 @@ export const ComponentIDs = {
   ColumnLayout: 'ColumnLayout',
 
   // ── Text Inputs ──
-  SingleLineInput: 'Input',
+  SingleLineInput: 'SingleLineInput',
   MultiLineInput: 'MultiLineInput',
   Email: 'Email',
   Phone: 'Phone',

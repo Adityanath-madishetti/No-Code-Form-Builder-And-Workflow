@@ -1,6 +1,6 @@
 // src/form/components/textBox.ts
-import type { BaseComponentProps, ComponentMetadata } from '../base';
-import { ComponentIDs } from '../base';
+import type { BaseComponentProps, BasicValidation, ComponentMetadata } from '../base';
+import { ComponentIDs, createComponent } from '../base';
 import type { FormComponent } from '../base';
 
 import type { RendererProps } from '../base';
@@ -12,34 +12,36 @@ import {
 } from '@/components/RichTextEditor';
 
 import { FormThemeProvider } from '@/form/theme/FormThemeProvider';
+import { nanoid } from 'nanoid';
 
 export interface TextBoxProps extends BaseComponentProps {
   text: string;
-}
-
-export interface TextBoxValidation {
-  proxy: number;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const createTextBoxComponent = (
   instanceId: string,
   metadata: ComponentMetadata,
-  props: TextBoxProps,
-  validation: TextBoxValidation
-): FormComponent<'Textbox', TextBoxProps, TextBoxValidation> => ({
-  id: ComponentIDs.TextBox,
-  instanceId,
-  metadata,
-  children: [],
-  props,
-  validation,
-});
+  props?: Partial<TextBoxProps>
+): FormComponent<'Textbox', TextBoxProps, BasicValidation> => {
+  metadata.label = `${metadata.label} ${nanoid(12)}`;
+  return createComponent(
+    ComponentIDs.TextBox,
+    instanceId,
+    metadata,
+    {
+      text: '',
+      hiddenByDefault: false,
+      ...props,
+    },
+    { required: false } as BasicValidation
+  );
+};
 export type TextBoxComponent = ReturnType<typeof createTextBoxComponent>;
 
 export const TextBoxComponentRenderer = ({
   props,
-}: RendererProps<TextBoxProps, TextBoxValidation>) => {
+}: RendererProps<TextBoxProps, BasicValidation>) => {
   return (
     <FormThemeProvider>
       <div className="w-full border border-border">
@@ -57,7 +59,7 @@ export const TextBoxComponentRenderer = ({
 export const TextBoxComponentPropsRenderer = ({
   props,
   instanceId,
-}: RendererProps<TextBoxProps, TextBoxValidation>) => {
+}: RendererProps<TextBoxProps, BasicValidation>) => {
   const updateComponentProps = useFormStore((s) => s.updateComponentProps);
 
   return (

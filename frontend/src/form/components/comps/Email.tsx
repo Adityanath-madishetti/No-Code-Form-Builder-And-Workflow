@@ -10,6 +10,7 @@ import { ComponentIDs, createComponent } from '../base';
 import { inp, lbl, Card, Q } from '../ComponentRender.Helper';
 import { useFormContext } from 'react-hook-form';
 import { useFormMode } from '@/form/context/FormModeContext';
+import { nanoid } from 'nanoid';
 
 export interface EmailProps extends BaseComponentProps {
   questionText: string;
@@ -22,8 +23,9 @@ export const createEmailComponent = (
   instanceId: string,
   metadata: ComponentMetadata,
   props?: Partial<EmailProps>
-) =>
-  createComponent(
+) => {
+  metadata.label = `${metadata.label} ${nanoid(12)}`;
+  return createComponent(
     ComponentIDs.Email,
     instanceId,
     metadata,
@@ -39,6 +41,7 @@ export const createEmailComponent = (
       pattern: '^[^@]+@[^@]+\\.[^@]+$',
     } as TextValidation
   );
+};
 
 export function EmailRenderer({
   instanceId,

@@ -10,6 +10,7 @@ import { ComponentIDs, createComponent } from '../base';
 import { inp, lbl, Card, Q } from '../ComponentRender.Helper';
 import { useFormContext } from 'react-hook-form';
 import { useFormMode } from '@/form/context/FormModeContext';
+import { nanoid } from 'nanoid';
 
 export interface AddressBlockProps extends BaseComponentProps {
   questionText: string;
@@ -24,8 +25,9 @@ export const createAddressBlockComponent = (
   instanceId: string,
   metadata: ComponentMetadata,
   props?: Partial<AddressBlockProps>
-) =>
-  createComponent(
+) => {
+  metadata.label = `${metadata.label} ${nanoid(12)}`;
+  return createComponent(
     ComponentIDs.AddressBlock,
     instanceId,
     metadata,
@@ -40,6 +42,7 @@ export const createAddressBlockComponent = (
     },
     { required: false } as BasicValidation
   );
+};
 
 export function AddressBlockRenderer({
   instanceId,
@@ -82,7 +85,7 @@ export function AddressBlockRenderer({
               </p>
             )}
           </div>
-          
+
           {props.showLine2 && (
             <div>
               <label className={lbl}>Address Line 2</label>
@@ -93,7 +96,7 @@ export function AddressBlockRenderer({
               />
             </div>
           )}
-          
+
           <div className="flex gap-3">
             <div className="flex-1">
               <label className={lbl}>City</label>
@@ -110,7 +113,7 @@ export function AddressBlockRenderer({
                 </p>
               )}
             </div>
-            
+
             {props.showState && (
               <div className="flex-1">
                 <label className={lbl}>State / Province</label>
@@ -129,7 +132,7 @@ export function AddressBlockRenderer({
               </div>
             )}
           </div>
-          
+
           <div className="flex gap-3">
             {props.showZip && (
               <div className="flex-1">
@@ -148,7 +151,7 @@ export function AddressBlockRenderer({
                 )}
               </div>
             )}
-            
+
             {props.showCountry && (
               <div className="flex-1">
                 <label className={lbl}>Country</label>
@@ -176,7 +179,7 @@ export function AddressBlockRenderer({
   return (
     <Card className="rounded-none shadow-none">
       <Q html={props.questionText} />
-      <div className="flex flex-col gap-3 pointer-events-none opacity-90">
+      <div className="pointer-events-none flex flex-col gap-3 opacity-90">
         <div>
           <label className={lbl}>Address Line 1</label>
           <input readOnly placeholder="123 Main St" className={inp} />

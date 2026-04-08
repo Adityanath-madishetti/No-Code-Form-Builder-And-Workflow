@@ -10,6 +10,7 @@ import { ComponentIDs, createComponent } from '../base';
 import { inp, lbl, Card, Q } from '../ComponentRender.Helper';
 import { useFormContext } from 'react-hook-form';
 import { useFormMode } from '@/form/context/FormModeContext';
+import { nanoid } from 'nanoid';
 
 export interface NumberProps extends BaseComponentProps {
   questionText: string;
@@ -22,8 +23,9 @@ export const createNumberComponent = (
   instanceId: string,
   metadata: ComponentMetadata,
   props?: Partial<NumberProps>
-) =>
-  createComponent(
+) => {
+  metadata.label = `${metadata.label} ${nanoid(12)}`;
+  return createComponent(
     ComponentIDs.Number,
     instanceId,
     metadata,
@@ -40,6 +42,7 @@ export const createNumberComponent = (
       max: undefined,
     } as NumericValidation
   );
+};
 
 export function NumberRenderer({
   instanceId,
