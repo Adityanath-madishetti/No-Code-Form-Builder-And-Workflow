@@ -1,13 +1,24 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '@/lib/api';
-import { Eye, Plus, Loader2 } from 'lucide-react';
+
+// shadcn components
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+
+// Icons
+import { Plus, Loader2 } from 'lucide-react';
 import type { FormHeader } from '../dashboard.types';
 
 export default function TemplatesSection() {
   const navigate = useNavigate();
   const [creating, setCreating] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
 
   const handleCreate = async () => {
     if (creating) return;
@@ -23,62 +34,64 @@ export default function TemplatesSection() {
   };
 
   return (
-    <>
-      <div className="mb-4 pt-2 pl-3">
-        <h2 className="text-xl font-semibold">Create From Template</h2>
+    <div className="space-y-4">
+      <div className="pl-3">
+        <h2 className="text-xl font-semibold tracking-tight">
+          Create From Template
+        </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Start quickly using available templates.
+          Start quickly using available templates or a blank slate.
         </p>
       </div>
-      <div className="grid gap-10 pl-3 sm:grid-cols-2 lg:grid-cols-3">
-        <div
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 pl-3">
+        <Card
+          className="group relative flex flex-col overflow-hidden transition-all hover:border-primary/50"
           role="button"
           tabIndex={0}
-          onClick={handleCreate}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
               handleCreate();
             }
           }}
-          className="group w-full cursor-pointer border border-border bg-neutral-50 p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg dark:bg-neutral-900/70"
-          style={{ aspectRatio: '1.6 / 1' }}
         >
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="text-sm font-medium">Blank</h3>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowPreview(!showPreview);
-              }}
-              className="inline-flex items-center text-muted-foreground hover:text-foreground"
-            >
-              <Eye className="h-3.5 w-3.5" />
-            </button>
-          </div>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Start with an empty form and build from scratch.
-          </p>
-          <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
-            {creating ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" /> Creating...
-              </>
-            ) : (
-              <>
-                <Plus className="h-4 w-4" /> Click to use blank template
-              </>
-            )}
-          </div>
-          {showPreview && (
-            <div className="mt-3 border-t border-border pt-3 text-xs text-muted-foreground">
-              Blank template preview: one untitled page with no components,
-              ready for customization.
+          <CardHeader className="p-5 pb-0">
+            <div>
+              <CardTitle className="text-base font-semibold">
+                Blank Form
+              </CardTitle>
+              <CardDescription className="mt-1.5 text-xs">
+                Start from scratch.
+              </CardDescription>
             </div>
-          )}
-        </div>
+          </CardHeader>
+
+          <CardContent className="flex-1 text-xs px-5 text-muted-foreground">
+            {/* Dashed rectangle removed and description permanently displayed */}
+            <div className="rounded-md bg-muted/30 italic">
+              Preview: Opens an empty workspace with one untitled page, ready
+              for your custom components.
+            </div>
+          </CardContent>
+
+          <CardFooter className="border-t bg-muted/20 p-3">
+            <div className="flex w-full items-center justify-between text-xs font-medium text-muted-foreground transition-colors">
+              <span>
+                {creating ? 'Initializing builder...' : 'Use Template'}
+              </span>
+              {creating ? (
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              ) : (
+                <Plus
+                  className="h-4 w-4 cursor-pointer hover:text-foreground"
+                  onClick={handleCreate}
+                />
+              )}
+            </div>
+          </CardFooter>
+        </Card>
       </div>
-    </>
+    </div>
   );
 }

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { Loader2 } from 'lucide-react';
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 import DashboardHeader from './components/DashboardHeader';
 import TemplatesSection from './components/TemplatesSection';
 import MyFormsTab from './components/MyFormsTab';
@@ -51,6 +53,33 @@ export default function Dashboard() {
   const selectedSubmission =
     submissions.find((s) => s.submissionId === selectedSubmissionId) || null;
 
+  // Separate data array for cleaner JSX mapping
+  const dashboardTabs = [
+    {
+      name: 'My Forms',
+      value: 'myForms',
+      content: <MyFormsTab forms={forms} onReload={fetchAllData} />,
+    },
+    {
+      name: 'Shared With Me',
+      value: 'sharedForms',
+      content: (
+        <SharedFormsTab sharedForms={sharedForms} onReload={fetchAllData} />
+      ),
+    },
+    {
+      name: 'My Submissions',
+      value: 'mySubmissions',
+      content: (
+        <SubmissionsTab
+          submissions={submissions}
+          selectedId={selectedSubmissionId}
+          onSelect={setSelectedSubmissionId}
+        />
+      ),
+    },
+  ];
+
   return (
     <div className="flex min-h-screen flex-col bg-neutral-100 dark:bg-neutral-900">
       <DashboardHeader />
@@ -59,73 +88,45 @@ export default function Dashboard() {
         <div className="mx-auto w-full max-w-5xl">
           <TemplatesSection />
 
-          <section className="mt-10 pt-2 pl-3">
-            <div className="mb-3 flex flex-wrap items-end gap-5 border-b border-border pb-1">
-              {(['myForms', 'sharedForms', 'mySubmissions'] as TabView[]).map(
-                (tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setBottomView(tab)}
-                    className={`border-b-2 pb-1 text-sm transition-colors ${
-                      bottomView === tab
-                        ? 'border-foreground font-medium text-foreground'
-                        : 'border-transparent text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    {tab === 'myForms'
-                      ? 'My Forms'
-                      : tab === 'sharedForms'
-                        ? 'Shared With Me'
-                        : 'My Submissions'}
-                  </button>
-                )
+          <section className="mt-10 pt-2">
+            <Tabs
+              value={bottomView}
+              onValueChange={(val) => setBottomView(val as TabView)}
+              className="w-full gap-4"
+            >
+              <div className="mb-4 pl-3">
+                {/* Updated to Solid Pills styling */}
+                <TabsList className="bg-background gap-1">
+                  {dashboardTabs.map((tab) => (
+                    <TabsTrigger
+                      key={tab.value}
+                      value={tab.value}
+                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-primary dark:data-[state=active]:text-primary-foreground"
+                    >
+                      {tab.name}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </div>
+
+              {loading ? (
+                <div className="flex justify-center py-20">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <div className="pl-3">
+                  {dashboardTabs.map((tab) => (
+                    <TabsContent
+                      key={tab.value}
+                      value={tab.value}
+                      className="mt-0"
+                    >
+                      {tab.content}
+                    </TabsContent>
+                  ))}
+                </div>
               )}
-            </div>
-
-            {loading ? (
-              <div className="flex justify-center py-20">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-              </div>
-            ) : (
-              <div className="grid [&>*]:[grid-area:1/1]">
-                <div
-                  className={
-                    bottomView !== 'myForms'
-                      ? 'pointer-events-none invisible'
-                      : ''
-                  }
-                >
-                  <MyFormsTab forms={forms} onReload={fetchAllData} />
-                </div>
-
-                <div
-                  className={
-                    bottomView !== 'sharedForms'
-                      ? 'pointer-events-none invisible'
-                      : ''
-                  }
-                >
-                  <SharedFormsTab
-                    sharedForms={sharedForms}
-                    onReload={fetchAllData}
-                  />
-                </div>
-
-                <div
-                  className={
-                    bottomView !== 'mySubmissions'
-                      ? 'pointer-events-none invisible'
-                      : ''
-                  }
-                >
-                  <SubmissionsTab
-                    submissions={submissions}
-                    selectedId={selectedSubmissionId}
-                    onSelect={setSelectedSubmissionId}
-                  />
-                </div>
-              </div>
-            )}
+            </Tabs>
           </section>
 
           {bottomView === 'mySubmissions' && selectedSubmission && (

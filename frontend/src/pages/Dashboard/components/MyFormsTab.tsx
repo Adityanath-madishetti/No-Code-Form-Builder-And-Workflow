@@ -2,27 +2,60 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
+
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+
+// Icons
 import {
   Search,
-  Funnel,
   LayoutGrid,
-  List,
+  List as ListIcon,
   FileText,
   Inbox,
   ExternalLink,
   Pencil,
 } from 'lucide-react';
+
 import type { FormHeader, LayoutMode } from '../dashboard.types';
-import { formatDate, getCreatorLabel, matchesDateFilter } from '../dashboard.utils';
+import {
+  formatDate,
+  getCreatorLabel,
+  matchesDateFilter,
+} from '../dashboard.utils';
 
 const LIST_COLUMNS =
-  'grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1.1fr)_minmax(0,0.8fr)_100px]';
+  'grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)_minmax(0,1.5fr)_minmax(0,1fr)_120px]';
 
 interface Props {
   forms: FormHeader[];
@@ -34,6 +67,17 @@ export default function MyFormsTab({ forms, onReload }: Props) {
   const navigate = useNavigate();
   const [layout, setLayout] = useState<LayoutMode>('grid');
   const [query, setQuery] = useState('');
+
+  // Rename Dialog State
+  const [renameDialog, setRenameDialog] = useState<{
+    isOpen: boolean;
+    formId: string;
+    currentTitle: string;
+  }>({ isOpen: false, formId: '', currentTitle: '' });
+
+  const [newTitle, setNewTitle] = useState('');
+  const [isRenaming, setIsRenaming] = useState(false);
+
   const [statusFilter, setStatusFilter] = useState<
     'all' | 'published' | 'draft'
   >('all');
@@ -41,14 +85,33 @@ export default function MyFormsTab({ forms, onReload }: Props) {
     'all' | 'last7' | 'last30' | 'older'
   >('all');
 
-  const handleRename = async (formId: string, currentTitle: string) => {
-    const nextTitle = window.prompt('Rename form', currentTitle);
-    if (!nextTitle) return;
+  // Triggered by the Pencil icon
+  const openRenameDialog = (formId: string, currentTitle: string) => {
+    setRenameDialog({ isOpen: true, formId, currentTitle });
+    setNewTitle(currentTitle);
+  };
+
+  // Triggered by the Dialog "Save" button or Enter key
+  const submitRename = async (e?: React.FormEvent) => {
+    e?.preventDefault(); // Prevent default form submission
+
+    const trimmedTitle = newTitle.trim();
+    if (!trimmedTitle || trimmedTitle === renameDialog.currentTitle) {
+      setRenameDialog({ isOpen: false, formId: '', currentTitle: '' });
+      return;
+    }
+
+    setIsRenaming(true);
     try {
-      await api.patch(`/api/forms/${formId}`, { title: nextTitle });
+      await api.patch(`/api/forms/${renameDialog.formId}`, {
+        title: trimmedTitle,
+      });
       await onReload();
+      setRenameDialog({ isOpen: false, formId: '', currentTitle: '' });
     } catch (err) {
       window.alert((err as Error).message || 'Failed to rename form');
+    } finally {
+      setIsRenaming(false);
     }
   };
 
@@ -70,194 +133,319 @@ export default function MyFormsTab({ forms, onReload }: Props) {
   });
 
   return (
-    <>
-      <div className="mb-5 flex min-h-[1.75rem] items-center gap-1.5">
-        <div className="relative max-w-xl min-w-0 flex-1">
-          <Search className="pointer-events-none absolute top-1/2 left-2.5 h-3 w-3 -translate-y-1/2 text-muted-foreground/70" />
-          <input
+    <div className="space-y-6">
+      {/* Toolbar */}
+      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+        <div className="relative w-full sm:max-w-sm">
+          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search my forms..."
-            className="h-7 w-full rounded-full border border-border/70 bg-muted/20 py-0 pr-3 pl-8 text-xs outline-none focus:border-primary/60 focus:bg-background"
+            className="bg-background pl-9"
           />
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+          <Select
+            value={statusFilter}
+            onValueChange={(val) =>
+              setStatusFilter(val as 'all' | 'published' | 'draft')
+            }
+          >
+            <SelectTrigger className="w-[140px] bg-background">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="published">Published</SelectItem>
+              <SelectItem value="draft">Draft</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={editedFilter}
+            onValueChange={(val) =>
+              setEditedFilter(val as 'all' | 'last7' | 'last30' | 'older')
+            }
+          >
+            <SelectTrigger className="w-[160px] bg-background">
+              <SelectValue placeholder="Edited Date" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Time</SelectItem>
+              <SelectItem value="last7">Last 7 days</SelectItem>
+              <SelectItem value="last30">Last 30 days</SelectItem>
+              <SelectItem value="older">Older than 30 days</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <div className="ml-auto flex items-center rounded-md border bg-background p-0.5 sm:ml-2">
             <Button
-              variant="outline"
-              size="sm"
-              className="h-7 w-7 rounded-full p-0"
+              variant={layout === 'grid' ? 'secondary' : 'ghost'}
+              size="icon"
+              onClick={() => setLayout('grid')}
+              className="h-[26px] w-[26px]"
             >
-              <Funnel className="h-3 w-3" />
+              <LayoutGrid className="h-4 w-4" />
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-64 p-3">
-            <div className="space-y-3">
-              <select
-                value={statusFilter}
-                onChange={(e) =>
-                  setStatusFilter(
-                    e.target.value as React.SetStateAction<
-                      'all' | 'published' | 'draft'
-                    >
-                  )
-                }
-                className="h-9 w-full border bg-background px-2 text-sm"
-              >
-                <option value="all">All status</option>
-                <option value="published">Published</option>
-                <option value="draft">Draft</option>
-              </select>
-              <select
-                value={editedFilter}
-                onChange={(e) =>
-                  setEditedFilter(
-                    e.target.value as React.SetStateAction<
-                      'all' | 'last7' | 'last30' | 'older'
-                    >
-                  )
-                }
-                className="h-9 w-full border bg-background px-2 text-sm"
-              >
-                <option value="all">All edited dates</option>
-                <option value="last7">Last 7 days</option>
-                <option value="last30">Last 30 days</option>
-                <option value="older">Older than 30 days</option>
-              </select>
-            </div>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <div className="ml-auto inline-flex h-7 items-center border bg-muted/20 p-0.5">
-          <Button
-            size="sm"
-            variant={layout === 'grid' ? 'secondary' : 'ghost'}
-            onClick={() => setLayout('grid')}
-            className="h-6 px-1.5"
-          >
-            <LayoutGrid className="h-3 w-3" />
-          </Button>
-          <Button
-            size="sm"
-            variant={layout === 'list' ? 'secondary' : 'ghost'}
-            onClick={() => setLayout('list')}
-            className="h-6 px-1.5"
-          >
-            <List className="h-3 w-3" />
-          </Button>
+            <Button
+              variant={layout === 'list' ? 'secondary' : 'ghost'}
+              size="icon"
+              onClick={() => setLayout('list')}
+              className="h-[26px] w-[26px]"
+            >
+              <ListIcon className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
+      {/* Content Area */}
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed py-20 text-center">
-          <FileText className="mb-3 h-10 w-10 text-muted-foreground/40" />
-          <p className="text-sm text-muted-foreground">
+        <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/25 bg-background/50 py-24 text-center">
+          <div className="mb-4 rounded-full bg-muted p-3">
+            <FileText className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-medium text-foreground">
+            No forms found
+          </h3>
+          <p className="mt-1 text-sm text-muted-foreground">
             {forms.length === 0
-              ? 'No forms yet. Create one.'
-              : 'No forms match your search.'}
+              ? 'You have not created any forms yet.'
+              : 'Try adjusting your search or filters.'}
           </p>
         </div>
       ) : (
-        <div
-          className={
-            layout === 'grid'
-              ? 'grid gap-10 sm:grid-cols-2 lg:grid-cols-3'
-              : 'flex flex-col'
-          }
-        >
-          {layout === 'list' && (
-            <div
-              className={`mb-2 grid ${LIST_COLUMNS} px-3 text-[11px] font-medium text-muted-foreground uppercase`}
-            >
-              <span>Form</span>
-              <span>Creator</span>
-              <span>Last Edited</span>
-              <span>Status</span>
-              <span>Actions</span>
+        <>
+          {layout === 'grid' ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {filtered.map((form) => (
+                <Card
+                  key={form.formId}
+                  className="group flex flex-col rounded-sm transition-colors hover:border-primary/50"
+                >
+                  <CardHeader className="px-4 pt-4 pb-0">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0 flex-1">
+                        <CardTitle className="truncate text-base font-semibold">
+                          <button
+                            onClick={() =>
+                              navigate(`/form-builder/${form.formId}`)
+                            }
+                            className="hover:underline focus:outline-none"
+                          >
+                            {form.title}
+                          </button>
+                        </CardTitle>
+                        <CardDescription className="mt-1.5 truncate text-xs">
+                          {getCreatorLabel(form, user?.uid)}
+                        </CardDescription>
+                      </div>
+                      <Badge
+                        variant={form.isActive ? 'default' : 'secondary'}
+                        className={`pointer-events-none ${
+                          form.isActive
+                            ? 'bg-green-600 text-white hover:bg-green-600 dark:bg-green-700 dark:hover:bg-green-700'
+                            : ''
+                        }`}
+                      >
+                        {form.isActive ? 'Published' : 'Draft'}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="mt-auto px-4 pt-0 text-xs text-muted-foreground">
+                    Edited {formatDate(form.updatedAt)}
+                  </CardContent>
+                  <CardFooter className="flex justify-end gap-1 border-t bg-muted/20 p-1">
+                    <div className="flex items-center justify-end gap-1">
+                      {/* Reviews / Inbox Tooltip */}
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                            onClick={() => navigate(`/reviews/${form.formId}`)}
+                          >
+                            <Inbox className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>View Submissions</p>
+                        </TooltipContent>
+                      </Tooltip>
+
+                      {/* Preview Tooltip */}
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                            onClick={() =>
+                              navigate(`/forms/${form.formId}/preview`)
+                            }
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Preview Form</p>
+                        </TooltipContent>
+                      </Tooltip>
+
+                      {/* Rename Tooltip */}
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                            onClick={() =>
+                              openRenameDialog(form.formId, form.title)
+                            }
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Rename Form</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </CardFooter>
+                </Card>
+              ))}
             </div>
-          )}
-          {filtered.map((form) => (
-            <div
-              key={form.formId}
-              className={`group border bg-neutral-50 hover:border-primary/40 dark:bg-neutral-900/70 ${layout === 'grid' ? 'flex aspect-[1.6/1] flex-col p-2.5' : `grid ${LIST_COLUMNS} items-center p-3`}`}
-            >
-              <button
-                onClick={() => navigate(`/form-builder/${form.formId}`)}
-                className={`text-left ${layout === 'grid' ? 'flex flex-col gap-1' : 'truncate font-medium'}`}
-              >
-                {layout === 'grid' ? (
-                  <>
-                    <h3 className="text-sm font-medium">{form.title}</h3>
-                    <p className="text-xs text-muted-foreground">
-                      {getCreatorLabel(form, user?.uid)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDate(form.updatedAt)}
-                    </p>
-                  </>
-                ) : (
-                  form.title
-                )}
-              </button>
-
-              {layout === 'list' && (
-                <>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {getCreatorLabel(form, user?.uid)}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatDate(form.updatedAt)}
-                  </p>
-                </>
-              )}
-
-              <div className="flex items-center gap-1.5">
-                <span
-                  className={`h-1.5 w-1.5 rounded-full ${form.isActive ? 'bg-green-500' : 'bg-neutral-300'}`}
-                />
-                <span className="text-[10px] text-muted-foreground">
-                  {form.isActive ? 'Published' : 'Draft'}
-                </span>
-              </div>
-
+          ) : (
+            <Card className="overflow-hidden p-0">
               <div
-                className={
-                  layout === 'grid'
-                    ? 'mt-auto border-t pt-2'
-                    : 'justify-self-end'
-                }
+                className={`grid ${LIST_COLUMNS} border-b bg-muted/50 px-4 py-3 text-xs font-medium tracking-wider text-muted-foreground uppercase`}
               >
-                <div className="flex gap-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-7 w-7 p-0"
-                    onClick={() => navigate(`/reviews/${form.formId}`)}
-                  >
-                    <Inbox className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-7 w-7 p-0"
-                    onClick={() => navigate(`/forms/${form.formId}/preview`)}
-                  >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-7 w-7 p-0"
-                    onClick={() => handleRename(form.formId, form.title)}
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
+                <span>Form Name</span>
+                <span>Creator</span>
+                <span>Last Edited</span>
+                <span>Status</span>
+                <span className="text-right">Actions</span>
               </div>
-            </div>
-          ))}
-        </div>
+              <div className="divide-y">
+                {filtered.map((form) => (
+                  <div
+                    key={form.formId}
+                    className={`grid ${LIST_COLUMNS} items-center px-4 py-2 transition-colors hover:bg-muted/30`}
+                  >
+                    <button
+                      onClick={() => navigate(`/form-builder/${form.formId}`)}
+                      className="truncate text-left text-sm font-medium hover:underline"
+                    >
+                      {form.title}
+                    </button>
+                    <span className="truncate text-sm text-muted-foreground">
+                      {getCreatorLabel(form, user?.uid)}
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      {formatDate(form.updatedAt)}
+                    </span>
+                    <div>
+                      <Badge
+                        variant={form.isActive ? 'default' : 'secondary'}
+                        className={`pointer-events-none ${
+                          form.isActive
+                            ? 'bg-green-600 text-white hover:bg-green-600 dark:bg-green-700 dark:hover:bg-green-700'
+                            : ''
+                        }`}
+                      >
+                        {form.isActive ? 'Published' : 'Draft'}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                        onClick={() => navigate(`/reviews/${form.formId}`)}
+                      >
+                        <Inbox className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                        onClick={() =>
+                          navigate(`/forms/${form.formId}/preview`)
+                        }
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                        onClick={() =>
+                          openRenameDialog(form.formId, form.title)
+                        }
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+        </>
       )}
-    </>
+
+      {/* Rename Form Dialog */}
+      <Dialog
+        open={renameDialog.isOpen}
+        onOpenChange={(isOpen) =>
+          setRenameDialog((prev) => ({ ...prev, isOpen }))
+        }
+      >
+        <DialogContent className="sm:max-w-md">
+          <form onSubmit={submitRename}>
+            <DialogHeader>
+              <DialogTitle>Rename form</DialogTitle>
+              <DialogDescription>
+                Enter a new name for your form.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="py-4">
+              <Input
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                placeholder="Form name"
+                autoFocus
+                disabled={isRenaming}
+              />
+            </div>
+
+            <DialogFooter className="gap-2 sm:gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() =>
+                  setRenameDialog({
+                    isOpen: false,
+                    formId: '',
+                    currentTitle: '',
+                  })
+                }
+                disabled={isRenaming}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isRenaming || !newTitle.trim()}>
+                {isRenaming ? 'Saving...' : 'Save changes'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }

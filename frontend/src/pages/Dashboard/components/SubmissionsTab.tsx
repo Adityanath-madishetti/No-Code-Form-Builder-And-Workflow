@@ -1,13 +1,22 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Search, Inbox, FileText } from 'lucide-react';
+
+// shadcn components
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Search, Funnel, Inbox } from 'lucide-react';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
 import type { MySubmission } from '../dashboard.types';
 import { formatDate, matchesDateFilter } from '../dashboard.utils';
+
+const LIST_COLUMNS = 'grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)_minmax(0,1fr)]';
 
 interface Props {
   submissions: MySubmission[];
@@ -15,12 +24,38 @@ interface Props {
   onSelect: (id: string) => void;
 }
 
-const statusColor: Record<string, string> = {
-  submitted: 'bg-blue-500',
-  approved: 'bg-green-500',
-  rejected: 'bg-red-500',
-  under_review: 'bg-amber-500',
-  draft: 'bg-neutral-400',
+const getStatusBadge = (status: string) => {
+  switch (status.toLowerCase()) {
+    case 'submitted':
+      return {
+        variant: 'default' as const,
+        className:
+          'bg-blue-600 text-white hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-700',
+      };
+    case 'approved':
+      return {
+        variant: 'default' as const,
+        className:
+          'bg-green-600 text-white hover:bg-green-600 dark:bg-green-700 dark:hover:bg-green-700',
+      };
+    case 'rejected':
+      return {
+        variant: 'destructive' as const,
+        className: '',
+      };
+    case 'under_review':
+      return {
+        variant: 'default' as const,
+        className:
+          'bg-amber-600 text-white hover:bg-amber-600 dark:bg-amber-700 dark:hover:bg-amber-700',
+      };
+    case 'draft':
+    default:
+      return {
+        variant: 'secondary' as const,
+        className: '',
+      };
+  }
 };
 
 export default function SubmissionsTab({
@@ -52,115 +87,114 @@ export default function SubmissionsTab({
   });
 
   return (
-    <>
-      <div className="mb-5 flex min-h-[1.75rem] items-center gap-1.5">
-        <div className="relative max-w-xl min-w-0 flex-1">
-          <Search className="pointer-events-none absolute top-1/2 left-2.5 h-3 w-3 -translate-y-1/2 text-muted-foreground/70" />
-          <input
+    <div className="space-y-6">
+      {/* Toolbar */}
+      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+        <div className="relative w-full sm:max-w-sm">
+          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search submissions..."
-            className="h-7 w-full rounded-full border border-border/70 bg-muted/20 py-0 pr-3 pl-8 text-xs outline-none focus:border-primary/60 focus:bg-background"
+            className="bg-background pl-9"
           />
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 w-7 rounded-full p-0"
-            >
-              <Funnel className="h-3 w-3" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-64 p-3">
-            <div className="space-y-3">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="h-9 w-full border bg-background px-2 text-sm"
-              >
-                <option value="all">All statuses</option>
-                {submissionStatuses.map((status) => (
-                  <option key={status} value={status}>
-                    {status.replace('_', ' ')}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={dateFilter}
-                onChange={(e) =>
-                  setDateFilter(
-                    e.target.value as React.SetStateAction<
-                      'all' | 'last7' | 'last30' | 'older'
-                    >
-                  )
-                }
-                className="h-9 w-full border bg-background px-2 text-sm"
-              >
-                <option value="all">All dates</option>
-                <option value="last7">Last 7 days</option>
-                <option value="last30">Last 30 days</option>
-                <option value="older">Older than 30 days</option>
-              </select>
-            </div>
-          </DropdownMenuContent>
-        </DropdownMenu>
+
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+          <Select
+            value={statusFilter}
+            onValueChange={(val) => setStatusFilter(val)}
+          >
+            <SelectTrigger className="w-[150px] bg-background capitalize">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              {submissionStatuses.map((status) => (
+                <SelectItem key={status} value={status} className="capitalize">
+                  {status.replace('_', ' ')}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={dateFilter}
+            onValueChange={(val) =>
+              setDateFilter(val as 'all' | 'last7' | 'last30' | 'older')
+            }
+          >
+            <SelectTrigger className="w-[160px] bg-background">
+              <SelectValue placeholder="Submitted Date" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Time</SelectItem>
+              <SelectItem value="last7">Last 7 days</SelectItem>
+              <SelectItem value="last30">Last 30 days</SelectItem>
+              <SelectItem value="older">Older than 30 days</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
+      {/* Content Area */}
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed py-12 text-center">
-          <Inbox className="mb-3 h-8 w-8 text-muted-foreground/40" />
-          <p className="text-sm text-muted-foreground">
+        <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/25 bg-background/50 py-24 text-center">
+          <div className="mb-4 rounded-full bg-muted p-3">
+            <Inbox className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-medium text-foreground">
+            No submissions found
+          </h3>
+          <p className="mt-1 text-sm text-muted-foreground">
             {submissions.length === 0
-              ? 'No submissions yet.'
-              : 'No submissions match your search.'}
+              ? 'You have not submitted any forms yet.'
+              : 'Try adjusting your search or filters.'}
           </p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-lg border bg-neutral-50 dark:bg-neutral-900/70">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b bg-muted/30">
-              <tr>
-                <th className="px-4 py-2.5 font-medium text-muted-foreground">
-                  Form
-                </th>
-                <th className="px-4 py-2.5 font-medium text-muted-foreground">
-                  Submitted
-                </th>
-                <th className="px-4 py-2.5 font-medium text-muted-foreground">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((sub) => (
-                <tr
+        <Card className="overflow-hidden">
+          <div
+            className={`grid ${LIST_COLUMNS} border-b bg-muted/50 px-4 py-3 text-xs font-medium tracking-wider text-muted-foreground uppercase`}
+          >
+            <span>Form Name</span>
+            <span>Submitted</span>
+            <span>Status</span>
+          </div>
+          <div className="divide-y">
+            {filtered.map((sub) => {
+              const badgeProps = getStatusBadge(sub.status);
+              const isSelected = selectedId === sub.submissionId;
+
+              return (
+                <div
                   key={sub.submissionId}
-                  className={`cursor-pointer border-b last:border-0 hover:bg-muted/20 ${selectedId === sub.submissionId ? 'bg-muted/30' : ''}`}
                   onClick={() => onSelect(sub.submissionId)}
+                  className={`grid ${LIST_COLUMNS} cursor-pointer items-center gap-4 px-4 py-3 transition-colors hover:bg-muted/30 ${
+                    isSelected ? 'bg-muted/30 dark:bg-muted/20' : ''
+                  }`}
                 >
-                  <td className="px-4 py-3 font-medium">{sub.formTitle}</td>
-                  <td className="px-4 py-3 text-muted-foreground">
+                  <span className="truncate text-sm font-medium">
+                    {sub.formTitle}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
                     {formatDate(sub.submittedAt)}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="inline-flex items-center gap-1.5">
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full ${statusColor[sub.status] || 'bg-neutral-400'}`}
-                      />
-                      <span className="text-xs capitalize">
-                        {sub.status.replace('_', ' ')}
-                      </span>
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </span>
+                  <div>
+                    <Badge
+                      variant={badgeProps.variant}
+                      className={`pointer-events-none capitalize ${badgeProps.className}`}
+                    >
+                      {sub.status.replace('_', ' ')}
+                    </Badge>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
       )}
-    </>
+    </div>
   );
 }
