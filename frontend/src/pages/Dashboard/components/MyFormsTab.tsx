@@ -224,9 +224,9 @@ export default function MyFormsTab({ forms, onReload }: Props) {
               {filtered.map((form) => (
                 <Card
                   key={form.formId}
-                  className="group flex flex-col rounded-sm transition-colors hover:border-primary/50"
+                  className="group flex flex-col transition-colors hover:border-primary/50"
                 >
-                  <CardHeader className="px-4 pt-4 pb-0">
+                  <CardHeader className="px-4">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0 flex-1">
                         <CardTitle className="truncate text-base font-semibold">
@@ -267,7 +267,13 @@ export default function MyFormsTab({ forms, onReload }: Props) {
                             size="icon"
                             variant="ghost"
                             className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                            onClick={() => navigate(`/reviews/${form.formId}`)}
+                            onClick={() =>
+                              window.open(
+                                `/reviews/${form.formId}`,
+                                '_blank',
+                                'noopener,noreferrer'
+                              )
+                            }
                           >
                             <Inbox className="h-4 w-4" />
                           </Button>
@@ -285,7 +291,11 @@ export default function MyFormsTab({ forms, onReload }: Props) {
                             variant="ghost"
                             className="h-8 w-8 text-muted-foreground hover:text-foreground"
                             onClick={() =>
-                              navigate(`/forms/${form.formId}/preview`)
+                              window.open(
+                                `/forms/${form.formId}/preview`,
+                                '_blank',
+                                'noopener,noreferrer'
+                              )
                             }
                           >
                             <ExternalLink className="h-4 w-4" />

@@ -56,18 +56,18 @@ export default function TemplatesSection() {
             }
           }}
         >
-          <CardHeader className="p-5 pb-0">
+          <CardHeader className="px-4">
             <div>
               <CardTitle className="text-base font-semibold">
                 Blank Form
               </CardTitle>
-              <CardDescription className="mt-1.5 text-xs">
+              <CardDescription className="mt-0 text-xs">
                 Start from scratch.
               </CardDescription>
             </div>
           </CardHeader>
 
-          <CardContent className="flex-1 text-xs px-5 text-muted-foreground">
+          <CardContent className="flex-1 text-xs px-4 text-muted-foreground">
             {/* Dashed rectangle removed and description permanently displayed */}
             <div className="rounded-md bg-muted/30 italic">
               Preview: Opens an empty workspace with one untitled page, ready

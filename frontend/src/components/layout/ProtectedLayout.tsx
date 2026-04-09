@@ -19,7 +19,7 @@ export default function ProtectedLayout() {
   }
 
   return (
-    <div className="flex h-screen min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col">
       <Outlet />
     </div>
   );
