@@ -2,10 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
-import {
-  runtimeFormSelector,
-  useRuntimeFormStore,
-} from './runtimeForm.store';
+import { runtimeFormSelector, useRuntimeFormStore } from './runtimeForm.store';
 import { useShallow } from 'zustand/react/shallow';
 import { backendToFrontend } from '@/lib/frontendBackendCompArray';
 import { getComponentRenderer } from '@/form/registry/componentRegistry';
@@ -36,6 +33,10 @@ export function FormRunner() {
 
   const logicEngineRef = useRef<FormLogicEngine | null>(null);
 
+  // --- CIRCUIT BREAKER REF ---
+  const cascadeCount = useRef(0);
+  const cascadeResetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const componentsData = useRuntimeFormStore(
     useShallow(runtimeFormSelector.currentPageComponentData)
   );
@@ -44,7 +45,6 @@ export function FormRunner() {
     useShallow(runtimeFormSelector.currentPageComponentStates)
   );
 
-  // Grab the necessary state and actions to handle pagination
   const currentPageId = useRuntimeFormStore(runtimeFormSelector.currentPageId);
   const renderState = useRuntimeFormStore(runtimeFormSelector.renderState);
   const setActivePage = useRuntimeFormStore((s) => s.setActivePage);
@@ -63,24 +63,46 @@ export function FormRunner() {
   ) => {
     if (!logicEngineRef.current) return;
 
+    // --- 1. CIRCUIT BREAKER CHECK ---
+    if (cascadeCount.current > 10) {
+      console.error(
+        'Logic Circuit Breaker Tripped! Infinite loop detected and aborted.'
+      );
+      return;
+    }
+
+    cascadeCount.current++;
+    if (cascadeResetTimer.current) clearTimeout(cascadeResetTimer.current);
+    cascadeResetTimer.current = setTimeout(() => {
+      cascadeCount.current = 0; // Reset after things settle down
+    }, 100);
+    // --------------------------------
+
     const { actions, computedValues } =
       await logicEngineRef.current.evaluate(currentValues);
 
-    const store = useRuntimeFormStore.getState();
+    // --- 2. ACTION DEDUPLICATION (The "Partial Ordering") ---
+    const visibilityPatch: Record<string, boolean> = {};
+    const enabledPatch: Record<string, boolean> = {};
+    const valuePatch: Record<string, unknown> = {};
 
     actions.forEach((action) => {
+      // If multiple rules target the same component, the last one evaluated wins.
       switch (action.type) {
         case 'SHOW':
-          store.setComponentVisibility(action.targetId, true);
+          visibilityPatch[action.targetId] = true;
           break;
         case 'HIDE':
-          store.setComponentVisibility(action.targetId, false);
+          visibilityPatch[action.targetId] = false;
           break;
         case 'ENABLE':
-          store.setComponentEnabled(action.targetId, true);
+          enabledPatch[action.targetId] = true;
           break;
         case 'DISABLE':
-          store.setComponentEnabled(action.targetId, false);
+          enabledPatch[action.targetId] = false;
+          break;
+        case 'SET_VALUE':
+          valuePatch[action.targetId] = action.value;
           break;
         case 'SKIP_PAGE':
           // store.addSkippedPage(action.targetId);
@@ -88,12 +110,26 @@ export function FormRunner() {
       }
     });
 
-    // Apply computed formula values directly to React Hook Form
+    // Formulas take precedence over standard SET_VALUE actions
     Object.entries(computedValues).forEach(([targetId, computedValue]) => {
-      // PREVENT INFINITE LOOPS: Only set the value if it actually changed
-      if (currentValues[targetId] !== computedValue) {
-        console.log(`Setting computed value for ${targetId}:`, computedValue);
-        methods.setValue(targetId, computedValue, {
+      valuePatch[targetId] = computedValue;
+    });
+
+    // --- 3. APPLY PATCHES CLEANLY ---
+    const store = useRuntimeFormStore.getState();
+
+    Object.entries(visibilityPatch).forEach(([targetId, isVisible]) => {
+      store.setComponentVisibility(targetId, isVisible);
+    });
+
+    Object.entries(enabledPatch).forEach(([targetId, isEnabled]) => {
+      store.setComponentEnabled(targetId, isEnabled);
+    });
+
+    // Apply values to React Hook Form (Strictly checking to prevent trigger loops)
+    Object.entries(valuePatch).forEach(([targetId, newValue]) => {
+      if (currentValues[targetId] !== newValue) {
+        methods.setValue(targetId, newValue, {
           shouldValidate: true,
           shouldDirty: true,
         });
@@ -104,7 +140,6 @@ export function FormRunner() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/incompatible-library
     const subscription = methods.watch((value) => {
-      console.log('Form values changed:', value);
       triggerLogicEvaluation(value as Record<string, unknown>);
     });
 

@@ -5,7 +5,7 @@
  * or the formula editor for the active formula.
  */
 import { useMemo, useCallback } from 'react';
-import { ArrowLeft, Plus, Zap, Calculator, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, Calculator, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLogicStore } from '@/form/logic/logic.store';
 import { useFormStore } from '@/form/store/form.store';
@@ -259,7 +259,7 @@ export function LogicPlayground({ onClose }: LogicPlaygroundProps) {
   if (!rule && !formula) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
-        <Zap className="h-12 w-12 text-muted-foreground/20" />
+        {/* <Zap className="h-12 w-12 text-muted-foreground/20" /> */}
         <div>
           <p className="text-sm font-medium text-muted-foreground">
             No rule selected
@@ -333,7 +333,7 @@ export function LogicPlayground({ onClose }: LogicPlaygroundProps) {
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
-        <Zap className="h-4 w-4 text-amber-500" />
+        {/* <Zap className="h-4 w-4 text-amber-500" /> */}
         <input
           type="text"
           value={rule!.name}

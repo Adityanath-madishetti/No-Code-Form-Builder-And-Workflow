@@ -229,6 +229,10 @@ export class FormLogicEngine {
           else if (action.type === 'HIDE') inverseAction.type = 'SHOW';
           // else if (action.type === 'ENABLE') inverseAction.type = 'DISABLE';
           // else if (action.type === 'DISABLE') inverseAction.type = 'ENABLE';
+          else if (action.type === 'SET_VALUE') {
+            inverseAction.type = 'SET_VALUE';
+            inverseAction.value = ''; // Clear the field when the rule fails
+          }
           actionsToProcess.push(inverseAction);
         }
       });

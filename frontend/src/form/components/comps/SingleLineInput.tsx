@@ -4,7 +4,6 @@ import type {
   TextValidation,
 } from '../base';
 import { ComponentIDs } from '../base';
-import type { FormComponent } from '../base';
 
 import type { RendererProps } from '../base';
 import { useFormStore } from '@/form/store/form.store';
