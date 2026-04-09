@@ -38,8 +38,8 @@ function normalizeEmail(email: string): string {
 
 export function FormPropertiesPanel() {
   const form = useFormStore(formSelectors.form);
-  const updateFormName = useFormStore((s) => s.updateFormName);
-  const updateFormMetadata = useFormStore((s) => s.updateFormMetadata);
+  // const updateFormName = useFormStore((s) => s.updateFormName);
+  // const updateFormMetadata = useFormStore((s) => s.updateFormMetadata);
   const updateFormAccess = useFormStore((s) => s.updateFormAccess);
   const updateFormSettings = useFormStore((s) => s.updateFormSettings);
   const { user } = useAuth();
@@ -63,7 +63,7 @@ export function FormPropertiesPanel() {
 
   return (
     <div className="flex flex-col gap-5">
-      <Field label="Form Title">
+      {/* <Field label="Form Title">
         <Input
           value={form.name}
           onChange={(e) => updateFormName(e.target.value)}
@@ -80,7 +80,7 @@ export function FormPropertiesPanel() {
           rows={3}
           className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none"
         />
-      </Field>
+      </Field> */}
 
       <Field label="Owner">
         <Input value={ownerLabel} readOnly className="text-sm" />

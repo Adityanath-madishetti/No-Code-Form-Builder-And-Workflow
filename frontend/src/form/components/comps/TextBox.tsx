@@ -45,7 +45,7 @@ export const TextBoxComponentRenderer = ({
   return (
     <FormThemeProvider>
       <div className="w-full border border-border">
-        <div className="p-4 text-foreground">
+        <div className="px-4 py-2 text-foreground">
           <div
             className={sharedProseClasses}
             dangerouslySetInnerHTML={{ __html: props.text }}

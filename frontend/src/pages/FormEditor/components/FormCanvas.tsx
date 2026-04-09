@@ -69,6 +69,7 @@ export function FormCanvas({ currentPageIndex }: FormCanvasProps) {
       <FormModeProvider value="edit">
         <div className="mx-auto w-full max-w-3xl px-8 py-6">
           {/* Editable form title on first page */}
+          <FormHeader />
           <PageHeader pageId={pageId} pageNumber={currentPageIndex + 1} />
 
           {/* Components or empty drop zone */}
@@ -83,6 +84,35 @@ export function FormCanvas({ currentPageIndex }: FormCanvasProps) {
   );
 }
 
+function FormHeader() {
+  const formName = useFormStore((s) => s.form?.name ?? '');
+  const updateFormName = useFormStore((s) => s.updateFormName);
+  const formDescription = useFormStore(
+    (s) => s.form?.metadata.description ?? ''
+  );
+  const updateFormMetadata = useFormStore((s) => s.updateFormMetadata);
+  const updateFormDescription = (description: string) => {
+    updateFormMetadata({ description: description });
+  };
+
+  return (
+    <div>
+      <input
+        value={formName}
+        onChange={(e) => updateFormName(e.target.value)}
+        placeholder="Untitled Form"
+        className="w-full bg-transparent text-2xl font-bold tracking-tight text-foreground outline-none placeholder:text-muted-foreground/20"
+      />
+      <textarea
+        value={formDescription}
+        onChange={(e) => updateFormDescription(e.target.value)}
+        placeholder="Description"
+        className="text-md h-auto w-full bg-transparent tracking-tight text-foreground placeholder:text-muted-foreground/20"
+      />
+    </div>
+  );
+}
+
 function PageHeader({
   pageId,
   pageNumber,
@@ -92,29 +122,6 @@ function PageHeader({
 }) {
   const page = useFormStore((s) => s.pages[pageId]);
   const updatePageTitle = useFormStore((s) => s.updatePageTitle);
-  const formName = useFormStore((s) => s.form?.name ?? '');
-  const updateFormName = useFormStore((s) => s.updateFormName);
-
-  if (pageNumber === 1) {
-    return (
-      <div className="mb-5">
-        <input
-          value={formName}
-          onChange={(e) => updateFormName(e.target.value)}
-          placeholder="Untitled Form"
-          className="w-full bg-transparent text-2xl font-bold tracking-tight text-foreground outline-none placeholder:text-muted-foreground/20"
-        />
-        {page?.title !== undefined && (
-          <input
-            value={page.title ?? ''}
-            onChange={(e) => updatePageTitle(pageId, e.target.value)}
-            placeholder="Page title (optional)"
-            className="mt-1 w-full bg-transparent text-sm text-muted-foreground outline-none placeholder:text-muted-foreground/20"
-          />
-        )}
-      </div>
-    );
-  }
 
   return (
     <div className="mb-5">
