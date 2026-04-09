@@ -2,7 +2,7 @@
 // TODO: sanitize the expression input to prevent XSS or other injection attacks.
 // Currently we trust that only form builders can edit this, but if we ever expose it to end-users, we need to be careful.
 import { useState, useMemo, useRef, useCallback } from 'react';
-import { Calculator, X } from 'lucide-react';
+import { Calculator, X, Undo2, Redo2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface FieldOption {
@@ -19,6 +19,8 @@ interface FormulaEditorProps {
   onTargetChange: (targetId: string) => void;
 }
 
+const MAX_HISTORY = 50;
+
 export function FormulaEditor({
   expression,
   targetId,
@@ -30,9 +32,11 @@ export function FormulaEditor({
   const [showFieldHelper, setShowFieldHelper] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  /**
-   * Fast lookup for 2-way conversion
-   */
+  // --- History Stack State ---
+  const [past, setPast] = useState<string[]>([]);
+  const [future, setFuture] = useState<string[]>([]);
+
+  // 1. Create lookup maps
   const idToLabel = useMemo(
     () => new Map(fields.map((f) => [f.id, f.label])),
     [fields]
@@ -42,9 +46,6 @@ export function FormulaEditor({
     [fields]
   );
 
-  /**
-   * useCallback for stability
-   */
   const idsToLabels = useCallback(
     (expr: string) => {
       if (!expr) return '';
@@ -69,16 +70,44 @@ export function FormulaEditor({
 
   const displayValue = idsToLabels(expression);
 
-  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newValue = e.target.value;
-    onExpressionChange(labelsToIds(newValue));
+  const commitChange = useCallback(
+    (newSystemExpr: string) => {
+      if (newSystemExpr === expression) return; // Ignore if no actual change
+
+      setPast((prev) => {
+        const newPast = [...prev, expression];
+        return newPast.length > MAX_HISTORY ? newPast.slice(1) : newPast;
+      });
+      setFuture([]); // Typing clears the redo stack
+      onExpressionChange(newSystemExpr);
+    },
+    [expression, onExpressionChange]
+  );
+
+  const handleUndo = () => {
+    if (past.length === 0) return;
+    const previous = past[past.length - 1];
+    const newPast = past.slice(0, past.length - 1);
+
+    setPast(newPast);
+    setFuture((prev) => [expression, ...prev]);
+    onExpressionChange(previous);
   };
 
-  const referencedFields = useMemo(() => {
-    const matches = expression.match(/\{([^}]+)\}/g);
-    if (!matches) return [];
-    return matches.map((m) => m.slice(1, -1));
-  }, [expression]);
+  const handleRedo = () => {
+    if (future.length === 0) return;
+    const next = future[0];
+    const newFuture = future.slice(1);
+
+    setFuture(newFuture);
+    setPast((prev) => [...prev, expression]);
+    onExpressionChange(next);
+  };
+
+  // 4. Handle Textarea Typing
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    commitChange(labelsToIds(e.target.value));
+  };
 
   const insertField = (fieldId: string) => {
     const field = fields.find((f) => f.id === fieldId);
@@ -95,8 +124,7 @@ export function FormulaEditor({
         labelToken +
         displayValue.substring(end);
 
-      // sync with the parent
-      onExpressionChange(labelsToIds(newDisplayValue));
+      commitChange(labelsToIds(newDisplayValue));
 
       setTimeout(() => {
         if (textareaRef.current) {
@@ -107,11 +135,17 @@ export function FormulaEditor({
       }, 0);
     } else {
       const newDisplayValue = displayValue + labelToken;
-      onExpressionChange(labelsToIds(newDisplayValue));
+      commitChange(labelsToIds(newDisplayValue));
     }
 
-    // setShowFieldHelper(false);
+    setShowFieldHelper(false);
   };
+
+  const referencedFields = useMemo(() => {
+    const matches = expression.match(/\{([^}]+)\}/g);
+    if (!matches) return [];
+    return matches.map((m) => m.slice(1, -1));
+  }, [expression]);
 
   return (
     <div className="space-y-4">
@@ -136,19 +170,44 @@ export function FormulaEditor({
 
       {/* Expression input */}
       <div>
-        <div className="mb-1 flex items-center gap-1.5">
+        <div className="mb-1 flex items-center justify-between">
           <label className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
             Formula
           </label>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-5 px-1.5 text-[10px]"
-            onClick={() => setShowFieldHelper(!showFieldHelper)}
-          >
-            <Calculator className="mr-0.5 h-2.5 w-2.5" />
-            Insert field
-          </Button>
+
+          {/* Toolbar */}
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-5 px-1.5"
+              onClick={handleUndo}
+              disabled={past.length === 0}
+              title="Undo"
+            >
+              <Undo2 className="h-3 w-3" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-5 px-1.5"
+              onClick={handleRedo}
+              disabled={future.length === 0}
+              title="Redo"
+            >
+              <Redo2 className="h-3 w-3" />
+            </Button>
+            <div className="mx-1 h-3 w-[1px] bg-border" /> {/* Divider */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-5 px-1.5 text-[10px]"
+              onClick={() => setShowFieldHelper(!showFieldHelper)}
+            >
+              <Calculator className="mr-0.5 h-2.5 w-2.5" />
+              Insert field
+            </Button>
+          </div>
         </div>
 
         <textarea
