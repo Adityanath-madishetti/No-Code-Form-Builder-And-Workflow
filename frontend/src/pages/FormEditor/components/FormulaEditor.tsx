@@ -1,5 +1,5 @@
 // src/pages/FormEditor/components/FormulaEditor.tsx
-// TODO: sanitize the expression input to prevent XSS or other injection attacks. 
+// TODO: sanitize the expression input to prevent XSS or other injection attacks.
 // Currently we trust that only form builders can edit this, but if we ever expose it to end-users, we need to be careful.
 import { useState, useMemo, useRef, useCallback } from 'react';
 import { Calculator, X } from 'lucide-react';
@@ -33,33 +33,45 @@ export function FormulaEditor({
   /**
    * Fast lookup for 2-way conversion
    */
-  const idToLabel = useMemo(() => new Map(fields.map((f) => [f.id, f.label])), [fields]);
-  const labelToId = useMemo(() => new Map(fields.map((f) => [f.label, f.id])), [fields]);
+  const idToLabel = useMemo(
+    () => new Map(fields.map((f) => [f.id, f.label])),
+    [fields]
+  );
+  const labelToId = useMemo(
+    () => new Map(fields.map((f) => [f.label, f.id])),
+    [fields]
+  );
 
   /**
    * useCallback for stability
    */
-  const idsToLabels = useCallback((expr: string) => {
-    if (!expr) return '';
-    return expr.replace(/\{([^}]+)\}/g, (match, id) => {
-      const label = idToLabel.get(id);
-      return label ? `{${label}}` : match;
-    });
-  }, [idToLabel]);
+  const idsToLabels = useCallback(
+    (expr: string) => {
+      if (!expr) return '';
+      return expr.replace(/\{([^}]+)\}/g, (match, id) => {
+        const label = idToLabel.get(id);
+        return label ? `{${label}}` : match;
+      });
+    },
+    [idToLabel]
+  );
 
-  const labelsToIds = useCallback((expr: string) => {
-    if (!expr) return '';
-    return expr.replace(/\{([^}]+)\}/g, (match, label) => {
-      const id = labelToId.get(label);
-      return id ? `{${id}}` : match; 
-    });
-  }, [labelToId]);
+  const labelsToIds = useCallback(
+    (expr: string) => {
+      if (!expr) return '';
+      return expr.replace(/\{([^}]+)\}/g, (match, label) => {
+        const id = labelToId.get(label);
+        return id ? `{${id}}` : match;
+      });
+    },
+    [labelToId]
+  );
 
   const displayValue = idsToLabels(expression);
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value;
-    onExpressionChange(labelsToIds(newValue)); 
+    onExpressionChange(labelsToIds(newValue));
   };
 
   const referencedFields = useMemo(() => {
@@ -73,16 +85,16 @@ export function FormulaEditor({
     if (!field) return;
 
     const labelToken = `{${field.label}}`;
-    
+
     if (textareaRef.current) {
       const start = textareaRef.current.selectionStart;
       const end = textareaRef.current.selectionEnd;
-      
-      const newDisplayValue = 
-        displayValue.substring(0, start) + 
-        labelToken + 
+
+      const newDisplayValue =
+        displayValue.substring(0, start) +
+        labelToken +
         displayValue.substring(end);
-        
+
       // sync with the parent
       onExpressionChange(labelsToIds(newDisplayValue));
 
@@ -97,7 +109,7 @@ export function FormulaEditor({
       const newDisplayValue = displayValue + labelToken;
       onExpressionChange(labelsToIds(newDisplayValue));
     }
-    
+
     // setShowFieldHelper(false);
   };
 
@@ -105,7 +117,7 @@ export function FormulaEditor({
     <div className="space-y-4">
       {/* Target field select */}
       <div>
-        <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <label className="mb-1 block text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
           Store result in
         </label>
         <select
@@ -125,7 +137,7 @@ export function FormulaEditor({
       {/* Expression input */}
       <div>
         <div className="mb-1 flex items-center gap-1.5">
-          <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <label className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
             Formula
           </label>
           <Button
@@ -141,17 +153,19 @@ export function FormulaEditor({
 
         <textarea
           ref={textareaRef}
-          value={displayValue} 
+          value={displayValue}
           onChange={handleTextareaChange}
           placeholder="e.g. {Revenue} + {Costs} * 2"
-          className="h-20 w-full rounded border border-input bg-background px-2 py-1.5 font-mono text-xs resize-none"
+          className="h-20 w-full resize-none rounded border border-input bg-background px-2 py-1.5 font-mono text-xs"
         />
 
         {/* Quick-insert helper */}
         {showFieldHelper && (
           <div className="mt-1 rounded border border-border bg-background p-2 shadow-lg">
             <div className="mb-1 flex items-center justify-between">
-              <span className="text-[10px] font-medium text-muted-foreground">Click to insert</span>
+              <span className="text-[10px] font-medium text-muted-foreground">
+                Click to insert
+              </span>
               <button onClick={() => setShowFieldHelper(false)}>
                 <X className="h-3 w-3 text-muted-foreground" />
               </button>
@@ -161,7 +175,7 @@ export function FormulaEditor({
                 <button
                   key={f.id}
                   onClick={() => insertField(f.id)}
-                  className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono hover:bg-primary/10 hover:text-primary transition-colors"
+                  className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] transition-colors hover:bg-primary/10 hover:text-primary"
                 >
                   {'{' + f.label + '}'}
                 </button>
@@ -175,20 +189,20 @@ export function FormulaEditor({
       {referencedFields.length > 0 && (
         <div className="space-y-2">
           <div>
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <span className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
               System References (Debug)
             </span>
             <div className="mt-1 flex flex-wrap gap-1">
               {referencedFields.map((fId, i) => {
                 const field = fields.find((f) => f.id === fId);
-                const isValid = !!field; 
-                
+                const isValid = !!field;
+
                 return (
                   <span
                     key={i}
-                    className={`rounded px-1.5 py-0.5 text-[10px] font-mono ${
-                      isValid 
-                        ? 'bg-violet-500/10 text-violet-600' 
+                    className={`rounded px-1.5 py-0.5 font-mono text-[10px] ${
+                      isValid
+                        ? 'bg-violet-500/10 text-violet-600'
                         : 'bg-red-500/10 text-red-600'
                     }`}
                   >
@@ -198,9 +212,11 @@ export function FormulaEditor({
               })}
             </div>
           </div>
-          
-          <p className="text-[10px] font-medium text-red-500/90 leading-tight">
-            * Important: Field labels must be uniquely named across your form. If multiple fields share the exact same label, this formula may map to the wrong ID.
+
+          <p className="text-[10px] leading-tight font-medium text-red-500/90">
+            * Important: Field labels must be uniquely named across your form.
+            If multiple fields share the exact same label, this formula may map
+            to the wrong ID.
           </p>
         </div>
       )}
