@@ -244,31 +244,6 @@ export const createMatrixTableComponent = (
 // ── Address Block ──
 
 // ── Name Block ──
-export interface NameBlockProps extends BaseComponentProps {
-  questionText: string;
-  showMiddleName: boolean;
-  showPrefix: boolean;
-  showSuffix: boolean;
-}
-export const createNameBlockComponent = (
-  instanceId: string,
-  metadata: ComponentMetadata,
-  props?: Partial<NameBlockProps>
-) =>
-  createComponent(
-    ComponentIDs.NameBlock,
-    instanceId,
-    metadata,
-    {
-      questionText: '<p>Enter your name</p>',
-      showMiddleName: false,
-      showPrefix: false,
-      showSuffix: false,
-      hiddenByDefault: false,
-      ...props,
-    },
-    { required: false } as BasicValidation
-  );
 
 // ========================================================================================
 //  SPECIALTY

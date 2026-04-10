@@ -8,12 +8,24 @@ import type {
 import { ComponentIDs, createComponent } from '../base';
 
 import type { BaseComponentProps } from '../base';
-import { inp, lbl, Card, Q } from '../ComponentRender.Helper';
+import { inp, lbl } from '../ComponentRender.Helper';
 import { Plus, Trash2 } from 'lucide-react';
 
 import { useFormContext } from 'react-hook-form';
 import { useFormMode } from '@/form/context/FormModeContext';
 import { nanoid } from 'nanoid';
+
+import { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Controller } from 'react-hook-form';
 
 export interface DropdownOption {
   id: string;
@@ -25,11 +37,7 @@ export interface DropdownProps extends BaseComponentProps {
   placeholder?: string;
   options: DropdownOption[];
   defaultValue?: string;
-}
-
-export interface DropdownValidation extends BasicValidation {
-  minOptionsSelected?: number;
-  maxOptionsSelected?: number;
+  shuffleOptions: boolean;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -37,7 +45,7 @@ export const createDropdownComponent = (
   instanceId: string,
   metadata: ComponentMetadata,
   props?: Partial<DropdownProps>
-): FormComponent<'Dropdown', DropdownProps, DropdownValidation> => {
+): FormComponent<'Dropdown', DropdownProps, BasicValidation> => {
   metadata.label = `${metadata.label} ${nanoid(12)}`;
   return createComponent(
     ComponentIDs.Dropdown,
@@ -51,9 +59,10 @@ export const createDropdownComponent = (
         { id: crypto.randomUUID(), value: 'Option 2' },
       ],
       hiddenByDefault: false,
+      shuffleOptions: false,
       ...props,
     },
-    { required: false } as DropdownValidation
+    { required: false } as BasicValidation
   );
 };
 
@@ -61,66 +70,92 @@ export function DropdownComponentRenderer({
   instanceId,
   props,
   validation,
-}: RendererProps<DropdownProps, DropdownValidation>) {
+}: RendererProps<DropdownProps, BasicValidation>) {
   const formMode = useFormMode();
   const formContext = useFormContext();
 
-  // --- View Mode (Live Form with Validation) ---
-  if (formMode === 'view' && formContext) {
-    if (!formContext) {
-      console.error(
-        'DropdownComponentRenderer is not wrapped in a FormProvider.'
-      );
-      return null;
+  const [shuffledOptions] = useState(() => {
+    const opts = props.options || [];
+    if (props.shuffleOptions) {
+      return [...opts].sort(() => Math.random() - 0.5);
     }
+    return opts;
+  });
 
+  if (formMode === 'view' && formContext) {
     const {
-      register,
+      control,
       formState: { errors },
     } = formContext;
 
     return (
-      <Card className="rounded-none shadow-none">
-        <Q html={props.questionText} />
-        <select
-          defaultValue={props.defaultValue || ''}
-          className={inp}
-          {...register(instanceId, {
-            required: validation?.required ? 'This field is required' : false,
-          })}
-        >
-          <option value="" disabled>
-            {props.placeholder || 'Select an option...'}
-          </option>
-          {(props.options || []).map((option) => (
-            <option key={option.id} value={option.value}>
-              {option.value}
-            </option>
-          ))}
-        </select>
-        {errors[instanceId] && (
-          <p className="mt-1 text-sm text-red-500">
-            {errors[instanceId]?.message as string}
-          </p>
-        )}
+      <Card>
+        <CardContent className="space-y-3">
+          <Label htmlFor={instanceId} className="block text-base font-semibold">
+            {props.questionText}
+          </Label>
+
+          <Controller
+            control={control}
+            name={instanceId}
+            defaultValue={props.defaultValue || ''}
+            rules={{
+              required: validation?.required ? 'This field is required' : false,
+            }}
+            render={({ field }) => (
+              <Select
+                onValueChange={field.onChange}
+                // Radix Select uses `undefined` to trigger the placeholder when no value is selected
+                value={field.value || undefined}
+                defaultValue={props.defaultValue || undefined}
+              >
+                <SelectTrigger className="mb-0 w-full">
+                  <SelectValue
+                    placeholder={props.placeholder || 'Select an option...'}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {shuffledOptions.map((option) => (
+                    <SelectItem key={option.id} value={option.value}>
+                      {option.value}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+
+          {errors[instanceId] && (
+            <p className="text-[0.8rem] font-medium text-destructive">
+              {errors[instanceId]?.message as string}
+            </p>
+          )}
+        </CardContent>
       </Card>
     );
   }
 
-  // --- Builder Mode (Static/Preview) ---
   return (
-    <Card className="rounded-none shadow-none">
-      <Q html={props.questionText} />
-      <select defaultValue={props.defaultValue || ''} className={inp}>
-        <option value="" disabled>
-          {props.placeholder || 'Select an option...'}
-        </option>
-        {(props.options || []).map((option) => (
-          <option key={option.id} value={option.value}>
-            {option.value}
-          </option>
-        ))}
-      </select>
+    <Card>
+      <CardContent className="space-y-3">
+        <Label className="block text-base font-semibold">
+          {props.questionText}
+        </Label>
+        <Select disabled defaultValue={props.defaultValue || undefined}>
+          <SelectTrigger className="w-full opacity-70">
+            <SelectValue
+              placeholder={props.placeholder || 'Select an option...'}
+            />
+          </SelectTrigger>
+          <SelectContent>
+            {(props.options || []).map((option) => (
+              <SelectItem key={option.id} value={option.value}>
+                {option.value}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </CardContent>
     </Card>
   );
 }
@@ -236,16 +271,33 @@ export function DropdownComponentPropsRenderer({
         </select>
       </div>
 
+      <div className="pt-1">
+        <label className="flex items-center justify-between text-xs text-muted-foreground">
+          Option Shuffling
+          <input
+            type="checkbox"
+            checked={props.shuffleOptions}
+            onChange={(e) =>
+              u(instanceId, {
+                shuffleOptions: e.target.checked,
+              })
+            }
+          />
+        </label>
+      </div>
+
       {/* Added Required Validation Toggle */}
-      <label className="flex items-center gap-2 text-sm text-foreground">
-        <input
-          type="checkbox"
-          checked={!!validation?.required}
-          onChange={() => uv(instanceId, { required: !validation?.required })}
-          className="accent-primary"
-        />
-        Required
-      </label>
+      <div className="pt-1">
+        <label className="flex items-center justify-between text-xs text-muted-foreground">
+          Required
+          <input
+            type="checkbox"
+            checked={!!validation?.required}
+            onChange={() => uv(instanceId, { required: !validation?.required })}
+            className="accent-primary"
+          />
+        </label>
+      </div>
     </div>
   );
 }

@@ -11,6 +11,8 @@ import { inp, lbl } from '../ComponentRender.Helper';
 
 import { useFormStore } from '@/form/store/form.store';
 
+import { Separator } from '@/components/ui/separator';
+
 export interface LineDividerProps extends BaseComponentProps {
   style: 'solid' | 'dashed' | 'dotted';
   thickness: number;
@@ -32,21 +34,23 @@ export const createLineDividerComponent = (
   );
 };
 
-// export type LineDividerComponent = ReturnType<
-//   typeof createLineDividerComponent
-// >;
-
 export function LineDividerRenderer({
   props,
 }: RendererProps<LineDividerProps, NoValidation>) {
+  const isSolid = !props.style || props.style === 'solid';
+
   return (
-    <div className="py-3">
-      <hr
-        className="border-border"
-        style={{
-          borderTopWidth: `${props.thickness}px`,
-          borderStyle: props.style,
-        }}
+    <div className="py-4">
+      <Separator
+        className={!isSolid ? 'border-t border-border bg-transparent' : ''}
+        style={
+          isSolid
+            ? { height: `${props.thickness}px` }
+            : {
+                borderTopWidth: `${props.thickness}px`,
+                borderStyle: props.style,
+              }
+        }
       />
     </div>
   );

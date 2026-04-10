@@ -189,7 +189,7 @@ export function Workspaces({
               alert(
                 'Form published! Share this link:\n' +
                   window.location.origin +
-                  '/forms/' +
+                  '/forms/s/' +
                   formId
               );
             } catch (err) {

@@ -10,6 +10,10 @@ import type { ComponentID } from '@/form/components/base';
 import { FormLogicEngine } from '@/form/logic/formLogicEngine';
 import { Button } from '@/components/ui/button';
 
+import type { PublicFormData } from '@/form/renderer/viewRenderer/runtimeForm.types';
+import { api } from '@/lib/api';
+import { useParams } from 'react-router-dom';
+
 let globalGetValues: ((instanceId: string) => unknown) | null = null;
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -24,6 +28,25 @@ export const getGlobalFieldValue = (instanceId: string): unknown => {
 };
 
 export function FormRunner() {
+  const { formId } = useParams<{ formId: string }>();
+  const [globalFormError, setGlobalFormError] = useState('');
+  const [globalFormLoading, setGlobalFormLoading] = useState(true);
+
+  const { initRuntimeForm } = useRuntimeFormStore();
+
+  useEffect(() => {
+    if (!formId) return;
+    api
+      .get<PublicFormData>(`/api/forms/${formId}/public`)
+      .then((res) => {
+        console.log('shitres', res);
+        initRuntimeForm(res);
+
+        //   if (user?.email) setEmail(user.email);
+      })
+      .catch((err) => setGlobalFormError(err.message || 'Form not found'))
+      .finally(() => setGlobalFormLoading(false));
+  }, [formId, initRuntimeForm]);
   const methods = useForm<Record<string, unknown>>({
     shouldUnregister: false,
     defaultValues: {},

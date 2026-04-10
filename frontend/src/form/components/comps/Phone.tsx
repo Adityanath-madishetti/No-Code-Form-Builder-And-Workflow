@@ -7,15 +7,28 @@ import type {
 } from '../base';
 import { ComponentIDs, createComponent } from '../base';
 
-import { inp, lbl, Card, Q } from '../ComponentRender.Helper';
-import { useFormContext } from 'react-hook-form';
+import { inp, lbl } from '../ComponentRender.Helper';
+import { Controller, useFormContext } from 'react-hook-form';
 import { useFormMode } from '@/form/context/FormModeContext';
 import { nanoid } from 'nanoid';
 
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+import { useState } from 'react';
+
 // eslint-disable-next-line react-refresh/only-export-components
 export const COUNTRY_DIAL_CODES = [
+  { name: 'Null', code: '', dialCode: '0' },
   { name: 'United States', code: 'US', dialCode: '+1' },
-  { name: 'Canada', code: 'CA', dialCode: '+1' },
   { name: 'United Kingdom', code: 'GB', dialCode: '+44' },
   { name: 'Australia', code: 'AU', dialCode: '+61' },
   { name: 'India', code: 'IN', dialCode: '+91' },
@@ -49,9 +62,9 @@ export const createPhoneComponent = (
     metadata,
     {
       questionText: 'Phone number',
-      placeholder: '(555) 000-0000',
+      placeholder: '99xxx xxxxx',
       defaultValue: '',
-      countryCode: '+1',
+      countryCode: '',
       hiddenByDefault: false,
       ...props,
     },
@@ -70,39 +83,34 @@ export function PhoneRenderer({
   const formMode = useFormMode();
   const formContext = useFormContext();
 
-  // --- View Mode (Live Form with Validation) ---
-  if (formMode === 'view' && formContext) {
-    if (!formContext) {
-      console.error('PhoneRenderer is not wrapped in a FormProvider.');
-      return null;
-    }
+  // Start with empty strings instead of defaulting to +1
+  const [code, setCode] = useState(props.countryCode || '');
+  const [num, setNum] = useState(props.defaultValue || '');
 
+  if (formMode === 'view' && formContext) {
     const {
-      register,
+      control,
       formState: { errors },
     } = formContext;
 
+    // Determine initial stitched value safely
+    const initialRHFValue =
+      props.countryCode || props.defaultValue
+        ? `${props.countryCode || ''} ${props.defaultValue || ''}`.trim()
+        : '';
+
     return (
-      <Card className="rounded-none shadow-none">
-        <Q html={props.questionText} />
-        <div className="flex gap-2">
-          <select
-            defaultValue={props.countryCode}
-            className={`${inp} max-w-[150px] cursor-pointer px-1 text-center`}
-            {...register(`${instanceId}_countryCode`)} // Registering this separately
-          >
-            {COUNTRY_DIAL_CODES.map((country) => (
-              <option key={country.code} value={country.dialCode}>
-                {country.code} ({country.dialCode})
-              </option>
-            ))}
-          </select>
-          <input
-            type="tel"
-            placeholder={props.placeholder || '(555) 000-0000'}
-            defaultValue={props.defaultValue}
-            className={inp + ' flex-1'}
-            {...register(instanceId, {
+      <Card>
+        <CardContent className="space-y-3">
+          <Label htmlFor={instanceId} className="block text-base font-semibold">
+            {props.questionText}
+          </Label>
+
+          <Controller
+            control={control}
+            name={instanceId}
+            defaultValue={initialRHFValue}
+            rules={{
               required: validation?.required ? 'This field is required' : false,
               pattern: validation?.pattern
                 ? {
@@ -110,43 +118,103 @@ export function PhoneRenderer({
                     message: 'Invalid phone number format',
                   }
                 : undefined,
-            })}
+            }}
+            render={({ field }) => {
+              const handleCodeChange = (newCode: string) => {
+                setCode(newCode);
+                // If both are empty, output empty string so `required: false` passes validation
+                if (!newCode && !num) {
+                  field.onChange('');
+                } else {
+                  field.onChange(`${newCode} ${num}`.trim());
+                }
+              };
+
+              const handleNumChange = (
+                e: React.ChangeEvent<HTMLInputElement>
+              ) => {
+                const newNum = e.target.value;
+                setNum(newNum);
+                // If both are empty, output empty string so `required: false` passes validation
+                if (!code && !newNum) {
+                  field.onChange('');
+                } else {
+                  field.onChange(`${code} ${newNum}`.trim());
+                }
+              };
+
+              return (
+                <div className="flex gap-2">
+                  <Select
+                    value={code || undefined} // undefined forces the Radix placeholder to show
+                    onValueChange={handleCodeChange}
+                  >
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue placeholder="Country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COUNTRY_DIAL_CODES.map((country) => (
+                        <SelectItem key={country.code} value={country.dialCode}>
+                          {country.code} ({country.dialCode})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Input
+                    id={instanceId}
+                    type="tel"
+                    value={num}
+                    onChange={handleNumChange}
+                    onBlur={field.onBlur}
+                    placeholder={props.placeholder || '(555) 000-0000'}
+                    className="flex-1"
+                  />
+                </div>
+              );
+            }}
           />
-        </div>
-        {errors[instanceId] && (
-          <p className="mt-1 text-sm text-red-500">
-            {errors[instanceId]?.message as string}
-          </p>
-        )}
+
+          {errors[instanceId] && (
+            <p className="text-[0.8rem] font-medium text-destructive">
+              {errors[instanceId]?.message as string}
+            </p>
+          )}
+        </CardContent>
       </Card>
     );
   }
 
-  // --- Builder Mode (Static/Preview) ---
+  // Builder Mode
   return (
-    <Card className="rounded-none shadow-none">
-      <Q html={props.questionText} />
-      <div className="flex gap-2">
-        <select
-          value={props.countryCode}
-          disabled // Keep it disabled in builder view so it acts as a preview
-          className={`${inp} max-w-[150px] cursor-not-allowed px-1 text-center opacity-70`}
-        >
-          {/* Mapped the options here so the builder shows the full "US (+1)" text */}
-          {COUNTRY_DIAL_CODES.map((country) => (
-            <option key={country.code} value={country.dialCode}>
-              {country.code} ({country.dialCode})
-            </option>
-          ))}
-        </select>
-        <input
-          type="tel"
-          readOnly
-          value={props.defaultValue}
-          placeholder={props.placeholder || '(555) 000-0000'}
-          className={inp + ' flex-1'}
-        />
-      </div>
+    <Card>
+      <CardContent className="space-y-3">
+        <Label className="block text-base font-semibold">
+          {props.questionText}
+        </Label>
+        <div className="flex gap-2">
+          <Select disabled value={props.countryCode || undefined}>
+            <SelectTrigger className="w-[140px] opacity-70">
+              <SelectValue placeholder="Country" />
+            </SelectTrigger>
+            <SelectContent>
+              {COUNTRY_DIAL_CODES.map((country) => (
+                <SelectItem key={country.code} value={country.dialCode}>
+                  {country.code} ({country.dialCode})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input
+            type="tel"
+            readOnly
+            value={props.defaultValue}
+            placeholder={props.placeholder || '(555) 000-0000'}
+            className="flex-1"
+            disabled
+          />
+        </div>
+      </CardContent>
     </Card>
   );
 }
@@ -207,15 +275,17 @@ export function PhonePropsRenderer({
         />
       </div>
 
-      <label className="flex items-center gap-2 text-sm text-foreground">
-        <input
-          type="checkbox"
-          checked={!!validation?.required}
-          onChange={() => uv(instanceId, { required: !validation?.required })}
-          className="accent-primary"
-        />
-        Required
-      </label>
+      <div className="pt-1">
+        <label className="flex items-center justify-between text-xs text-muted-foreground">
+          Required
+          <input
+            type="checkbox"
+            checked={!!validation?.required}
+            onChange={() => uv(instanceId, { required: !validation?.required })}
+            className="accent-primary"
+          />
+        </label>
+      </div>
     </div>
   );
 }

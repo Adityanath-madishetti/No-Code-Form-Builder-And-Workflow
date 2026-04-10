@@ -7,10 +7,14 @@ import type {
 } from '../base';
 import { ComponentIDs, createComponent } from '../base';
 
-import { inp, lbl, Card, Q } from '../ComponentRender.Helper';
+import { inp, lbl } from '../ComponentRender.Helper';
 import { useFormContext } from 'react-hook-form';
 import { useFormMode } from '@/form/context/FormModeContext';
 import { nanoid } from 'nanoid';
+
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export interface URLProps extends BaseComponentProps {
   questionText: string;
@@ -53,69 +57,70 @@ export function URLRenderer({
   const formMode = useFormMode();
   const formContext = useFormContext();
 
-  // --- View Mode (Live Form with Validation) ---
   if (formMode === 'view' && formContext) {
-    if (!formContext) {
-      console.error('URLRenderer is not wrapped in a FormProvider.');
-      return null;
-    }
-
     const {
       register,
       formState: { errors },
     } = formContext;
 
     return (
-      <Card className="rounded-none shadow-none">
-        <Q html={props.questionText} />
-        <input
-          type="url"
-          placeholder={props.placeholder || 'https://example.com'}
-          defaultValue={props.defaultValue}
-          className={inp}
-          {...register(instanceId, {
-            required: validation?.required ? 'This field is required' : false,
-            minLength: validation?.minLength
-              ? {
-                  value: validation.minLength,
-                  message: `Minimum ${validation.minLength} characters`,
-                }
-              : undefined,
-            maxLength: validation?.maxLength
-              ? {
-                  value: validation.maxLength,
-                  message: `Maximum ${validation.maxLength} characters`,
-                }
-              : undefined,
-            pattern: validation?.pattern
-              ? {
-                  value: new RegExp(validation.pattern),
-                  message:
-                    'Please enter a valid URL (e.g., https://example.com)',
-                }
-              : undefined,
-          })}
-        />
-        {errors[instanceId] && (
-          <p className="mt-1 text-sm text-red-500">
-            {errors[instanceId]?.message as string}
-          </p>
-        )}
+      <Card>
+        <CardContent className="space-y-3">
+          <Label htmlFor={instanceId} className="block text-base font-semibold">
+            {props.questionText}
+          </Label>
+          <Input
+            id={instanceId}
+            type="url"
+            placeholder={props.placeholder || 'https://example.com'}
+            defaultValue={props.defaultValue}
+            {...register(instanceId, {
+              required: validation?.required ? 'This field is required' : false,
+              minLength: validation?.minLength
+                ? {
+                    value: validation.minLength,
+                    message: `Minimum ${validation.minLength} characters`,
+                  }
+                : undefined,
+              maxLength: validation?.maxLength
+                ? {
+                    value: validation.maxLength,
+                    message: `Maximum ${validation.maxLength} characters`,
+                  }
+                : undefined,
+              pattern: validation?.pattern
+                ? {
+                    value: new RegExp(validation.pattern),
+                    message:
+                      'Please enter a valid URL (e.g., https://example.com)',
+                  }
+                : undefined,
+            })}
+          />
+          {errors[instanceId] && (
+            <p className="text-[0.8rem] font-medium text-destructive">
+              {errors[instanceId]?.message as string}
+            </p>
+          )}
+        </CardContent>
       </Card>
     );
   }
 
-  // --- Builder Mode (Static/Preview) ---
   return (
-    <Card className="rounded-none shadow-none">
-      <Q html={props.questionText} />
-      <input
-        type="url"
-        readOnly
-        defaultValue={props.defaultValue}
-        placeholder={props.placeholder || 'https://example.com'}
-        className={inp}
-      />
+    <Card>
+      <CardContent className="space-y-3">
+        <Label className="block text-base font-semibold">
+          {props.questionText}
+        </Label>
+        <Input
+          type="url"
+          readOnly
+          defaultValue={props.defaultValue}
+          placeholder={props.placeholder || 'https://example.com'}
+          disabled
+        />
+      </CardContent>
     </Card>
   );
 }
@@ -161,15 +166,17 @@ export function URLPropsRenderer({
         </div>
       </div>
 
-      <label className="flex items-center gap-2 text-sm text-foreground">
-        <input
-          type="checkbox"
-          checked={!!validation?.required}
-          onChange={() => uv(instanceId, { required: !validation?.required })}
-          className="accent-primary"
-        />
-        Required
-      </label>
+      <div className="pt-1">
+        <label className="flex items-center justify-between text-xs text-muted-foreground">
+          Required
+          <input
+            type="checkbox"
+            checked={!!validation?.required}
+            onChange={() => uv(instanceId, { required: !validation?.required })}
+            className="accent-primary"
+          />
+        </label>
+      </div>
 
       <div>
         <label className={lbl}>Minimum Length</label>
@@ -205,7 +212,7 @@ export function URLPropsRenderer({
         />
       </div>
 
-      <div>
+      {/* <div>
         <label className={lbl}>Regex Pattern</label>
         <input
           type="text"
@@ -220,7 +227,7 @@ export function URLPropsRenderer({
           placeholder="e.g., ^https?:\/\/..."
           title="Enter a valid regular expression"
         />
-      </div>
+      </div> */}
     </div>
   );
 }

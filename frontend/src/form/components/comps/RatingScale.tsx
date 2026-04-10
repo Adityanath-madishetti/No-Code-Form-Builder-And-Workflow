@@ -9,12 +9,15 @@ import { ComponentIDs, createComponent } from '../base';
 import type { RendererProps } from '../base';
 import { useFormStore } from '@/form/store/form.store';
 
-import { inp, lbl, Card, Q } from '../ComponentRender.Helper';
+import { inp, lbl } from '../ComponentRender.Helper';
 import { Circle, Heart, Star } from 'lucide-react';
 import { useFormMode } from '@/form/context/FormModeContext';
 import { useFormContext } from 'react-hook-form';
 import { useState } from 'react';
 import { nanoid } from 'nanoid';
+
+import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 
 export interface RatingScaleProps extends BaseComponentProps {
   questionText: string;
@@ -67,11 +70,6 @@ export function RatingScaleRenderer({
 
   // --- View Mode (Live Form with Validation) ---
   if (formMode === 'view' && formContext) {
-    if (!formContext) {
-      console.error('RatingScaleRenderer is not wrapped in a FormProvider.');
-      return null;
-    }
-
     const {
       register,
       watch,
@@ -82,82 +80,88 @@ export function RatingScaleRenderer({
     const selectedRating = Number(watch(instanceId)) || 0;
 
     return (
-      <Card className="rounded-none shadow-none">
-        <Q html={props.questionText} />
-        <div className="flex gap-1" onMouseLeave={() => setHoveredRating(0)}>
-          {Array.from({ length: props.maxRating }, (_, i) => {
-            const ratingValue = i + 1;
-            // Fill icon if it's below or equal to the hovered rating, OR the selected rating
-            const isFilled = ratingValue <= (hoveredRating || selectedRating);
+      <Card>
+        <CardContent className="space-y-3">
+          <Label htmlFor={instanceId} className="block text-base font-semibold">
+            {props.questionText}
+          </Label>
+          <div className="flex gap-1" onMouseLeave={() => setHoveredRating(0)}>
+            {Array.from({ length: props.maxRating }, (_, i) => {
+              const ratingValue = i + 1;
+              // Fill icon if it's below or equal to the hovered rating, OR the selected rating
+              const isFilled = ratingValue <= (hoveredRating || selectedRating);
 
-            return (
-              <label
-                key={i}
-                className="cursor-pointer p-0.5"
-                onMouseEnter={() => setHoveredRating(ratingValue)}
-              >
-                {/* Visually hidden radio button for accessible RHF integration */}
-                <input
-                  type="radio"
-                  value={ratingValue}
-                  className="sr-only"
-                  {...register(instanceId, {
-                    required: validation?.required
-                      ? 'Please select a rating'
-                      : false,
-                    validate: (val) => {
-                      const numVal = Number(val);
-                      if (
-                        validation?.minRating &&
-                        numVal < validation.minRating
-                      ) {
-                        return `Rating must be at least ${validation.minRating}`;
-                      }
-                      if (
-                        validation?.maxRating &&
-                        numVal > validation.maxRating
-                      ) {
-                        return `Rating cannot exceed ${validation.maxRating}`;
-                      }
-                      return true;
-                    },
-                  })}
-                />
-                <Icon
-                  className={`h-6 w-6 transition-colors ${
-                    isFilled
-                      ? 'fill-amber-400 text-amber-400'
-                      : 'text-muted-foreground/25'
-                  }`}
-                />
-              </label>
-            );
-          })}
-        </div>
-        {errors[instanceId] && (
-          <p className="mt-1 text-sm text-red-500">
-            {errors[instanceId]?.message as string}
-          </p>
-        )}
+              return (
+                <label
+                  key={i}
+                  className="cursor-pointer p-0.5"
+                  onMouseEnter={() => setHoveredRating(ratingValue)}
+                >
+                  {/* Visually hidden radio button for accessible RHF integration */}
+                  <input
+                    type="radio"
+                    value={ratingValue}
+                    className="sr-only"
+                    {...register(instanceId, {
+                      required: validation?.required
+                        ? 'Please select a rating'
+                        : false,
+                      validate: (val) => {
+                        const numVal = Number(val);
+                        if (
+                          validation?.minRating &&
+                          numVal < validation.minRating
+                        ) {
+                          return `Rating must be at least ${validation.minRating}`;
+                        }
+                        if (
+                          validation?.maxRating &&
+                          numVal > validation.maxRating
+                        ) {
+                          return `Rating cannot exceed ${validation.maxRating}`;
+                        }
+                        return true;
+                      },
+                    })}
+                  />
+                  <Icon
+                    className={`h-6 w-6 transition-colors ${
+                      isFilled
+                        ? 'fill-primary text-primary'
+                        : 'text-muted-foreground opacity-30'
+                    }`}
+                  />
+                </label>
+              );
+            })}
+          </div>
+          {errors[instanceId] && (
+            <p className="text-[0.8rem] font-medium text-destructive">
+              {errors[instanceId]?.message as string}
+            </p>
+          )}
+        </CardContent>
       </Card>
     );
   }
 
-  // --- Builder Mode (Static/Preview) ---
   return (
-    <Card className="rounded-none shadow-none">
-      <Q html={props.questionText} />
-      <div className="flex gap-1">
-        {Array.from({ length: props.maxRating }, (_, i) => (
-          <div key={i} className="p-0.5 text-muted-foreground/25">
-            <Icon className="h-6 w-6" />
-          </div>
-        ))}
-      </div>
+    <Card>
+      <CardContent className="space-y-3">
+        <Label className="block text-base font-semibold">
+            {props.questionText}
+          </Label>
+        <div className="flex gap-1 opacity-70">
+          {Array.from({ length: props.maxRating }, (_, i) => (
+            <div key={i} className="p-0.5 text-muted-foreground opacity-30">
+              <Icon className="h-6 w-6" />
+            </div>
+          ))}
+        </div>
+      </CardContent>
     </Card>
   );
 }
-
 export function RatingScalePropsRenderer({
   instanceId,
   props,
@@ -210,15 +214,16 @@ export function RatingScalePropsRenderer({
         </div>
       </div>
 
-      <label className="flex items-center gap-2 text-sm text-foreground">
-        <input
-          type="checkbox"
-          checked={!!validation?.required}
-          onChange={() => uv(instanceId, { required: !validation?.required })}
-          className="accent-primary"
-        />
-        Required
-      </label>
+      <div className="pt-1">
+        <label className="flex items-center justify-between text-xs text-muted-foreground">
+          Required
+          <input
+            type="checkbox"
+            checked={!!validation?.required}
+            onChange={() => uv(instanceId, { required: !validation?.required })}
+          />
+        </label>
+      </div>
 
       <div>
         <label className={lbl}>Minimum Rating Allowed</label>

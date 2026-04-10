@@ -5,6 +5,7 @@ import { ComponentIDs, createComponent } from '../base';
 import type { BaseComponentProps, NoValidation } from '../base';
 import { inp, lbl } from '../ComponentRender.Helper';
 import { nanoid } from 'nanoid';
+import type { JSX } from 'react';
 
 export interface HeaderProps extends BaseComponentProps {
   text: string;
@@ -31,21 +32,26 @@ export function HeaderRenderer({
   instanceId,
   props,
 }: RendererProps<HeaderProps, NoValidation>) {
-  // const u = useFormStore((s) => s.updateComponentProps);
-  const sizes: Record<string, string> = {
-    h1: 'text-3xl font-bold',
-    h2: 'text-2xl font-bold',
-    h3: 'text-xl font-semibold',
-    h4: 'text-lg font-semibold',
+  // Official shadcn/ui typography classes
+  const typographyClasses: Record<string, string> = {
+    h1: 'scroll-m-20 text-5xl font-extrabold tracking-tight lg:text-5xl',
+    h2: 'scroll-m-20 text-4xl font-semibold  tracking-tight first:mt-0',
+    h3: 'scroll-m-20 text-3xl font-semibold  tracking-tight',
+    h4: 'scroll-m-20 text-2xl font-semibold  tracking-tight',
   };
+
+  // Dynamically resolve the semantic tag, defaulting to h2
+  const Tag = (
+    props.level && typographyClasses[props.level] ? props.level : 'h2'
+  ) as keyof JSX.IntrinsicElements;
+
+  const className = typographyClasses[Tag as string];
+
   return (
-    <div className="py-1">
-      <label
-        htmlFor={instanceId}
-        className={`w-full bg-transparent outline-none placeholder:text-muted-foreground/20 ${sizes[props.level] || sizes.h2}`}
-      >
+    <div className="py-2">
+      <Tag id={instanceId} className={className}>
         {props.text}
-      </label>
+      </Tag>
     </div>
   );
 }

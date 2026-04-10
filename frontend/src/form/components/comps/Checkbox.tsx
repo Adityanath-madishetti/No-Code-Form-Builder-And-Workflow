@@ -8,12 +8,17 @@ import type {
 import { ComponentIDs, createComponent } from '../base';
 
 import type { BaseComponentProps } from '../base';
-import { inp, lbl, Card, Q } from '../ComponentRender.Helper';
+import { inp, lbl } from '../ComponentRender.Helper';
 import { Plus, Trash2 } from 'lucide-react';
 
-import { useFormContext } from 'react-hook-form';
+import { useFormContext, Controller } from 'react-hook-form';
 import { useFormMode } from '@/form/context/FormModeContext';
 import { nanoid } from 'nanoid';
+
+import { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 export interface CheckboxOption {
   id: string;
@@ -25,6 +30,7 @@ export interface CheckboxProps extends BaseComponentProps {
   options: CheckboxOption[];
   defaultValues?: string[];
   layout?: 'vertical' | 'horizontal';
+  shuffleOptions: boolean;
 }
 
 export interface CheckboxValidation extends BasicValidation {
@@ -52,6 +58,7 @@ export const createCheckboxComponent = (
         { id: crypto.randomUUID(), value: 'Option 2' },
       ],
       hiddenByDefault: false,
+      shuffleOptions: false,
       ...props,
     },
     { required: false } as CheckboxValidation
@@ -67,108 +74,139 @@ export function CheckboxComponentRenderer({
   const formContext = useFormContext();
   const isHorizontal = props.layout === 'horizontal';
 
+  // Lazy initialization: Shuffle exactly once on mount, bypasses useEffect/purity issues
+  const [shuffledOptions] = useState(() => {
+    const opts = props.options || [];
+    if (props.shuffleOptions) {
+      return [...opts].sort(() => Math.random() - 0.5);
+    }
+    return opts;
+  });
+
+  const layoutClasses = isHorizontal
+    ? 'flex flex-row flex-wrap gap-4'
+    : 'flex flex-col gap-2';
+
   // --- View Mode (Live Form with Validation) ---
   if (formMode === 'view' && formContext) {
-    if (!formContext) {
-      console.error(
-        'CheckboxComponentRenderer is not wrapped in a FormProvider.'
-      );
-      return null;
-    }
-
     const {
-      register,
+      control,
       formState: { errors },
     } = formContext;
 
     return (
-      <Card className="rounded-none shadow-none">
-        <Q html={props.questionText} />
-        <div
-          className={`flex ${
-            isHorizontal ? 'flex-row flex-wrap gap-4' : 'flex-col gap-2'
-          }`}
-        >
-          {(props.options || []).map((option) => (
-            <label
-              key={option.id}
-              className="flex cursor-pointer items-center gap-2 text-sm text-foreground"
-            >
-              <input
-                type="checkbox"
-                value={option.value}
-                defaultChecked={(props.defaultValues || []).includes(
-                  option.value
-                )}
-                className="accent-primary"
-                {...register(instanceId, {
-                  required: validation?.required
-                    ? 'Please select at least one option'
-                    : false,
-                  validate: (value) => {
-                    // RHF returns an array of values when multiple checkboxes share a name
-                    const selectedCount = Array.isArray(value)
-                      ? value.length
-                      : value
-                        ? 1
-                        : 0;
+      <Card>
+        <CardContent className="space-y-3">
+          <Label htmlFor={instanceId} className="block text-base font-semibold">
+            {props.questionText}
+          </Label>
 
-                    if (
-                      validation?.minSelected &&
-                      selectedCount < validation.minSelected
-                    ) {
-                      return `Please select at least ${validation.minSelected} option(s)`;
-                    }
-                    if (
-                      validation?.maxSelected &&
-                      selectedCount > validation.maxSelected
-                    ) {
-                      return `Please select no more than ${validation.maxSelected} option(s)`;
-                    }
-                    return true;
-                  },
-                })}
-              />
-              {option.value}
-            </label>
-          ))}
-        </div>
-        {errors[instanceId] && (
-          <p className="mt-1 text-sm text-red-500">
-            {errors[instanceId]?.message as string}
-          </p>
-        )}
+          <Controller
+            control={control}
+            name={instanceId}
+            defaultValue={props.defaultValues || []}
+            rules={{
+              required: validation?.required
+                ? 'Please select at least one option'
+                : false,
+              validate: (value) => {
+                // Ensure value is an array before checking length
+                const selectedValues = Array.isArray(value) ? value : [];
+                const selectedCount = selectedValues.length;
+
+                if (
+                  validation?.minSelected &&
+                  selectedCount < validation.minSelected
+                ) {
+                  return `Please select at least ${validation.minSelected} option(s)`;
+                }
+                if (
+                  validation?.maxSelected &&
+                  selectedCount > validation.maxSelected
+                ) {
+                  return `Please select no more than ${validation.maxSelected} option(s)`;
+                }
+                return true;
+              },
+            }}
+            render={({ field }) => {
+              // Safely handle current selected array
+              const currentValues = Array.isArray(field.value)
+                ? field.value
+                : [];
+
+              return (
+                <div className={layoutClasses}>
+                  {shuffledOptions.map((option) => (
+                    <div
+                      key={option.id}
+                      className="flex items-center space-x-2"
+                    >
+                      <Checkbox
+                        id={`${instanceId}-${option.id}`}
+                        checked={currentValues.includes(option.value)}
+                        onCheckedChange={(checked) => {
+                          // Manually manage the array of selected values for RHF
+                          return checked
+                            ? field.onChange([...currentValues, option.value])
+                            : field.onChange(
+                                currentValues.filter(
+                                  (value) => value !== option.value
+                                )
+                              );
+                        }}
+                      />
+                      <Label
+                        htmlFor={`${instanceId}-${option.id}`}
+                        className="cursor-pointer text-sm font-normal"
+                      >
+                        {option.value}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              );
+            }}
+          />
+
+          {errors[instanceId] && (
+            <p className="text-[0.8rem] font-medium text-destructive">
+              {errors[instanceId]?.message as string}
+            </p>
+          )}
+        </CardContent>
       </Card>
     );
   }
 
   // --- Builder Mode (Static/Preview) ---
   return (
-    <Card className="rounded-none shadow-none">
-      <Q html={props.questionText} />
-      <div
-        className={`flex ${
-          isHorizontal ? 'flex-row flex-wrap gap-4' : 'flex-col gap-2'
-        }`}
-      >
-        {(props.options || []).map((option) => (
-          <label
-            key={option.id}
-            className="flex cursor-pointer items-center gap-2 text-sm text-foreground"
-          >
-            <input
-              type="checkbox"
-              name={instanceId}
-              value={option.value}
-              defaultChecked={(props.defaultValues || []).includes(
-                option.value
-              )}
-              className="accent-primary"
-            />
-            {option.value}
-          </label>
-        ))}
-      </div>
+    <Card>
+      <CardContent className="space-y-3">
+        <Label className="block text-base font-semibold">
+          {props.questionText}
+        </Label>
+        <div className={layoutClasses}>
+          {(props.options || []).map((option) => (
+            <div
+              key={option.id}
+              className="flex items-center space-x-2 opacity-70"
+            >
+              <Checkbox
+                id={`builder-${instanceId}-${option.id}`}
+                checked={(props.defaultValues || []).includes(option.value)}
+                disabled
+              />
+              <Label
+                htmlFor={`builder-${instanceId}-${option.id}`}
+                className="cursor-pointer text-sm font-normal"
+              >
+                {option.value}
+              </Label>
+            </div>
+          ))}
+        </div>
+      </CardContent>
     </Card>
   );
 }
@@ -287,16 +325,33 @@ export function CheckboxComponentPropsRenderer({
         </select>
       </div>
 
+      <div className="pt-1">
+        <label className="flex items-center justify-between text-xs text-muted-foreground">
+          Option Shuffling
+          <input
+            type="checkbox"
+            checked={props.shuffleOptions}
+            onChange={(e) =>
+              u(instanceId, {
+                shuffleOptions: e.target.checked,
+              })
+            }
+          />
+        </label>
+      </div>
+
       {/* Validation Rules */}
-      <label className="flex items-center gap-2 text-sm text-foreground">
-        <input
-          type="checkbox"
-          checked={!!validation?.required}
-          onChange={() => uv(instanceId, { required: !validation?.required })}
-          className="accent-primary"
-        />
-        Required
-      </label>
+      <div className="pt-1">
+        <label className="flex items-center justify-between text-xs text-muted-foreground">
+          Required
+          <input
+            type="checkbox"
+            checked={!!validation?.required}
+            onChange={() => uv(instanceId, { required: !validation?.required })}
+            className="accent-primary"
+          />
+        </label>
+      </div>
 
       <div>
         <label className={lbl}>Minimum Options Selected</label>

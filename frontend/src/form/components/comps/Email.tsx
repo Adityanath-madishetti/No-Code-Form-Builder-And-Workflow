@@ -7,10 +7,14 @@ import type {
 } from '../base';
 import { ComponentIDs, createComponent } from '../base';
 
-import { inp, lbl, Card, Q } from '../ComponentRender.Helper';
+import { inp, lbl } from '../ComponentRender.Helper';
 import { useFormContext } from 'react-hook-form';
 import { useFormMode } from '@/form/context/FormModeContext';
 import { nanoid } from 'nanoid';
+
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export interface EmailProps extends BaseComponentProps {
   questionText: string;
@@ -53,69 +57,70 @@ export function EmailRenderer({
 
   // --- View Mode (Live Form with Validation) ---
   if (formMode === 'view' && formContext) {
-    if (!formContext) {
-      console.error('EmailRenderer is not wrapped in a FormProvider.');
-      return null;
-    }
-
     const {
       register,
       formState: { errors },
     } = formContext;
 
     return (
-      <Card className="rounded-none shadow-none">
-        <Q html={props.questionText} />
-        <input
-          type="email"
-          placeholder={props.placeholder || 'user@example.com'}
-          defaultValue={props.defaultValue}
-          className={inp}
-          {...register(instanceId, {
-            required: validation?.required ? 'This field is required' : false,
-            minLength: validation?.minLength
-              ? {
-                  value: validation.minLength,
-                  message: `Minimum ${validation.minLength} characters`,
-                }
-              : undefined,
-            maxLength: validation?.maxLength
-              ? {
-                  value: validation.maxLength,
-                  message: `Maximum ${validation.maxLength} characters`,
-                }
-              : undefined,
-            pattern: validation?.pattern
-              ? {
-                  value: new RegExp(validation.pattern),
-                  message: 'Invalid email format',
-                }
-              : undefined,
-          })}
-        />
-        {errors[instanceId] && (
-          <p className="mt-1 text-sm text-red-500">
-            {errors[instanceId]?.message as string}
-          </p>
-        )}
+      <Card>
+        <CardContent className="space-y-3">
+          <Label htmlFor={instanceId} className="block text-base font-semibold">
+            {props.questionText}
+          </Label>
+          <Input
+            id={instanceId}
+            type="email"
+            placeholder={props.placeholder || 'user@example.com'}
+            defaultValue={props.defaultValue}
+            {...register(instanceId, {
+              required: validation?.required ? 'This field is required' : false,
+              minLength: validation?.minLength
+                ? {
+                    value: validation.minLength,
+                    message: `Minimum ${validation.minLength} characters`,
+                  }
+                : undefined,
+              maxLength: validation?.maxLength
+                ? {
+                    value: validation.maxLength,
+                    message: `Maximum ${validation.maxLength} characters`,
+                  }
+                : undefined,
+              pattern: validation?.pattern
+                ? {
+                    value: new RegExp(validation.pattern),
+                    message: 'Invalid email format',
+                  }
+                : undefined,
+            })}
+          />
+          {errors[instanceId] && (
+            <p className="text-[0.8rem] font-medium text-destructive">
+              {errors[instanceId]?.message as string}
+            </p>
+          )}
+        </CardContent>
       </Card>
     );
   }
 
-  // --- Builder Mode (Static/Preview) ---
   return (
-    <Card className="rounded-none shadow-none">
-      <Q html={props.questionText} />
-      <input
-        type="email"
-        defaultValue={props.defaultValue}
-        placeholder={props.placeholder || 'user@example.com'}
-        className={inp}
-      />
+    <Card>
+      <CardContent className="space-y-3">
+        <Label className="block text-base font-semibold">
+          {props.questionText}
+        </Label>
+        <Input
+          type="email"
+          defaultValue={props.defaultValue}
+          placeholder={props.placeholder || 'user@example.com'}
+          disabled
+        />
+      </CardContent>
     </Card>
   );
 }
-
 export function EmailPropsRenderer({
   instanceId,
   props,
@@ -154,15 +159,17 @@ export function EmailPropsRenderer({
         />
       </div>
 
-      <label className="flex items-center gap-2 text-sm text-foreground">
-        <input
-          type="checkbox"
-          checked={!!validation?.required}
-          onChange={() => uv(instanceId, { required: !validation?.required })}
-          className="accent-primary"
-        />
-        Required
-      </label>
+      <div className="pt-1">
+        <label className="flex items-center justify-between text-xs text-muted-foreground">
+          Required
+          <input
+            type="checkbox"
+            checked={!!validation?.required}
+            onChange={() => uv(instanceId, { required: !validation?.required })}
+            className="accent-primary"
+          />
+        </label>
+      </div>
 
       <div>
         <label className={lbl}>Minimum Length</label>

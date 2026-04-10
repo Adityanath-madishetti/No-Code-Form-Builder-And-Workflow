@@ -7,10 +7,14 @@ import type {
 } from '../base';
 import { ComponentIDs, createComponent } from '../base';
 
-import { inp, lbl, Card, Q } from '../ComponentRender.Helper';
+import { inp, lbl } from '../ComponentRender.Helper';
 import { useFormContext } from 'react-hook-form';
 import { useFormMode } from '@/form/context/FormModeContext';
 import { nanoid } from 'nanoid';
+
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export interface AddressBlockProps extends BaseComponentProps {
   questionText: string;
@@ -52,13 +56,7 @@ export function AddressBlockRenderer({
   const formMode = useFormMode();
   const formContext = useFormContext();
 
-  // --- View Mode (Live Form with Validation) ---
   if (formMode === 'view' && formContext) {
-    if (!formContext) {
-      console.error('AddressBlockRenderer is not wrapped in a FormProvider.');
-      return null;
-    }
-
     const {
       register,
       formState: { errors },
@@ -66,157 +64,173 @@ export function AddressBlockRenderer({
 
     const isRequired = validation?.required;
 
+    // Because we use dot notation, RHF groups the errors into an object under the instanceId
+    const addressErrors = errors[instanceId] as
+      | Record<string, { message?: string }>
+      | undefined;
+
     return (
-      <Card className="rounded-none shadow-none">
-        <Q html={props.questionText} />
-        <div className="flex flex-col gap-3">
-          <div>
-            <label className={lbl}>Address Line 1</label>
-            <input
-              placeholder="123 Main St"
-              className={inp}
-              {...register(`${instanceId}_line1`, {
-                required: isRequired ? 'Address Line 1 is required' : false,
-              })}
-            />
-            {errors[`${instanceId}_line1`] && (
-              <p className="mt-1 text-xs text-red-500">
-                {errors[`${instanceId}_line1`]?.message as string}
-              </p>
-            )}
-          </div>
-
-          {props.showLine2 && (
-            <div>
-              <label className={lbl}>Address Line 2</label>
-              <input
-                placeholder="Apt, Suite, Unit"
-                className={inp}
-                {...register(`${instanceId}_line2`)} // Line 2 is rarely required
-              />
-            </div>
-          )}
-
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <label className={lbl}>City</label>
-              <input
-                placeholder="City"
-                className={inp}
-                {...register(`${instanceId}_city`, {
-                  required: isRequired ? 'City is required' : false,
+      <Card>
+        <CardContent className="space-y-3">
+          <Label className="block text-base font-semibold">
+            {props.questionText}
+          </Label>
+          <div className="flex flex-col gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor={`${instanceId}_line1`}>Address Line 1</Label>
+              {/* Note the dot notation in register: `${instanceId}.line1` */}
+              <Input
+                id={`${instanceId}_line1`}
+                placeholder="123 Main St"
+                {...register(`${instanceId}.line1`, {
+                  required: isRequired ? 'Address Line 1 is required' : false,
                 })}
               />
-              {errors[`${instanceId}_city`] && (
-                <p className="mt-1 text-xs text-red-500">
-                  {errors[`${instanceId}_city`]?.message as string}
+              {addressErrors?.line1?.message && (
+                <p className="text-[0.8rem] font-medium text-destructive">
+                  {addressErrors.line1.message}
                 </p>
               )}
             </div>
 
-            {props.showState && (
-              <div className="flex-1">
-                <label className={lbl}>State / Province</label>
-                <input
-                  placeholder="State"
-                  className={inp}
-                  {...register(`${instanceId}_state`, {
-                    required: isRequired ? 'State is required' : false,
-                  })}
+            {props.showLine2 && (
+              <div className="space-y-1.5">
+                <Label htmlFor={`${instanceId}_line2`}>Address Line 2</Label>
+                <Input
+                  id={`${instanceId}_line2`}
+                  placeholder="Apt, Suite, Unit"
+                  {...register(`${instanceId}.line2`)}
                 />
-                {errors[`${instanceId}_state`] && (
-                  <p className="mt-1 text-xs text-red-500">
-                    {errors[`${instanceId}_state`]?.message as string}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="flex gap-3">
-            {props.showZip && (
-              <div className="flex-1">
-                <label className={lbl}>ZIP / Postal Code</label>
-                <input
-                  placeholder="ZIP Code"
-                  className={inp}
-                  {...register(`${instanceId}_zip`, {
-                    required: isRequired ? 'ZIP Code is required' : false,
-                  })}
-                />
-                {errors[`${instanceId}_zip`] && (
-                  <p className="mt-1 text-xs text-red-500">
-                    {errors[`${instanceId}_zip`]?.message as string}
-                  </p>
-                )}
               </div>
             )}
 
-            {props.showCountry && (
-              <div className="flex-1">
-                <label className={lbl}>Country</label>
-                <input
-                  placeholder="Country"
-                  className={inp}
-                  {...register(`${instanceId}_country`, {
-                    required: isRequired ? 'Country is required' : false,
+            <div className="flex gap-4">
+              <div className="flex-1 space-y-1.5">
+                <Label htmlFor={`${instanceId}_city`}>City</Label>
+                <Input
+                  id={`${instanceId}_city`}
+                  placeholder="City"
+                  {...register(`${instanceId}.city`, {
+                    required: isRequired ? 'City is required' : false,
                   })}
                 />
-                {errors[`${instanceId}_country`] && (
-                  <p className="mt-1 text-xs text-red-500">
-                    {errors[`${instanceId}_country`]?.message as string}
+                {addressErrors?.city?.message && (
+                  <p className="text-[0.8rem] font-medium text-destructive">
+                    {addressErrors.city.message}
                   </p>
                 )}
               </div>
-            )}
+
+              {props.showState && (
+                <div className="flex-1 space-y-1.5">
+                  <Label htmlFor={`${instanceId}_state`}>
+                    State / Province
+                  </Label>
+                  <Input
+                    id={`${instanceId}_state`}
+                    placeholder="State"
+                    {...register(`${instanceId}.state`, {
+                      required: isRequired ? 'State is required' : false,
+                    })}
+                  />
+                  {addressErrors?.state?.message && (
+                    <p className="text-[0.8rem] font-medium text-destructive">
+                      {addressErrors.state.message}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-4">
+              {props.showZip && (
+                <div className="flex-1 space-y-1.5">
+                  <Label htmlFor={`${instanceId}_zip`}>ZIP / Postal Code</Label>
+                  <Input
+                    id={`${instanceId}_zip`}
+                    placeholder="ZIP Code"
+                    {...register(`${instanceId}.zip`, {
+                      required: isRequired ? 'ZIP Code is required' : false,
+                    })}
+                  />
+                  {addressErrors?.zip?.message && (
+                    <p className="text-[0.8rem] font-medium text-destructive">
+                      {addressErrors.zip.message}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {props.showCountry && (
+                <div className="flex-1 space-y-1.5">
+                  <Label htmlFor={`${instanceId}_country`}>Country</Label>
+                  <Input
+                    id={`${instanceId}_country`}
+                    placeholder="Country"
+                    {...register(`${instanceId}.country`, {
+                      required: isRequired ? 'Country is required' : false,
+                    })}
+                  />
+                  {addressErrors?.country?.message && (
+                    <p className="text-[0.8rem] font-medium text-destructive">
+                      {addressErrors.country.message}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        </CardContent>
       </Card>
     );
   }
 
   // --- Builder Mode (Static/Preview) ---
   return (
-    <Card className="rounded-none shadow-none">
-      <Q html={props.questionText} />
-      <div className="pointer-events-none flex flex-col gap-3 opacity-90">
-        <div>
-          <label className={lbl}>Address Line 1</label>
-          <input readOnly placeholder="123 Main St" className={inp} />
-        </div>
-        {props.showLine2 && (
-          <div>
-            <label className={lbl}>Address Line 2</label>
-            <input readOnly placeholder="Apt, Suite, Unit" className={inp} />
+    <Card>
+      <CardContent className="space-y-3">
+        <Label className="block text-base font-semibold">
+          {props.questionText}
+        </Label>
+        <div className="pointer-events-none flex flex-col gap-4 opacity-70">
+          <div className="space-y-1.5">
+            <Label>Address Line 1</Label>
+            <Input readOnly placeholder="123 Main St" />
           </div>
-        )}
-        <div className="flex gap-3">
-          <div className="flex-1">
-            <label className={lbl}>City</label>
-            <input readOnly placeholder="City" className={inp} />
+          {props.showLine2 && (
+            <div className="space-y-1.5">
+              <Label>Address Line 2</Label>
+              <Input readOnly placeholder="Apt, Suite, Unit" />
+            </div>
+          )}
+          <div className="flex gap-4">
+            <div className="flex-1 space-y-1.5">
+              <Label>City</Label>
+              <Input readOnly placeholder="City" />
+            </div>
+            {props.showState && (
+              <div className="flex-1 space-y-1.5">
+                <Label>State / Province</Label>
+                <Input readOnly placeholder="State" />
+              </div>
+            )}
           </div>
-          {props.showState && (
-            <div className="flex-1">
-              <label className={lbl}>State / Province</label>
-              <input readOnly placeholder="State" className={inp} />
-            </div>
-          )}
+          <div className="flex gap-4">
+            {props.showZip && (
+              <div className="flex-1 space-y-1.5">
+                <Label>ZIP / Postal Code</Label>
+                <Input readOnly placeholder="ZIP Code" />
+              </div>
+            )}
+            {props.showCountry && (
+              <div className="flex-1 space-y-1.5">
+                <Label>Country</Label>
+                <Input readOnly placeholder="Country" />
+              </div>
+            )}
+          </div>
         </div>
-        <div className="flex gap-3">
-          {props.showZip && (
-            <div className="flex-1">
-              <label className={lbl}>ZIP / Postal Code</label>
-              <input readOnly placeholder="ZIP Code" className={inp} />
-            </div>
-          )}
-          {props.showCountry && (
-            <div className="flex-1">
-              <label className={lbl}>Country</label>
-              <input readOnly placeholder="Country" className={inp} />
-            </div>
-          )}
-        </div>
-      </div>
+      </CardContent>
     </Card>
   );
 }
@@ -242,55 +256,58 @@ export function AddressBlockPropsRenderer({
       </div>
 
       <div className="space-y-3 pt-2">
-        <label className="flex items-center gap-2 text-sm text-foreground">
+        <label className="flex items-center justify-between text-xs text-muted-foreground">
+          Show Address Line 2
           <input
             type="checkbox"
             checked={props.showLine2}
             onChange={(e) => u(instanceId, { showLine2: e.target.checked })}
             className="accent-primary"
           />
-          Show Address Line 2
         </label>
-        <label className="flex items-center gap-2 text-sm text-foreground">
+
+        <label className="flex items-center justify-between text-xs text-muted-foreground">
+          Show State / Province
           <input
             type="checkbox"
             checked={props.showState}
             onChange={(e) => u(instanceId, { showState: e.target.checked })}
             className="accent-primary"
           />
-          Show State / Province
         </label>
-        <label className="flex items-center gap-2 text-sm text-foreground">
+
+        <label className="flex items-center justify-between text-xs text-muted-foreground">
+          Show ZIP / Postal Code
           <input
             type="checkbox"
             checked={props.showZip}
             onChange={(e) => u(instanceId, { showZip: e.target.checked })}
             className="accent-primary"
           />
-          Show ZIP / Postal Code
         </label>
-        <label className="flex items-center gap-2 text-sm text-foreground">
+
+        <label className="flex items-center justify-between text-xs text-muted-foreground">
+          Show Country
           <input
             type="checkbox"
             checked={props.showCountry}
             onChange={(e) => u(instanceId, { showCountry: e.target.checked })}
             className="accent-primary"
           />
-          Show Country
         </label>
       </div>
 
-      <hr className="border-border" />
-
-      <label className="flex items-center gap-2 text-sm text-foreground">
-        <input
-          type="checkbox"
-          checked={!!validation?.required}
-          onChange={() => uv(instanceId, { required: !validation?.required })}
-          className="accent-primary"
-        />
-        Required (Applies to all visible fields)
-      </label>
+      <div className="pt-1">
+        <label className="flex items-center justify-between text-xs text-muted-foreground">
+          Required (Applies to all visible fields)
+          <input
+            type="checkbox"
+            checked={!!validation?.required}
+            onChange={() => uv(instanceId, { required: !validation?.required })}
+            className="accent-primary"
+          />
+        </label>
+      </div>
     </div>
   );
 }

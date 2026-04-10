@@ -7,10 +7,13 @@ import type {
 } from '../base';
 import { ComponentIDs, createComponent } from '../base';
 
-import { inp, lbl, Card, Q } from '../ComponentRender.Helper';
+import { inp, lbl } from '../ComponentRender.Helper';
 import { useFormContext } from 'react-hook-form';
 import { useFormMode } from '@/form/context/FormModeContext';
 import { nanoid } from 'nanoid';
+
+import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 
 export interface LinearScaleProps extends BaseComponentProps {
   questionText: string;
@@ -62,109 +65,117 @@ export function LinearScaleRenderer({
   const formContext = useFormContext();
   const count = (props.max || 10) - (props.min || 1) + 1;
 
-  // --- View Mode (Live Form with Validation) ---
   if (formMode === 'view' && formContext) {
-    if (!formContext) {
-      console.error('LinearScaleRenderer is not wrapped in a FormProvider.');
-      return null;
-    }
-
     const {
       register,
       watch,
       formState: { errors },
     } = formContext;
 
-    // Watch the current value to highlight the selected box
     const selectedValue = Number(watch(instanceId));
 
     return (
-      <Card className="rounded-none shadow-none">
-        <Q html={props.questionText} />
-        <div className="flex items-center gap-2">
-          <span className="shrink-0 text-[10px] text-muted-foreground">
-            {props.minLabel}
-          </span>
-          <div className="flex flex-1 gap-0.5">
-            {Array.from({ length: count }, (_, i) => {
-              const val = props.min + i;
-              const isSelected = selectedValue === val;
+      <Card>
+        <CardContent className="space-y-3">
+          <Label htmlFor={instanceId} className="block text-base font-semibold">
+            {props.questionText}
+          </Label>
+          <div className="flex items-center gap-2">
+            {props.minLabel && (
+              <span className="shrink-0 text-xs text-muted-foreground">
+                {props.minLabel}
+              </span>
+            )}
+            <div className="flex flex-1 gap-1">
+              {Array.from({ length: count }, (_, i) => {
+                const val = props.min + i;
+                const isSelected = selectedValue === val;
 
-              return (
-                <label
-                  key={val}
-                  className={`flex h-8 flex-1 cursor-pointer items-center justify-center border text-xs font-medium transition-colors ${
-                    isSelected
-                      ? 'border-primary bg-primary text-primary-foreground'
-                      : 'border-border text-foreground hover:border-primary hover:bg-primary/5'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    value={val}
-                    className="sr-only" // Visually hidden radio button
-                    {...register(instanceId, {
-                      required: validation?.required
-                        ? 'Please select a rating'
-                        : false,
-                      validate: (value) => {
-                        const numVal = Number(value);
-                        if (
-                          validation?.minRating &&
-                          numVal < validation.minRating
-                        ) {
-                          return `Rating must be at least ${validation.minRating}`;
-                        }
-                        if (
-                          validation?.maxRating &&
-                          numVal > validation.maxRating
-                        ) {
-                          return `Rating cannot exceed ${validation.maxRating}`;
-                        }
-                        return true;
-                      },
-                    })}
-                  />
-                  {val}
-                </label>
-              );
-            })}
+                return (
+                  <label
+                    key={val}
+                    className={`flex h-9 flex-1 cursor-pointer items-center justify-center rounded-md border text-sm font-medium transition-colors ${
+                      isSelected
+                        ? 'border-primary bg-primary text-primary-foreground shadow'
+                        : 'border-input bg-transparent text-foreground hover:bg-accent hover:text-accent-foreground'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      value={val}
+                      className="sr-only" // Visually hidden radio button
+                      {...register(instanceId, {
+                        required: validation?.required
+                          ? 'Please select a rating'
+                          : false,
+                        validate: (value) => {
+                          const numVal = Number(value);
+                          if (
+                            validation?.minRating &&
+                            numVal < validation.minRating
+                          ) {
+                            return `Rating must be at least ${validation.minRating}`;
+                          }
+                          if (
+                            validation?.maxRating &&
+                            numVal > validation.maxRating
+                          ) {
+                            return `Rating cannot exceed ${validation.maxRating}`;
+                          }
+                          return true;
+                        },
+                      })}
+                    />
+                    {val}
+                  </label>
+                );
+              })}
+            </div>
+            {props.maxLabel && (
+              <span className="shrink-0 text-xs text-muted-foreground">
+                {props.maxLabel}
+              </span>
+            )}
           </div>
-          <span className="shrink-0 text-[10px] text-muted-foreground">
-            {props.maxLabel}
-          </span>
-        </div>
-        {errors[instanceId] && (
-          <p className="mt-1 text-sm text-red-500">
-            {errors[instanceId]?.message as string}
-          </p>
-        )}
+          {errors[instanceId] && (
+            <p className="text-[0.8rem] font-medium text-destructive">
+              {errors[instanceId]?.message as string}
+            </p>
+          )}
+        </CardContent>
       </Card>
     );
   }
 
-  // --- Builder Mode (Static/Preview) ---
   return (
-    <Card className="rounded-none shadow-none">
-      <Q html={props.questionText} />
-      <div className="flex items-center gap-2">
-        <span className="shrink-0 text-[10px] text-muted-foreground">
-          {props.minLabel}
-        </span>
-        <div className="flex flex-1 gap-0.5">
-          {Array.from({ length: count }, (_, i) => (
-            <div
-              key={i}
-              className="flex h-8 flex-1 items-center justify-center border border-border text-xs font-medium text-foreground transition-colors"
-            >
-              {props.min + i}
-            </div>
-          ))}
+    <Card>
+      <CardContent className="space-y-3">
+        <Label className="block text-base font-semibold">
+          {props.questionText}
+        </Label>
+        <div className="flex items-center gap-2 opacity-70">
+          {props.minLabel && (
+            <span className="shrink-0 text-xs text-muted-foreground">
+              {props.minLabel}
+            </span>
+          )}
+          <div className="flex flex-1 gap-1">
+            {Array.from({ length: count }, (_, i) => (
+              <div
+                key={i}
+                className="flex h-9 flex-1 items-center justify-center rounded-md border border-input bg-transparent text-sm font-medium text-foreground transition-colors"
+              >
+                {props.min + i}
+              </div>
+            ))}
+          </div>
+          {props.maxLabel && (
+            <span className="shrink-0 text-xs text-muted-foreground">
+              {props.maxLabel}
+            </span>
+          )}
         </div>
-        <span className="shrink-0 text-[10px] text-muted-foreground">
-          {props.maxLabel}
-        </span>
-      </div>
+      </CardContent>
     </Card>
   );
 }
@@ -233,15 +244,16 @@ export function LinearScalePropsRenderer({
         </div>
       </div>
 
-      <label className="flex items-center gap-2 text-sm text-foreground">
-        <input
-          type="checkbox"
-          checked={!!validation?.required}
-          onChange={() => uv(instanceId, { required: !validation?.required })}
-          className="accent-primary"
-        />
-        Required
-      </label>
+      <div className="pt-1">
+        <label className="flex items-center justify-between text-xs text-muted-foreground">
+          Required
+          <input
+            type="checkbox"
+            checked={!!validation?.required}
+            onChange={() => uv(instanceId, { required: !validation?.required })}
+          />
+        </label>
+      </div>
 
       <div>
         <label className={lbl}>Minimum Rating Allowed</label>

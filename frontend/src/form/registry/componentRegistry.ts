@@ -158,6 +158,13 @@ import {
   AddressBlockPropsRenderer,
 } from '../components/comps/AddressBlock';
 
+import {
+  type NameBlockProps,
+  createNameBlockComponent,
+  NameBlockRenderer,
+  NameBlockPropsRenderer,
+} from '../components/comps/NameBlock';
+
 // ------------------------------------------------------------------------------------------------
 //
 //
@@ -170,8 +177,6 @@ import {
   SingleChoiceGridRenderer,
   MultiChoiceGridRenderer,
   MatrixTableRenderer,
-  NameBlockRenderer,
-  NameBlockPropsRenderer,
   ColorPickerRenderer,
   SignatureRenderer,
   LocationRenderer,
@@ -189,7 +194,6 @@ import {
   createSingleChoiceGridComponent,
   createMultiChoiceGridComponent,
   createMatrixTableComponent,
-  createNameBlockComponent,
   createColorPickerComponent,
   createSignatureComponent,
   createLocationComponent,
@@ -205,7 +209,6 @@ import type {
   SingleChoiceGridProps,
   MultiChoiceGridProps,
   MatrixTableProps,
-  NameBlockProps,
   ColorPickerProps,
   SignatureProps,
   LocationProps,
@@ -784,7 +787,7 @@ const ENABLED_CATALOG_IDS: Set<string> = new Set([
 
   // Text Inputs
   ComponentIDs.SingleLineInput,
-  // ComponentIDs.MultiLineInput,
+  ComponentIDs.MultiLineInput,
   ComponentIDs.Email,
   ComponentIDs.Phone,
   ComponentIDs.Number,

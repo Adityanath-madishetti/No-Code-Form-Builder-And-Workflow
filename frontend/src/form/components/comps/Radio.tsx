@@ -8,16 +8,20 @@ import type {
 import { ComponentIDs, createComponent } from '../base';
 
 import type { BaseComponentProps } from '../base';
-import { inp, lbl, Card, Q } from '../ComponentRender.Helper';
+import { inp, lbl } from '../ComponentRender.Helper';
 import { Plus, Trash2 } from 'lucide-react';
 
-import { useFormContext } from 'react-hook-form';
+import { useFormContext, Controller } from 'react-hook-form';
+import { useState } from 'react';
 import { useFormMode } from '@/form/context/FormModeContext';
 import { nanoid } from 'nanoid';
 
+import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+
 export interface RadioOption {
   id: string;
-  // label: string;
   value: string;
 }
 
@@ -26,6 +30,7 @@ export interface RadioProps extends BaseComponentProps {
   options: RadioOption[];
   defaultValue?: string;
   layout?: 'vertical' | 'horizontal';
+  shuffleOptions: boolean;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -42,8 +47,12 @@ export const createRadioComponent = (
     {
       questionText: 'Select an option',
       layout: 'vertical',
-      options: [{ id: crypto.randomUUID(), value: 'Option 1' }],
+      options: [
+        { id: crypto.randomUUID(), value: 'Option 1' },
+        { id: crypto.randomUUID(), value: 'Option 2' },
+      ],
       hiddenByDefault: false,
+      shuffleOptions: false,
       ...props,
     },
     {
@@ -61,80 +70,103 @@ export function RadioComponentRenderer({
   const formContext = useFormContext();
   const isHorizontal = props.layout === 'horizontal';
 
-  // --- View Mode (Live Form with Validation) ---
-  if (formMode === 'view' && formContext) {
-    if (!formContext) {
-      console.error('RadioComponentRenderer is not wrapped in a FormProvider.');
-      return null;
+  const [shuffledOptions] = useState(() => {
+    const opts = props.options || [];
+    if (props.shuffleOptions) {
+      return [...opts].sort(() => Math.random() - 0.5);
     }
+    return opts;
+  });
 
+  // Layout classes for the radio group container
+  const layoutClasses = isHorizontal
+    ? 'flex flex-row flex-wrap gap-4'
+    : 'flex flex-col gap-2';
+
+  if (formMode === 'view' && formContext) {
     const {
-      register,
+      control,
       formState: { errors },
     } = formContext;
 
     return (
-      <Card className="rounded-none shadow-none">
-        <Q html={props.questionText} />
-        <div
-          className={`flex ${
-            isHorizontal ? 'flex-row flex-wrap gap-4' : 'flex-col gap-2'
-          }`}
-        >
-          {(props.options || []).map((option) => (
-            <label
-              key={option.id}
-              className="flex cursor-pointer items-center gap-2 text-sm text-foreground"
-            >
-              <input
-                type="radio"
-                value={option.value}
-                defaultChecked={props.defaultValue === option.value}
-                className="accent-primary"
-                {...register(instanceId, {
-                  required: validation?.required
-                    ? 'This field is required'
-                    : false,
-                })}
-              />
-              {option.value}
-            </label>
-          ))}
-        </div>
-        {errors[instanceId] && (
-          <p className="mt-1 text-sm text-red-500">
-            {errors[instanceId]?.message as string}
-          </p>
-        )}
+      <Card>
+        <CardContent className="space-y-3">
+          <Label htmlFor={instanceId} className="block text-base font-semibold">
+            {props.questionText}
+          </Label>
+
+          <Controller
+            control={control}
+            name={instanceId}
+            defaultValue={props.defaultValue || ''}
+            rules={{
+              required: validation?.required ? 'This field is required' : false,
+            }}
+            render={({ field }) => (
+              <RadioGroup
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                className={layoutClasses}
+              >
+                {shuffledOptions.map((option) => (
+                  <div key={option.id} className="flex items-center space-x-2">
+                    <RadioGroupItem
+                      value={option.value}
+                      id={`${instanceId}-${option.id}`}
+                    />
+                    <Label
+                      htmlFor={`${instanceId}-${option.id}`}
+                      className="cursor-pointer font-normal"
+                    >
+                      {option.value}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            )}
+          />
+
+          {errors[instanceId] && (
+            <p className="text-[0.8rem] font-medium text-destructive">
+              {errors[instanceId]?.message as string}
+            </p>
+          )}
+        </CardContent>
       </Card>
     );
   }
 
-  // --- Builder Mode (Static/Preview) ---
   return (
-    <Card className="rounded-none shadow-none">
-      <Q html={props.questionText} />
-      <div
-        className={`flex ${
-          isHorizontal ? 'flex-row flex-wrap gap-4' : 'flex-col gap-2'
-        }`}
-      >
-        {(props.options || []).map((option) => (
-          <label
-            key={option.id}
-            className="flex cursor-pointer items-center gap-2 text-sm text-foreground"
-          >
-            <input
-              type="radio"
-              name={instanceId}
-              value={option.value}
-              defaultChecked={props.defaultValue === option.value}
-              className="accent-primary"
-            />
-            {option.value}
-          </label>
-        ))}
-      </div>
+    <Card>
+      <CardContent className="space-y-3">
+        <Label htmlFor={instanceId} className="block text-base font-semibold">
+          {props.questionText}
+        </Label>
+        <RadioGroup
+          // defaultValue={props.defaultValue}
+          className={layoutClasses}
+          disabled
+        >
+          {(props.options || []).map((option) => (
+            <div
+              key={option.id}
+              className="flex items-center space-x-2 opacity-70"
+            >
+              <RadioGroupItem
+                value={option.value}
+                id={`builder-${instanceId}-${option.id}`}
+              />
+              <Label
+                htmlFor={`builder-${instanceId}-${option.id}`}
+                className="cursor-pointer font-normal"
+              >
+                {option.value}
+              </Label>
+            </div>
+          ))}
+        </RadioGroup>
+      </CardContent>
     </Card>
   );
 }
@@ -267,16 +299,33 @@ export function RadioComponentPropsRenderer({
         </div>
       </div>
 
+      <div className="pt-1">
+        <label className="flex items-center justify-between text-xs text-muted-foreground">
+          Option Shuffling
+          <input
+            type="checkbox"
+            checked={props.shuffleOptions}
+            onChange={(e) =>
+              u(instanceId, {
+                shuffleOptions: e.target.checked,
+              })
+            }
+          />
+        </label>
+      </div>
+
       {/* Added Required Validation Toggle */}
-      <label className="flex items-center gap-2 text-sm text-foreground">
-        <input
-          type="checkbox"
-          checked={!!validation?.required}
-          onChange={() => uv(instanceId, { required: !validation?.required })}
-          className="accent-primary"
-        />
-        Required
-      </label>
+      <div className="pt-1">
+        <label className="flex items-center justify-between text-xs text-muted-foreground">
+          Required
+          <input
+            type="checkbox"
+            checked={!!validation?.required}
+            onChange={() => uv(instanceId, { required: !validation?.required })}
+            className="accent-primary"
+          />
+        </label>
+      </div>
     </div>
   );
 }

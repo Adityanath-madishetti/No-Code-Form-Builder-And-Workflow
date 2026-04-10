@@ -7,10 +7,14 @@ import type {
 } from '../base';
 import { ComponentIDs, createComponent } from '../base';
 
-import { inp, lbl, Card, Q } from '../ComponentRender.Helper';
+import { inp, lbl } from '../ComponentRender.Helper';
 import { useFormContext } from 'react-hook-form';
 import { useFormMode } from '@/form/context/FormModeContext';
 import { nanoid } from 'nanoid';
+
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export interface NumberProps extends BaseComponentProps {
   questionText: string;
@@ -52,65 +56,66 @@ export function NumberRenderer({
   const formMode = useFormMode();
   const formContext = useFormContext();
 
-  // --- View Mode (Live Form with Validation) ---
   if (formMode === 'view' && formContext) {
-    if (!formContext) {
-      console.error('NumberRenderer is not wrapped in a FormProvider.');
-      return null;
-    }
-
     const {
       register,
       formState: { errors },
     } = formContext;
 
     return (
-      <Card className="rounded-none shadow-none">
-        <Q html={props.questionText} />
-        <input
-          type="number"
-          placeholder={props.placeholder || '0'}
-          defaultValue={props.defaultValue}
-          className={inp}
-          {...register(instanceId, {
-            required: validation?.required ? 'This field is required' : false,
-            valueAsNumber: true, // Crucial for correct min/max evaluation
-            min:
-              validation?.min !== undefined
-                ? {
-                    value: validation.min,
-                    message: `Value must be at least ${validation.min}`,
-                  }
-                : undefined,
-            max:
-              validation?.max !== undefined
-                ? {
-                    value: validation.max,
-                    message: `Value must be no more than ${validation.max}`,
-                  }
-                : undefined,
-          })}
-        />
-        {errors[instanceId] && (
-          <p className="mt-1 text-sm text-red-500">
-            {errors[instanceId]?.message as string}
-          </p>
-        )}
+      <Card>
+        <CardContent className="space-y-3">
+          <Label htmlFor={instanceId} className="block text-base font-semibold">
+            {props.questionText}
+          </Label>
+          <Input
+            id={instanceId}
+            type="number"
+            placeholder={props.placeholder || '0'}
+            defaultValue={props.defaultValue}
+            {...register(instanceId, {
+              required: validation?.required ? 'This field is required' : false,
+              valueAsNumber: true, // Crucial for correct min/max evaluation
+              min:
+                validation?.min !== undefined
+                  ? {
+                      value: validation.min,
+                      message: `Value must be at least ${validation.min}`,
+                    }
+                  : undefined,
+              max:
+                validation?.max !== undefined
+                  ? {
+                      value: validation.max,
+                      message: `Value must be no more than ${validation.max}`,
+                    }
+                  : undefined,
+            })}
+          />
+          {errors[instanceId] && (
+            <p className="text-[0.8rem] font-medium text-destructive">
+              {errors[instanceId]?.message as string}
+            </p>
+          )}
+        </CardContent>
       </Card>
     );
   }
 
-  // --- Builder Mode (Static/Preview) ---
   return (
-    <Card className="rounded-none shadow-none">
-      <Q html={props.questionText} />
-      <input
-        type="number"
-        readOnly
-        value={props.defaultValue}
-        placeholder={props.placeholder || '0'}
-        className={inp}
-      />
+    <Card>
+      <CardContent className="space-y-3">
+        <Label className="block text-base font-semibold">
+          {props.questionText}
+        </Label>
+        <Input
+          type="number"
+          readOnly
+          value={props.defaultValue}
+          placeholder={props.placeholder || '0'}
+          disabled
+        />
+      </CardContent>
     </Card>
   );
 }
@@ -156,15 +161,17 @@ export function NumberPropsRenderer({
         </div>
       </div>
 
-      <label className="flex items-center gap-2 text-sm text-foreground">
-        <input
-          type="checkbox"
-          checked={!!validation?.required}
-          onChange={() => uv(instanceId, { required: !validation?.required })}
-          className="accent-primary"
-        />
-        Required
-      </label>
+      <div className="pt-1">
+        <label className="flex items-center justify-between text-xs text-muted-foreground">
+          Required
+          <input
+            type="checkbox"
+            checked={!!validation?.required}
+            onChange={() => uv(instanceId, { required: !validation?.required })}
+            className="accent-primary"
+          />
+        </label>
+      </div>
 
       <div>
         <label className={lbl}>Minimum Value</label>

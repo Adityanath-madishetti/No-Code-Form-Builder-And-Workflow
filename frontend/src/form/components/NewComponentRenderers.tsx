@@ -21,7 +21,6 @@ import type {
   SingleChoiceGridProps,
   MultiChoiceGridProps,
   MatrixTableProps,
-  NameBlockProps,
   ColorPickerProps,
   SignatureProps,
   LocationProps,
@@ -262,85 +261,6 @@ export function MatrixTableRenderer({
 // ════════════════════════════════════════
 //  BLOCKS
 // ════════════════════════════════════════
-
-
-export function NameBlockRenderer({
-  props,
-}: RendererProps<NameBlockProps, BasicValidation>) {
-  return (
-    <Card>
-      <Q html={props.questionText} />
-      <div className="flex flex-col gap-1.5">
-        {props.showPrefix && (
-          <div>
-            <label className={lbl}>Prefix</label>
-            <input placeholder="Mr/Ms/Dr" className={inp} />
-          </div>
-        )}
-        <div className="flex gap-1.5">
-          <div className="flex-1">
-            <label className={lbl}>First Name</label>
-            <input placeholder="First" className={inp} />
-          </div>
-          {props.showMiddleName && (
-            <div className="flex-1">
-              <label className={lbl}>Middle</label>
-              <input placeholder="Middle" className={inp} />
-            </div>
-          )}
-          <div className="flex-1">
-            <label className={lbl}>Last Name</label>
-            <input placeholder="Last" className={inp} />
-          </div>
-        </div>
-        {props.showSuffix && (
-          <div>
-            <label className={lbl}>Suffix</label>
-            <input placeholder="Jr/Sr" className={inp} />
-          </div>
-        )}
-      </div>
-    </Card>
-  );
-}
-
-export function NameBlockPropsRenderer({
-  instanceId,
-  props,
-}: RendererProps<NameBlockProps, BasicValidation>) {
-  const u = useFormStore((s) => s.updateComponentProps);
-  return (
-    <div className="space-y-4">
-      <label className="flex items-center gap-2 text-sm text-foreground">
-        <input
-          type="checkbox"
-          checked={props.showPrefix}
-          onChange={(e) => u(instanceId, { showPrefix: e.target.checked })}
-          className="accent-primary"
-        />
-        Show Prefix
-      </label>
-      <label className="flex items-center gap-2 text-sm text-foreground">
-        <input
-          type="checkbox"
-          checked={props.showMiddleName}
-          onChange={(e) => u(instanceId, { showMiddleName: e.target.checked })}
-          className="accent-primary"
-        />
-        Show Middle Name
-      </label>
-      <label className="flex items-center gap-2 text-sm text-foreground">
-        <input
-          type="checkbox"
-          checked={props.showSuffix}
-          onChange={(e) => u(instanceId, { showSuffix: e.target.checked })}
-          className="accent-primary"
-        />
-        Show Suffix
-      </label>
-    </div>
-  );
-}
 
 // ════════════════════════════════════════
 //  SPECIALTY

@@ -1,5 +1,9 @@
 // src/form/components/textBox.ts
-import type { BaseComponentProps, BasicValidation, ComponentMetadata } from '../base';
+import type {
+  BaseComponentProps,
+  BasicValidation,
+  ComponentMetadata,
+} from '../base';
 import { ComponentIDs, createComponent } from '../base';
 import type { FormComponent } from '../base';
 
@@ -11,8 +15,8 @@ import {
   sharedProseClasses,
 } from '@/components/RichTextEditor';
 
-import { FormThemeProvider } from '@/form/theme/FormThemeProvider';
 import { nanoid } from 'nanoid';
+import { Card, CardContent } from '@/components/ui/card';
 
 export interface TextBoxProps extends BaseComponentProps {
   text: string;
@@ -43,16 +47,14 @@ export const TextBoxComponentRenderer = ({
   props,
 }: RendererProps<TextBoxProps, BasicValidation>) => {
   return (
-    <FormThemeProvider>
-      <div className="w-full border border-border">
-        <div className="px-4 py-2 text-foreground">
-          <div
-            className={sharedProseClasses}
-            dangerouslySetInnerHTML={{ __html: props.text }}
-          />
-        </div>
-      </div>
-    </FormThemeProvider>
+    <Card>
+      <CardContent className="">
+        <div
+          className={sharedProseClasses}
+          dangerouslySetInnerHTML={{ __html: props.text }}
+        />
+      </CardContent>
+    </Card>
   );
 };
 

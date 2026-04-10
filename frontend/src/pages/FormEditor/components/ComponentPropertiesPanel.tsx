@@ -11,16 +11,6 @@ import { getComponentPropsRenderer } from '@/form/registry/componentRegistry';
 import { Settings2, EyeOff } from 'lucide-react';
 import { useMemo } from 'react';
 
-function supportsOptionShuffle(props: unknown): boolean {
-  if (!props || typeof props !== 'object') return false;
-  const anyProps = props as Record<string, unknown>;
-  const optionLike =
-    Array.isArray(anyProps.options) ||
-    Array.isArray(anyProps.columns) ||
-    Array.isArray(anyProps.rows);
-  return optionLike;
-}
-
 // function supportsHidden(props: unknown): boolean {
 //   if (!props || typeof props !== 'object') return false;
 //   return 'hidden' in (props as object);
@@ -65,15 +55,9 @@ export function ComponentPropertiesPanel() {
   // Component selected
   if (!component) return null;
 
-  // const SettingsRenderer = getComponentPropsRenderer(component.id);
-  const optionShuffleEnabled =
-    ((component.props as unknown as Record<string, unknown>)?.shuffleOptions as
-      | boolean
-      | undefined) === true;
   const hiddenByDefault =
-    ((component.props as unknown as Record<string, unknown>)?.hiddenByDefault as
-      | boolean
-      | undefined) === true;
+    ((component.props as unknown as Record<string, unknown>)
+      ?.hiddenByDefault as boolean | undefined) === true;
 
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -104,23 +88,6 @@ export function ComponentPropertiesPanel() {
             props={component.props}
             validation={component.validation}
           />
-        </div>
-      )}
-
-      {supportsOptionShuffle(component.props) && (
-        <div className="border-t border-border pt-3">
-          <label className="flex items-center justify-between text-xs text-muted-foreground">
-            Option Shuffling
-            <input
-              type="checkbox"
-              checked={optionShuffleEnabled}
-              onChange={(e) =>
-                updateComponentProps(component.instanceId, {
-                  shuffleOptions: e.target.checked,
-                })
-              }
-            />
-          </label>
         </div>
       )}
 
@@ -163,6 +130,7 @@ export function ComponentPropertiesPanel() {
                 hiddenByDefault: e.target.checked,
               })
             }
+            className="accent-primary"
           />
         </label>
         {hiddenByDefault && (

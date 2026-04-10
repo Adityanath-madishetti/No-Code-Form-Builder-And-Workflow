@@ -7,10 +7,15 @@ import type {
 } from '../base';
 import { ComponentIDs, createComponent } from '../base';
 
-import { inp, lbl, Card, Q } from '../ComponentRender.Helper';
+import { inp, lbl } from '../ComponentRender.Helper';
 import { useFormContext } from 'react-hook-form';
 import { useFormMode } from '@/form/context/FormModeContext';
 import { nanoid } from 'nanoid';
+
+import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
+import { Controller } from 'react-hook-form';
 
 export interface SliderProps extends BaseComponentProps {
   questionText: string;
@@ -61,37 +66,29 @@ export function SliderRenderer({
   const formMode = useFormMode();
   const formContext = useFormContext();
 
-  // --- View Mode (Live Form with Validation) ---
-  if (formMode === 'view' && formContext) {
-    if (!formContext) {
-      console.error('SliderRenderer is not wrapped in a FormProvider.');
-      return null;
-    }
+  // Fallback value if nothing is set
+  const initialValue = props.defaultValue ?? props.min ?? 0;
 
+  if (formMode === 'view' && formContext) {
     const {
-      register,
-      watch,
+      control,
       formState: { errors },
     } = formContext;
 
-    // Watch the current value so we can display it dynamically
-    const currentValue = watch(instanceId) ?? props.defaultValue;
-
     return (
-      <Card className="rounded-none shadow-none">
-        <Q html={props.questionText} />
-        <div className="flex items-center gap-3">
-          <span className="text-[10px] text-muted-foreground">{props.min}</span>
-          <input
-            type="range"
-            min={props.min}
-            max={props.max}
-            step={props.step}
-            defaultValue={props.defaultValue}
-            className="flex-1 accent-primary"
-            {...register(instanceId, {
+      <Card>
+        <CardContent className="space-y-3">
+          <Label
+            className="block text-base font-semibold"
+            dangerouslySetInnerHTML={{ __html: props.questionText }}
+          />
+
+          <Controller
+            control={control}
+            name={instanceId}
+            defaultValue={initialValue}
+            rules={{
               required: validation?.required ? 'This field is required' : false,
-              valueAsNumber: true,
               min:
                 validation?.minValue !== undefined
                   ? {
@@ -106,42 +103,67 @@ export function SliderRenderer({
                       message: `Value cannot exceed ${validation.maxValue}`,
                     }
                   : undefined,
-            })}
+            }}
+            render={({ field }) => (
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-muted-foreground">
+                  {props.min}
+                </span>
+                <Slider
+                  min={props.min}
+                  max={props.max}
+                  step={props.step}
+                  // Radix Slider expects an array for its value
+                  value={[
+                    field.value !== undefined ? field.value : initialValue,
+                  ]}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  onValueChange={(vals: any[]) => field.onChange(vals[0])}
+                  className="flex-1"
+                />
+                <span className="text-xs text-muted-foreground">
+                  {props.max}
+                </span>
+                <span className="w-8 text-center text-sm font-semibold">
+                  {field.value !== undefined ? field.value : initialValue}
+                </span>
+              </div>
+            )}
           />
-          <span className="text-[10px] text-muted-foreground">{props.max}</span>
-          <span className="w-8 text-center text-sm font-semibold">
-            {currentValue}
-          </span>
-        </div>
-        {errors[instanceId] && (
-          <p className="mt-1 text-sm text-red-500">
-            {errors[instanceId]?.message as string}
-          </p>
-        )}
+
+          {errors[instanceId] && (
+            <p className="text-[0.8rem] font-medium text-destructive">
+              {errors[instanceId]?.message as string}
+            </p>
+          )}
+        </CardContent>
       </Card>
     );
   }
 
-  // --- Builder Mode (Static/Preview) ---
   return (
-    <Card className="rounded-none shadow-none">
-      <Q html={props.questionText} />
-      <div className="flex items-center gap-3">
-        <span className="text-[10px] text-muted-foreground">{props.min}</span>
-        <input
-          type="range"
-          min={props.min}
-          max={props.max}
-          step={props.step}
-          value={props.defaultValue}
-          disabled // Prevents interaction in the builder canvas
-          className="flex-1 accent-primary opacity-70"
+    <Card>
+      <CardContent className="space-y-3">
+        <Label
+          className="block text-base font-semibold"
+          dangerouslySetInnerHTML={{ __html: props.questionText }}
         />
-        <span className="text-[10px] text-muted-foreground">{props.max}</span>
-        <span className="w-8 text-center text-sm font-semibold">
-          {props.defaultValue}
-        </span>
-      </div>
+        <div className="flex items-center gap-3 opacity-70">
+          <span className="text-xs text-muted-foreground">{props.min}</span>
+          <Slider
+            min={props.min}
+            max={props.max}
+            step={props.step}
+            defaultValue={[initialValue]}
+            disabled
+            className="flex-1"
+          />
+          <span className="text-xs text-muted-foreground">{props.max}</span>
+          <span className="w-8 text-center text-sm font-semibold">
+            {initialValue}
+          </span>
+        </div>
+      </CardContent>
     </Card>
   );
 }
@@ -214,15 +236,16 @@ export function SliderPropsRenderer({
         </div>
       </div>
 
-      <label className="flex items-center gap-2 text-sm text-foreground">
-        <input
-          type="checkbox"
-          checked={!!validation?.required}
-          onChange={() => uv(instanceId, { required: !validation?.required })}
-          className="accent-primary"
-        />
-        Required
-      </label>
+      <div className="pt-1">
+        <label className="flex items-center justify-between text-xs text-muted-foreground">
+          Required
+          <input
+            type="checkbox"
+            checked={!!validation?.required}
+            onChange={() => uv(instanceId, { required: !validation?.required })}
+          />
+        </label>
+      </div>
 
       <div>
         <label className={lbl}>Minimum Allowed Value</label>
