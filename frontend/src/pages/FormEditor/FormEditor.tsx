@@ -268,7 +268,7 @@ export default function FormEditor() {
   const currentVersion = useFormStore((s) => s.currentVersion);
 
   const handleSave = useCallback(async () => {
-    if (!formId || !form) return;
+    if (!formId || !form) return false;
     setSaving(true);
     try {
       // Always create a new version on save
@@ -300,8 +300,10 @@ export default function FormEditor() {
         logicState.formulas,
         logicState.componentShuffleStacks
       );
+      return true;
     } catch (err) {
       console.error('Save failed:', err);
+      return false;
     } finally {
       setSaving(false);
     }

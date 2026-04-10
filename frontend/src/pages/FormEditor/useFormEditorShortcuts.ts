@@ -67,7 +67,7 @@ export interface UseFormEditorShortcutsParams {
   setEditorView: (v: FormEditorView) => void;
   setShowDebug: React.Dispatch<React.SetStateAction<boolean>>;
   hasSelection: boolean;
-  onSave: () => void | Promise<void>;
+  onSave: () => boolean | Promise<boolean>;
   onPreview: () => void;
   onOpenShortcutsHelp: () => void;
 }

@@ -5,6 +5,7 @@ import './styles/index.css';
 import App from './App.tsx';
 import { ThemeProvider } from '@/components/theme-provider.tsx';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { Toaster } from '@/components/ui/sonner';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -13,5 +14,6 @@ createRoot(document.getElementById('root')!).render(
         <App />
       </TooltipProvider>
     </ThemeProvider>
+    <Toaster />
   </StrictMode>
 );
