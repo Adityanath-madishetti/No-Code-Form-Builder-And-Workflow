@@ -420,6 +420,9 @@ export function LogicPlayground({ onClose }: LogicPlaygroundProps) {
               </Button>
             )}
           </section>
+          <p className="text-[10px] leading-tight font-medium text-red-500/90">
+            * Important: If you use skip page, add an else action also.
+          </p>
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
 // src/form/renderer/viewRenderer/FormRunner.tsx
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { runtimeFormSelector, useRuntimeFormStore } from './runtimeForm.store';
 import { useShallow } from 'zustand/react/shallow';
@@ -108,6 +108,7 @@ export function FormRunner() {
     const visibilityPatch: Record<string, boolean> = {};
     const enabledPatch: Record<string, boolean> = {};
     const valuePatch: Record<string, unknown> = {};
+    let skipPageTarget: string | null = null;
 
     actions.forEach((action) => {
       // If multiple rules target the same component, the last one evaluated wins.
@@ -128,7 +129,7 @@ export function FormRunner() {
           valuePatch[action.targetId] = action.value;
           break;
         case 'SKIP_PAGE':
-          // store.addSkippedPage(action.targetId);
+          skipPageTarget = action.targetId;
           break;
       }
     });
@@ -158,6 +159,17 @@ export function FormRunner() {
         });
       }
     });
+
+    // Apply SKIP_PAGE Routing
+    if (skipPageTarget) {
+      const currentPageId = store.renderState?.currentPageId;
+      if (currentPageId) {
+        // Overwrite the forward pointer for the "Next" button
+        store.setNextPageOfPage(currentPageId, skipPageTarget);
+        // Overwrite the backward pointer for the "Back" button on the target page
+        store.setPreviousPageOfPage(skipPageTarget, currentPageId);
+      }
+    }
   };
 
   useEffect(() => {

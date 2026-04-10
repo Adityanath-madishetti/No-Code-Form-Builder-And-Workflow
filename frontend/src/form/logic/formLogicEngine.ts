@@ -232,6 +232,8 @@ export class FormLogicEngine {
           else if (action.type === 'SET_VALUE') {
             inverseAction.type = 'SET_VALUE';
             inverseAction.value = ''; // Clear the field when the rule fails
+          } else if (action.type === 'SKIP_PAGE') {
+            return; // NOTE: Do not auto-revert skips. They rely on explicit ELSE actions to revert.
           }
           actionsToProcess.push(inverseAction);
         }
