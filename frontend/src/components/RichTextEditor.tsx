@@ -543,7 +543,7 @@ export const RichTextEditor = ({
         w-full rounded-md border border-input bg-card 
         px-4 py-3 text-sm placeholder:text-muted-foreground 
         focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 
-        min-h-[100px] cursor-text rounded-none
+        min-h-[100px] cursor-text rounded-none [&_a]:pointer-events-none
         ${sharedProseClasses}
         `
           .replace(/\s+/g, ' ')

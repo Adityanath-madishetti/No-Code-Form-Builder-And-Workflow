@@ -24,6 +24,7 @@ export function useFormDragHandlers() {
   const removePage = useFormStore((s) => s.removePage);
   const removeComponent = useFormStore((s) => s.removeComponent);
   const setActiveComponent = useFormStore((s) => s.setActiveComponent);
+  const setActivePage = useFormStore((s) => s.setActivePage);
   const refreshCatalog = useFormStore((s) => s.refreshCatalog);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -337,6 +338,7 @@ export function useFormDragHandlers() {
           console.log(`[DND-End] Generated new component ID: ${realId}`);
           addComponent(currentPage.id, realComponent, finalIndex);
           setActiveComponent(realId);
+          setActivePage(null);
           refreshCatalog();
         } else {
           console.warn(

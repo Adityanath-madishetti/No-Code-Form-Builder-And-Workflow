@@ -88,6 +88,7 @@ export default function FormEditor() {
   const setCurrentVersionInStore = useFormStore((s) => s.setCurrentVersion);
   const addPage = useFormStore((s) => s.addPage);
   const setActiveComponent = useFormStore((s) => s.setActiveComponent);
+  const setActivePage = useFormStore((s) => s.setActivePage);
   const { user } = useAuth();
 
   const clearSelectedComponents = useFormStore(
@@ -260,6 +261,7 @@ export default function FormEditor() {
 
   const handleCanvasClick = () => {
     setActiveComponent(null);
+    setActivePage(null);
     clearSelectedComponents();
   };
 

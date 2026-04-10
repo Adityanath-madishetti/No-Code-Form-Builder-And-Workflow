@@ -12,7 +12,11 @@ import { Button } from '@/components/ui/button';
 
 import type { PublicFormData } from '@/form/renderer/viewRenderer/runtimeForm.types';
 import { api } from '@/lib/api';
-import { useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { Loader2 } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
+import { sharedProseClasses } from '@/components/RichTextEditor';
 
 let globalGetValues: ((instanceId: string) => unknown) | null = null;
 
@@ -31,6 +35,9 @@ export function FormRunner() {
   const { formId } = useParams<{ formId: string }>();
   const [globalFormError, setGlobalFormError] = useState('');
   const [globalFormLoading, setGlobalFormLoading] = useState(true);
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [userEmail, setUserEmail] = useState('');
 
   const { initRuntimeForm } = useRuntimeFormStore();
 
@@ -41,12 +48,12 @@ export function FormRunner() {
       .then((res) => {
         console.log('shitres', res);
         initRuntimeForm(res);
-
-        //   if (user?.email) setEmail(user.email);
+        if (user?.email) setUserEmail(user.email);
       })
       .catch((err) => setGlobalFormError(err.message || 'Form not found'))
       .finally(() => setGlobalFormLoading(false));
-  }, [formId, initRuntimeForm]);
+  }, [formId, initRuntimeForm, user?.email]);
+
   const methods = useForm<Record<string, unknown>>({
     shouldUnregister: false,
     defaultValues: {},
@@ -79,7 +86,7 @@ export function FormRunner() {
       logicEngineRef.current = new FormLogicEngine(rules, formulas);
       triggerLogicEvaluation(methods.getValues());
     }
-  }, [formData, methods]);
+  });
 
   const triggerLogicEvaluation = async (
     currentValues: Record<string, unknown>
@@ -177,9 +184,8 @@ export function FormRunner() {
     const subscription = methods.watch((value) => {
       triggerLogicEvaluation(value as Record<string, unknown>);
     });
-
     return () => subscription.unsubscribe();
-  }, [methods, methods.watch]);
+  });
 
   useEffect(() => {
     globalGetValues = methods.getValues;
@@ -217,9 +223,79 @@ export function FormRunner() {
     }
   };
 
+  if (globalFormLoading) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <p className="animate-pulse text-sm font-medium text-muted-foreground">
+          Loading form...
+        </p>
+      </div>
+    );
+  }
+
+  // TODO: add auth requirement part
+  // if (globalFormError && !formData) {
+  //   const requiresLogin = /authentication required/i.test(globalFormError);
+  //   return (
+  //     <div className="flex min-h-screen flex-col items-center justify-center gap-3 px-4 text-center">
+  //       <p className="text-sm text-destructive">
+  //         {globalFormError || 'Form not found'}
+  //       </p>
+  //       {requiresLogin ? (
+  //         <Button asChild>
+  //           <Link to="/login">
+  //             <LogIn className="mr-1.5 h-4 w-4" />
+  //             Log In
+  //           </Link>
+  //         </Button>
+  //       ) : (
+  //         <Button variant="outline" size="sm" onClick={() => navigate('/')}>
+  //           Back
+  //         </Button>
+  //       )}
+  //     </div>
+  //   );
+  // }
+
+  if (globalFormError || !formData) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background px-4 text-center">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
+          <AlertCircle className="h-5 w-5 text-destructive" />
+        </div>
+        <div className="flex flex-col gap-1">
+          <p className="text-sm font-medium text-foreground">
+            Error loading form
+          </p>
+          <p className="max-w-sm text-sm text-muted-foreground">
+            {globalFormError ||
+              'We could not find the form you are looking for.'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <FormProvider {...methods}>
       <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
+        <div>
+          <div className="w-full bg-transparent text-5xl font-bold tracking-tight text-foreground outline-none placeholder:text-muted-foreground/20">
+            {formData.form.title}
+          </div>
+
+          <div
+            className={sharedProseClasses}
+            dangerouslySetInnerHTML={{
+              __html: formData.version.meta.description,
+            }}
+          />
+
+          {/* <p className="text-md h-auto w-full bg-transparent tracking-tight text-foreground placeholder:text-muted-foreground/20">
+            {formData.version.meta.description}
+          </p> */}
+        </div>
         {/* Render the components for the active page */}
         <div className="space-y-4">
           {componentsData.length === 0 ? (
