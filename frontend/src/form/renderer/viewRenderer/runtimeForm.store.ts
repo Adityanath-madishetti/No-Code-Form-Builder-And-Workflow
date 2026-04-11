@@ -14,8 +14,8 @@ interface PageRenderState {
   pageId: PageID;
   pageIndex: number;
   ComponentStates: Record<InstanceID, ComponentRenderState>;
-  previousPageId: PageID | undefined;
-  nextPageId: PageID | undefined;
+  previousPageId: PageID | null;
+  nextPageId: PageID | null;
 }
 
 interface FormRenderState {
@@ -62,10 +62,10 @@ interface RuntimeFormStore {
   setComponentVisibility: (instanceId: InstanceID, isVisible: boolean) => void;
   setComponentEnabled: (instanceId: InstanceID, isEnabled: boolean) => void;
 
-  setNextPageOfPage: (pageId: PageID, nextPageId: PageID | undefined) => void;
+  setNextPageOfPage: (pageId: PageID, nextPageId: PageID | null) => void;
   setPreviousPageOfPage: (
     pageId: PageID,
-    previousPageId: PageID | undefined
+    previousPageId: PageID | null
   ) => void;
   setActivePage: (pageId: PageID) => void;
 }
@@ -97,12 +97,12 @@ export const useRuntimeFormStore = create<RuntimeFormStore>()(
               ComponentStates: componentStates,
               previousPageId:
                 page.defaultPreviousPageId ??
-                (index > 0 ? data.version.pages[index - 1].pageId : undefined),
+                (index > 0 ? data.version.pages[index - 1].pageId : null),
               nextPageId:
                 page.defaultNextPageId ??
                 (index < data.version.pages.length - 1
                   ? data.version.pages[index + 1].pageId
-                  : undefined),
+                  : null),
             };
           });
 

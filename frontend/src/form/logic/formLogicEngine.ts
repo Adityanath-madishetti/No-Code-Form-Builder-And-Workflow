@@ -254,11 +254,11 @@ export class FormLogicEngine {
 
           // FIX: Absolute Symmetry applied here!
           if (passed) {
-            processActionList(action.thenActions || []);
             gatherAutoRevertActions(action.elseActions || []); // Clean up the Else branch
+            processActionList(action.thenActions || []);
           } else {
-            processActionList(action.elseActions || []);
             gatherAutoRevertActions(action.thenActions || []); // Clean up the Then branch
+            processActionList(action.elseActions || []);
           }
         } else {
           actionsToProcess.push(action);
@@ -270,8 +270,8 @@ export class FormLogicEngine {
     events.forEach((event) => {
       const originalRule = this.rulesMap.get(event.params?.ruleId);
       if (originalRule) {
-        processActionList(originalRule.thenActions);
         gatherAutoRevertActions(originalRule.elseActions); // Clean up root Else
+        processActionList(originalRule.thenActions);
       }
     });
 
@@ -279,8 +279,8 @@ export class FormLogicEngine {
     failureEvents.forEach((event) => {
       const originalRule = this.rulesMap.get(event.params?.ruleId);
       if (originalRule) {
-        processActionList(originalRule.elseActions);
         gatherAutoRevertActions(originalRule.thenActions); // Clean up root Then
+        processActionList(originalRule.elseActions);
       }
     });
 

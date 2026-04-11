@@ -600,9 +600,9 @@ export function FormRunner() {
         // Step A: Reset all pages to their default sequential routing.
         // This automatically "reverts" navigation if a skip condition is no longer met.
         pages.forEach((page, index) => {
-          const prevId = index > 0 ? pages[index - 1].pageId : undefined;
+          const prevId = index > 0 ? pages[index - 1].pageId : null;
           const nextId =
-            index < pages.length - 1 ? pages[index + 1].pageId : undefined;
+            index < pages.length - 1 ? pages[index + 1].pageId : null;
           store.setPreviousPageOfPage(page.pageId, prevId);
           store.setNextPageOfPage(page.pageId, nextId);
         });
