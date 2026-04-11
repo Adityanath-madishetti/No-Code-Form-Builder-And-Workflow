@@ -1,5 +1,5 @@
 // src/form/renderer/viewRenderer/FormRunner.tsx
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm, FormProvider, type UseFormReturn } from 'react-hook-form';
 import {
   runtimeFormSelector,
@@ -519,153 +519,154 @@ export function FormRunner() {
   const cascadeCount = useRef(0);
   const cascadeResetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const triggerLogicEvaluation = async (
-    currentValues: Record<string, unknown>
-  ) => {
-    if (!logicEngineRef.current) return;
+  const triggerLogicEvaluation = useCallback(
+    async (currentValues: Record<string, unknown>) => {
+      if (!logicEngineRef.current) return;
 
-    if (cascadeCount.current > 10) {
-      console.error(
-        'Logic Circuit Breaker Tripped! Infinite loop detected and aborted.'
-      );
-      return;
-    }
-
-    cascadeCount.current++;
-    if (cascadeResetTimer.current) clearTimeout(cascadeResetTimer.current);
-    cascadeResetTimer.current = setTimeout(() => {
-      cascadeCount.current = 0; // Reset after things settle down
-    }, 100);
-
-    const { actions, computedValues } =
-      await logicEngineRef.current.evaluate(currentValues);
-
-    // --- 2. ACTION DEDUPLICATION (The "Partial Ordering") ---
-    const visibilityPatch: Record<string, boolean> = {};
-    const enabledPatch: Record<string, boolean> = {};
-    const valuePatch: Record<string, unknown> = {};
-    // Separate SKIP actions to be processed based on their origin page
-    const skipActions = actions.filter((a) => a.type === 'SKIP_PAGE');
-
-    actions.forEach((action) => {
-      // If multiple rules target the same component, the last one evaluated wins.
-      switch (action.type) {
-        case 'SHOW':
-          visibilityPatch[action.targetId] = true;
-          break;
-        case 'HIDE':
-          visibilityPatch[action.targetId] = false;
-          break;
-        case 'ENABLE':
-          enabledPatch[action.targetId] = true;
-          break;
-        case 'DISABLE':
-          enabledPatch[action.targetId] = false;
-          break;
-        case 'SET_VALUE':
-          valuePatch[action.targetId] = action.value;
-          break;
-        // case 'SKIP_PAGE': handled separately
+      if (cascadeCount.current > 10) {
+        console.error(
+          'Logic Circuit Breaker Tripped! Infinite loop detected and aborted.'
+        );
+        return;
       }
-    });
 
-    // Formulas take precedence over standard SET_VALUE actions
-    Object.entries(computedValues).forEach(([targetId, computedValue]) => {
-      valuePatch[targetId] = computedValue;
-    });
+      cascadeCount.current++;
+      if (cascadeResetTimer.current) clearTimeout(cascadeResetTimer.current);
+      cascadeResetTimer.current = setTimeout(() => {
+        cascadeCount.current = 0; // Reset after things settle down
+      }, 100);
 
-    // --- 3. APPLY PATCHES CLEANLY ---
-    const store = useRuntimeFormStore.getState();
+      const { actions, computedValues } =
+        await logicEngineRef.current.evaluate(currentValues);
 
-    Object.entries(visibilityPatch).forEach(([targetId, isVisible]) => {
-      store.setComponentVisibility(targetId, isVisible);
-    });
+      // --- 2. ACTION DEDUPLICATION (The "Partial Ordering") ---
+      const visibilityPatch: Record<string, boolean> = {};
+      const enabledPatch: Record<string, boolean> = {};
+      const valuePatch: Record<string, unknown> = {};
+      // Separate SKIP actions to be processed based on their origin page
+      const skipActions = actions.filter((a) => a.type === 'SKIP_PAGE');
 
-    Object.entries(enabledPatch).forEach(([targetId, isEnabled]) => {
-      store.setComponentEnabled(targetId, isEnabled);
-    });
-
-    // Apply values to React Hook Form (Strictly checking to prevent trigger loops)
-    Object.entries(valuePatch).forEach(([targetId, newValue]) => {
-      if (currentValues[targetId] !== newValue) {
-        methods.setValue(targetId, newValue, {
-          shouldValidate: true,
-          shouldDirty: true,
-        });
-      }
-    });
-
-    if (formData) {
-      const pages = formData.version.pages;
-
-      // Step A: Reset all pages to their default sequential routing.
-      // This automatically "reverts" navigation if a skip condition is no longer met.
-      pages.forEach((page, index) => {
-        const prevId = index > 0 ? pages[index - 1].pageId : undefined;
-        const nextId =
-          index < pages.length - 1 ? pages[index + 1].pageId : undefined;
-        store.setPreviousPageOfPage(page.pageId, prevId);
-        store.setNextPageOfPage(page.pageId, nextId);
+      actions.forEach((action) => {
+        // If multiple rules target the same component, the last one evaluated wins.
+        switch (action.type) {
+          case 'SHOW':
+            visibilityPatch[action.targetId] = true;
+            break;
+          case 'HIDE':
+            visibilityPatch[action.targetId] = false;
+            break;
+          case 'ENABLE':
+            enabledPatch[action.targetId] = true;
+            break;
+          case 'DISABLE':
+            enabledPatch[action.targetId] = false;
+            break;
+          case 'SET_VALUE':
+            valuePatch[action.targetId] = action.value;
+            break;
+          // case 'SKIP_PAGE': handled separately
+        }
       });
 
-      // Helper to recursively find the first instanceId in a logic condition tree
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const findInstanceId = (cond: any): string | null => {
-        if (cond?.type === 'leaf') return cond.instanceId;
-        if (cond?.type === 'group' && Array.isArray(cond.conditions)) {
-          for (const c of cond.conditions) {
-            const id = findInstanceId(c);
-            if (id) return id;
-          }
-        }
-        return null;
-      };
+      // Formulas take precedence over standard SET_VALUE actions
+      Object.entries(computedValues).forEach(([targetId, computedValue]) => {
+        valuePatch[targetId] = computedValue;
+      });
 
-      // Helper to find if an action ID exists inside nested logic arrays
-      const actionExistsInTree = (
+      // --- 3. APPLY PATCHES CLEANLY ---
+      const store = useRuntimeFormStore.getState();
+
+      Object.entries(visibilityPatch).forEach(([targetId, isVisible]) => {
+        store.setComponentVisibility(targetId, isVisible);
+      });
+
+      Object.entries(enabledPatch).forEach(([targetId, isEnabled]) => {
+        store.setComponentEnabled(targetId, isEnabled);
+      });
+
+      // Apply values to React Hook Form (Strictly checking to prevent trigger loops)
+      Object.entries(valuePatch).forEach(([targetId, newValue]) => {
+        if (currentValues[targetId] !== newValue) {
+          methods.setValue(targetId, newValue, {
+            shouldValidate: true,
+            shouldDirty: true,
+          });
+        }
+      });
+
+      if (formData) {
+        const pages = formData.version.pages;
+
+        // Step A: Reset all pages to their default sequential routing.
+        // This automatically "reverts" navigation if a skip condition is no longer met.
+        pages.forEach((page, index) => {
+          const prevId = index > 0 ? pages[index - 1].pageId : undefined;
+          const nextId =
+            index < pages.length - 1 ? pages[index + 1].pageId : undefined;
+          store.setPreviousPageOfPage(page.pageId, prevId);
+          store.setNextPageOfPage(page.pageId, nextId);
+        });
+
+        // Helper to recursively find the first instanceId in a logic condition tree
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        actionsTree: any[],
-        actionId: string
-      ): boolean => {
-        if (!actionsTree) return false;
-        for (const a of actionsTree) {
-          if (a.id === actionId) return true;
-          if (a.type === 'CONDITIONAL') {
-            if (actionExistsInTree(a.thenActions, actionId)) return true;
-            if (actionExistsInTree(a.elseActions, actionId)) return true;
-          }
-        }
-        return false;
-      };
-
-      // Step B: Apply active skips dynamically to their specific origin pages
-      skipActions.forEach((action) => {
-        // 1. Find the rule that generated this action
-        const rule = formData.version.logic?.rules?.find(
-          (r) =>
-            actionExistsInTree(r.thenActions, action.id) ||
-            actionExistsInTree(r.elseActions, action.id)
-        );
-
-        if (rule) {
-          // 2. Extract the instanceId that triggers the rule
-          const instanceId = findInstanceId(rule.condition);
-          if (instanceId) {
-            // 3. Find the page that contains that component
-            const sourcePage = pages.find((p) =>
-              p.components.some((c) => c.componentId === instanceId)
-            );
-
-            // 4. Overwrite pointers for the origin page specifically
-            if (sourcePage) {
-              store.setNextPageOfPage(sourcePage.pageId, action.targetId);
-              store.setPreviousPageOfPage(action.targetId, sourcePage.pageId);
+        const findInstanceId = (cond: any): string | null => {
+          if (cond?.type === 'leaf') return cond.instanceId;
+          if (cond?.type === 'group' && Array.isArray(cond.conditions)) {
+            for (const c of cond.conditions) {
+              const id = findInstanceId(c);
+              if (id) return id;
             }
           }
-        }
-      });
-    }
-  };
+          return null;
+        };
+
+        // Helper to find if an action ID exists inside nested logic arrays
+        const actionExistsInTree = (
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          actionsTree: any[],
+          actionId: string
+        ): boolean => {
+          if (!actionsTree) return false;
+          for (const a of actionsTree) {
+            if (a.id === actionId) return true;
+            if (a.type === 'CONDITIONAL') {
+              if (actionExistsInTree(a.thenActions, actionId)) return true;
+              if (actionExistsInTree(a.elseActions, actionId)) return true;
+            }
+          }
+          return false;
+        };
+
+        // Step B: Apply active skips dynamically to their specific origin pages
+        skipActions.forEach((action) => {
+          // 1. Find the rule that generated this action
+          const rule = formData.version.logic?.rules?.find(
+            (r) =>
+              actionExistsInTree(r.thenActions, action.id) ||
+              actionExistsInTree(r.elseActions, action.id)
+          );
+
+          if (rule) {
+            // 2. Extract the instanceId that triggers the rule
+            const instanceId = findInstanceId(rule.condition);
+            if (instanceId) {
+              // 3. Find the page that contains that component
+              const sourcePage = pages.find((p) =>
+                p.components.some((c) => c.componentId === instanceId)
+              );
+
+              // 4. Overwrite pointers for the origin page specifically
+              if (sourcePage) {
+                store.setNextPageOfPage(sourcePage.pageId, action.targetId);
+                store.setPreviousPageOfPage(action.targetId, sourcePage.pageId);
+              }
+            }
+          }
+        });
+      }
+    },
+    [formData, methods]
+  );
 
   // Only re-run if the logic schema actually changes
   useEffect(() => {
@@ -689,7 +690,7 @@ export function FormRunner() {
     });
     return () => subscription.unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [methods]);
+  }, [methods.watch, triggerLogicEvaluation]);
 
   const onSubmit = async (data: Record<string, unknown>) => {
     if (!formId || !formData) return;

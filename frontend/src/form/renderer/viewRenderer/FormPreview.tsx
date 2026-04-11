@@ -1,5 +1,5 @@
 // src/form/renderer/viewRenderer/FormPreview.tsx
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { useShallow } from 'zustand/react/shallow';
 import { runtimeFormSelector, useRuntimeFormStore } from './runtimeForm.store';
@@ -109,137 +109,138 @@ export default function FormPreview() {
   const cascadeCount = useRef(0);
   const cascadeResetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const triggerLogicEvaluation = async (
-    currentValues: Record<string, unknown>
-  ) => {
-    if (!logicEngineRef.current) return;
+  const triggerLogicEvaluation = useCallback(
+    async (currentValues: Record<string, unknown>) => {
+      if (!logicEngineRef.current) return;
 
-    if (cascadeCount.current > 10) {
-      console.error(
-        'Logic Circuit Breaker Tripped! Infinite loop detected and aborted.'
-      );
-      return;
-    }
-
-    cascadeCount.current++;
-    if (cascadeResetTimer.current) clearTimeout(cascadeResetTimer.current);
-    cascadeResetTimer.current = setTimeout(() => {
-      cascadeCount.current = 0;
-    }, 100);
-
-    const { actions, computedValues } =
-      await logicEngineRef.current.evaluate(currentValues);
-
-    const visibilityPatch: Record<string, boolean> = {};
-    const enabledPatch: Record<string, boolean> = {};
-    const valuePatch: Record<string, unknown> = {};
-    const skipActions = actions.filter((a) => a.type === 'SKIP_PAGE');
-
-    actions.forEach((action) => {
-      switch (action.type) {
-        case 'SHOW':
-          visibilityPatch[action.targetId] = true;
-          break;
-        case 'HIDE':
-          visibilityPatch[action.targetId] = false;
-          break;
-        case 'ENABLE':
-          enabledPatch[action.targetId] = true;
-          break;
-        case 'DISABLE':
-          enabledPatch[action.targetId] = false;
-          break;
-        case 'SET_VALUE':
-          valuePatch[action.targetId] = action.value;
-          break;
+      if (cascadeCount.current > 10) {
+        console.error(
+          'Logic Circuit Breaker Tripped! Infinite loop detected and aborted.'
+        );
+        return;
       }
-    });
 
-    Object.entries(computedValues).forEach(([targetId, computedValue]) => {
-      valuePatch[targetId] = computedValue;
-    });
+      cascadeCount.current++;
+      if (cascadeResetTimer.current) clearTimeout(cascadeResetTimer.current);
+      cascadeResetTimer.current = setTimeout(() => {
+        cascadeCount.current = 0;
+      }, 100);
 
-    const store = useRuntimeFormStore.getState();
+      const { actions, computedValues } =
+        await logicEngineRef.current.evaluate(currentValues);
 
-    Object.entries(visibilityPatch).forEach(([targetId, isVisible]) => {
-      store.setComponentVisibility(targetId, isVisible);
-    });
+      const visibilityPatch: Record<string, boolean> = {};
+      const enabledPatch: Record<string, boolean> = {};
+      const valuePatch: Record<string, unknown> = {};
+      const skipActions = actions.filter((a) => a.type === 'SKIP_PAGE');
 
-    Object.entries(enabledPatch).forEach(([targetId, isEnabled]) => {
-      store.setComponentEnabled(targetId, isEnabled);
-    });
-
-    Object.entries(valuePatch).forEach(([targetId, newValue]) => {
-      if (currentValues[targetId] !== newValue) {
-        methods.setValue(targetId, newValue, {
-          shouldValidate: true,
-          shouldDirty: true,
-        });
-      }
-    });
-
-    // --- Pagination / Skip Logic ---
-    if (formData) {
-      const pages = formData.version.pages;
-
-      pages.forEach((page, index) => {
-        const prevId = index > 0 ? pages[index - 1].pageId : undefined;
-        const nextId =
-          index < pages.length - 1 ? pages[index + 1].pageId : undefined;
-        store.setPreviousPageOfPage(page.pageId, prevId);
-        store.setNextPageOfPage(page.pageId, nextId);
+      actions.forEach((action) => {
+        switch (action.type) {
+          case 'SHOW':
+            visibilityPatch[action.targetId] = true;
+            break;
+          case 'HIDE':
+            visibilityPatch[action.targetId] = false;
+            break;
+          case 'ENABLE':
+            enabledPatch[action.targetId] = true;
+            break;
+          case 'DISABLE':
+            enabledPatch[action.targetId] = false;
+            break;
+          case 'SET_VALUE':
+            valuePatch[action.targetId] = action.value;
+            break;
+        }
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const findInstanceId = (cond: any): string | null => {
-        if (cond?.type === 'leaf') return cond.instanceId;
-        if (cond?.type === 'group' && Array.isArray(cond.conditions)) {
-          for (const c of cond.conditions) {
-            const id = findInstanceId(c);
-            if (id) return id;
-          }
-        }
-        return null;
-      };
+      Object.entries(computedValues).forEach(([targetId, computedValue]) => {
+        valuePatch[targetId] = computedValue;
+      });
 
-      const actionExistsInTree = (
+      const store = useRuntimeFormStore.getState();
+
+      Object.entries(visibilityPatch).forEach(([targetId, isVisible]) => {
+        store.setComponentVisibility(targetId, isVisible);
+      });
+
+      Object.entries(enabledPatch).forEach(([targetId, isEnabled]) => {
+        store.setComponentEnabled(targetId, isEnabled);
+      });
+
+      Object.entries(valuePatch).forEach(([targetId, newValue]) => {
+        if (currentValues[targetId] !== newValue) {
+          methods.setValue(targetId, newValue, {
+            shouldValidate: true,
+            shouldDirty: true,
+          });
+        }
+      });
+
+      // --- Pagination / Skip Logic ---
+      if (formData) {
+        const pages = formData.version.pages;
+
+        pages.forEach((page, index) => {
+          const prevId = index > 0 ? pages[index - 1].pageId : undefined;
+          const nextId =
+            index < pages.length - 1 ? pages[index + 1].pageId : undefined;
+          store.setPreviousPageOfPage(page.pageId, prevId);
+          store.setNextPageOfPage(page.pageId, nextId);
+        });
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        actionsTree: any[],
-        actionId: string
-      ): boolean => {
-        if (!actionsTree) return false;
-        for (const a of actionsTree) {
-          if (a.id === actionId) return true;
-          if (a.type === 'CONDITIONAL') {
-            if (actionExistsInTree(a.thenActions, actionId)) return true;
-            if (actionExistsInTree(a.elseActions, actionId)) return true;
-          }
-        }
-        return false;
-      };
-
-      skipActions.forEach((action) => {
-        const rule = formData.version.logic?.rules?.find(
-          (r) =>
-            actionExistsInTree(r.thenActions, action.id) ||
-            actionExistsInTree(r.elseActions, action.id)
-        );
-
-        if (rule) {
-          const instanceId = findInstanceId(rule.condition);
-          if (instanceId) {
-            const sourcePage = pages.find((p) =>
-              p.components.some((c) => c.componentId === instanceId)
-            );
-            if (sourcePage) {
-              store.setNextPageOfPage(sourcePage.pageId, action.targetId);
-              store.setPreviousPageOfPage(action.targetId, sourcePage.pageId);
+        const findInstanceId = (cond: any): string | null => {
+          if (cond?.type === 'leaf') return cond.instanceId;
+          if (cond?.type === 'group' && Array.isArray(cond.conditions)) {
+            for (const c of cond.conditions) {
+              const id = findInstanceId(c);
+              if (id) return id;
             }
           }
-        }
-      });
-    }
-  };
+          return null;
+        };
+
+        const actionExistsInTree = (
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          actionsTree: any[],
+          actionId: string
+        ): boolean => {
+          if (!actionsTree) return false;
+          for (const a of actionsTree) {
+            if (a.id === actionId) return true;
+            if (a.type === 'CONDITIONAL') {
+              if (actionExistsInTree(a.thenActions, actionId)) return true;
+              if (actionExistsInTree(a.elseActions, actionId)) return true;
+            }
+          }
+          return false;
+        };
+
+        skipActions.forEach((action) => {
+          const rule = formData.version.logic?.rules?.find(
+            (r) =>
+              actionExistsInTree(r.thenActions, action.id) ||
+              actionExistsInTree(r.elseActions, action.id)
+          );
+
+          if (rule) {
+            const instanceId = findInstanceId(rule.condition);
+            if (instanceId) {
+              const sourcePage = pages.find((p) =>
+                p.components.some((c) => c.componentId === instanceId)
+              );
+              if (sourcePage) {
+                store.setNextPageOfPage(sourcePage.pageId, action.targetId);
+                store.setPreviousPageOfPage(action.targetId, sourcePage.pageId);
+              }
+            }
+          }
+        });
+      }
+    },
+    [formData, methods]
+  );
 
   useEffect(() => {
     const rules = formData?.version.logic?.rules || [];
@@ -262,7 +263,7 @@ export default function FormPreview() {
     });
     return () => subscription.unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [methods]);
+  }, [methods.watch, triggerLogicEvaluation]);
 
   // --- Navigation & Submission Handlers ---
   const currentPageState =
