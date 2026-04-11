@@ -30,18 +30,16 @@ import { sharedProseClasses } from '@/components/RichTextEditor';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
-let globalGetValues: ((instanceId: string) => unknown) | null = null;
-
-// eslint-disable-next-line react-refresh/only-export-components
-export const getGlobalFieldValue = (instanceId: string): unknown => {
-  if (!globalGetValues) {
-    console.warn(
-      `FormRunner is not mounted. Cannot read value for: ${instanceId}`
-    );
-    return undefined;
-  }
-  return globalGetValues(instanceId);
-};
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { LogIn, Mail } from 'lucide-react'; // Ensure LogIn and Mail are included here
 
 function flattenResponses(
   pages: SubmissionEntry['pages']
@@ -53,6 +51,79 @@ function flattenResponses(
     }
   }
   return out;
+}
+function LoginDialog() {
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [open, setOpen] = useState(false);
+  const { login } = useAuth();
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      await login(email.trim());
+      setOpen(false); // Close the dialog on success
+      // Note: FormRunner's useEffect will automatically re-run and load the
+      // form data because the `user` context will update!
+    } catch {
+      setError('Failed to log in. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <LogIn className="mr-1.5 h-4 w-4" />
+          Log In to Continue
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-center text-2xl font-bold tracking-tight">
+            Form Builder
+          </DialogTitle>
+          <DialogDescription className="text-center">
+            Enter your email to sign in or create a new account to access this
+            form.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleLogin} className="space-y-4 py-2">
+          <div className="relative">
+            <Mail className="absolute top-2.5 left-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              className="pl-10"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoFocus
+            />
+          </div>
+
+          {error && <p className="text-sm text-destructive">{error}</p>}
+
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={isSubmitting || !email.trim()}
+          >
+            {isSubmitting ? 'Signing in...' : 'Continue with Email'}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 type TrueFormProps = {
@@ -620,13 +691,6 @@ export function FormRunner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [methods]);
 
-  useEffect(() => {
-    globalGetValues = methods.getValues;
-    return () => {
-      globalGetValues = null;
-    };
-  }, [methods.getValues]);
-
   const onSubmit = async (data: Record<string, unknown>) => {
     if (!formId || !formData) return;
     setGlobalFormError(''); // Clear any previous errors
@@ -742,28 +806,34 @@ export function FormRunner() {
   }
 
   // TODO: add auth requirement part
-  // if (globalFormError && !formData) {
-  //   const requiresLogin = /authentication required/i.test(globalFormError);
-  //   return (
-  //     <div className="flex min-h-screen flex-col items-center justify-center gap-3 px-4 text-center">
-  //       <p className="text-sm text-destructive">
-  //         {globalFormError || 'Form not found'}
-  //       </p>
-  //       {requiresLogin ? (
-  //         <Button asChild>
-  //           <Link to="/login">
-  //             <LogIn className="mr-1.5 h-4 w-4" />
-  //             Log In
-  //           </Link>
-  //         </Button>
-  //       ) : (
-  //         <Button variant="outline" size="sm" onClick={() => navigate('/')}>
-  //           Back
-  //         </Button>
-  //       )}
-  //     </div>
-  //   );
-  // }
+  if (globalFormError || !formData) {
+    const requiresLogin = /authentication required/i.test(globalFormError);
+
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background px-4 text-center">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
+          <AlertCircle className="h-5 w-5 text-destructive" />
+        </div>
+        <div className="mb-2 flex flex-col gap-1">
+          <p className="text-sm font-medium text-foreground">
+            {requiresLogin ? 'Authentication Required' : 'Error loading form'}
+          </p>
+          <p className="max-w-sm text-sm text-muted-foreground">
+            {globalFormError ||
+              'We could not find the form you are looking for.'}
+          </p>
+        </div>
+
+        {requiresLogin ? (
+          <LoginDialog />
+        ) : (
+          <Button variant="outline" size="sm" onClick={() => navigate('/')}>
+            Back to Home
+          </Button>
+        )}
+      </div>
+    );
+  }
 
   if (globalFormError || !formData) {
     return (
@@ -829,7 +899,8 @@ export function FormRunner() {
 
           {submitDisabledByPolicy && editingSubmissionId && (
             <div className="mb-6 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
-              New submissions are disabled by form policy. Edit an existing submission above.
+              New submissions are disabled by form policy. Edit an existing
+              submission above.
             </div>
           )}
 
@@ -872,16 +943,3 @@ export function FormRunner() {
     </div>
   );
 }
-
-/**
- *  
-// src/logic/ast-evaluator.ts
-import { getGlobalFieldValue } from '@/form/renderer/viewRenderer/RenderForm';
-
-export function evaluateCondition(targetId: string, expectedValue: string) {
-  // Grab the value directly from the active RHF instance
-  const currentValue = getGlobalFieldValue(targetId);
-  
-  return currentValue === expectedValue;
-}
- */

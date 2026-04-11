@@ -66,30 +66,6 @@ export const RenderForm = () => {
   );
 };
 
-// // TODO
-// export const RenderFormOverview = () => {
-//   const updateFormMetadata = useFormStore((s) => s.updateFormMetadata);
-//   const formMetadata = useFormStore(formSelectors.formMetadata);
-//   const formName = useFormStore((s) => s.form?.name);
-//   const updateFormName = useFormStore((s) => s.updateFormName);
-
-//   return (
-//     <div className="w-full space-y-2">
-//       <ComponentPropTitle title="Form Name" />
-//       <ShadInput
-//         value={formName}
-//         onChange={(e) => updateFormName(e.target.value)}
-//       />
-
-//       <ComponentPropTitle title="Form Description" />
-//       <RichTextEditor
-//         value={formMetadata?.description || ''}
-//         onChange={(newHTML) => updateFormMetadata({ description: newHTML })}
-//       />
-//     </div>
-//   );
-// };
-
 export const RenderFormOverview = () => {
   const updateFormMetadata = useFormStore((s) => s.updateFormMetadata);
   const formMetadata = useFormStore(formSelectors.formMetadata);
