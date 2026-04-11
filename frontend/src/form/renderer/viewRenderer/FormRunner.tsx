@@ -827,10 +827,15 @@ export function FormRunner() {
             </CardContent>
           </Card>
 
-          {submitDisabledByPolicy && (
+          {submitDisabledByPolicy && editingSubmissionId && (
             <div className="mb-6 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
-              New submissions are disabled by form policy. Edit an existing
-              submission above.
+              New submissions are disabled by form policy. Edit an existing submission above.
+            </div>
+          )}
+
+          {submitDisabledByPolicy && !editingSubmissionId && (
+            <div className="mb-6 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+              New submissions are disabled by form policy.
             </div>
           )}
         </>
