@@ -1,6 +1,7 @@
 // src/form/renderer/SelectableWrapper.tsx
 import { useState } from 'react';
 import { formSelectors, useFormStore } from '@/form/store/form.store';
+import { useDeleteConfirm, DeleteConfirmModal } from './DeleteConfirmModal';
 
 import type { PageID } from '@/form/components/base';
 // import { TEMP_PAGE_PLACEHOLDER_ID } from '@/form/utils/DndUtils';
@@ -71,18 +72,7 @@ export const SelectableComponent = ({
 
   const [copiedId, setCopiedId] = useState(false);
 
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [deleteDoNotAskAgain, setDeleteDoNotAskAgain] = useState(false);
-  const [skipDeleteConfirm, setSkipDeleteConfirm] = useState(() => {
-    try {
-      if (typeof window === 'undefined') return false;
-      return (
-        window.localStorage.getItem('form-builder:skipDeleteConfirm') === '1'
-      );
-    } catch {
-      return false;
-    }
-  });
+  const { deleteConfirmOpen, setDeleteConfirmOpen, handleDeleteRequest, handleConfirm } = useDeleteConfirm();
 
   const isHiddenByDefault = component.props.hiddenByDefault === true;
 
@@ -317,12 +307,7 @@ export const SelectableComponent = ({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (skipDeleteConfirm) {
-                        removeComponent(component.instanceId);
-                        return;
-                      }
-                      setDeleteDoNotAskAgain(false);
-                      setDeleteConfirmOpen(true);
+                      handleDeleteRequest(() => removeComponent(component.instanceId));
                     }}
                     className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-none border border-border/50 bg-background text-muted-foreground/60 transition-colors hover:bg-destructive/10 hover:text-destructive"
                     aria-label="Delete component"
@@ -387,78 +372,12 @@ export const SelectableComponent = ({
             {!isCollapsed && <div className="p-1 pr-1 pl-6">{children}</div>}
           </div>
 
-          {/* Delete confirmation modal (with "do this for every time") */}
-          {deleteConfirmOpen && (
-            <div
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black/20"
-              onClick={() => setDeleteConfirmOpen(false)}
-            >
-              <div
-                className="w-full max-w-sm border border-border bg-background p-4"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="text-sm font-semibold text-foreground">
-                      Delete component?
-                    </div>
-                    <div className="mt-1 text-xs text-muted-foreground">
-                      This will remove{' '}
-                      <span className="font-medium">
-                        {component.metadata.label}
-                      </span>{' '}
-                      from the form.
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setDeleteConfirmOpen(false)}
-                    className="flex h-7 w-7 items-center justify-center rounded-none border border-border bg-background text-muted-foreground transition-colors hover:text-foreground"
-                    aria-label="Close delete confirmation"
-                  >
-                    ×
-                  </button>
-                </div>
-
-                <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
-                  <input
-                    type="checkbox"
-                    checked={deleteDoNotAskAgain}
-                    onChange={(e) => setDeleteDoNotAskAgain(e.target.checked)}
-                  />
-                  Do this for every delete (don't ask again)
-                </label>
-
-                <div className="mt-4 flex justify-end gap-2">
-                  <button
-                    onClick={() => setDeleteConfirmOpen(false)}
-                    className="flex h-8 items-center justify-center rounded-none border border-border bg-background px-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (deleteDoNotAskAgain) {
-                        try {
-                          window.localStorage.setItem(
-                            'form-builder:skipDeleteConfirm',
-                            '1'
-                          );
-                          setSkipDeleteConfirm(true);
-                        } catch {
-                          // ignore persistence errors
-                        }
-                      }
-                      removeComponent(component.instanceId);
-                      setDeleteConfirmOpen(false);
-                    }}
-                    className="flex h-8 items-center justify-center rounded-none border border-destructive/50 bg-destructive/10 px-3 text-sm text-destructive transition-colors hover:bg-destructive/15"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          <DeleteConfirmModal
+            isOpen={deleteConfirmOpen}
+            onClose={() => setDeleteConfirmOpen(false)}
+            onConfirm={(doNotAskAgain) => handleConfirm(doNotAskAgain, () => removeComponent(component.instanceId))}
+            componentName={component.metadata.label || ''}
+          />
 
           {/* Move component modal */}
           {moveModalOpen && (

@@ -9,6 +9,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { COMPONENT_ICONS } from '../ComponentCatalogWindow';
 import { AlignLeft, GripVertical, Trash2 } from 'lucide-react';
 import { getComponentDisplayName } from '@/form/registry/componentRegistry.helpers';
+import { useDeleteConfirm, DeleteConfirmModal } from '@/form/renderer/DeleteConfirmModal';
 
 interface ComponentListPanelProps {
   pageId: string | null;
@@ -50,18 +51,7 @@ function DraggableComponentItem({
   onDrop,
   onDragEnd,
 }: DraggableItemProps) {
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [deleteDoNotAskAgain, setDeleteDoNotAskAgain] = useState(false);
-  const [skipDeleteConfirm, setSkipDeleteConfirm] = useState(() => {
-    try {
-      if (typeof window === 'undefined') return false;
-      return (
-        window.localStorage.getItem('form-builder:skipDeleteConfirm') === '1'
-      );
-    } catch {
-      return false;
-    }
-  });
+  const { deleteConfirmOpen, setDeleteConfirmOpen, handleDeleteRequest, handleConfirm } = useDeleteConfirm();
 
   return (
     <div
@@ -93,98 +83,19 @@ function DraggableComponentItem({
       <button
         onClick={(e) => {
           e.stopPropagation();
-          if (skipDeleteConfirm) {
-            removeComponent(instanceId);
-            return;
-          }
-          setDeleteDoNotAskAgain(false);
-          setDeleteConfirmOpen(true);
+          handleDeleteRequest(() => removeComponent(instanceId));
         }}
         className="relative z-20 flex h-4 w-4 shrink-0 items-center justify-center rounded opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
       >
         <Trash2 className="h-3 w-3" />
       </button>
 
-      {/* Delete confirmation modal */}
-      {deleteConfirmOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/20"
-          onClick={(e) => {
-            e.stopPropagation();
-            setDeleteConfirmOpen(false);
-          }}
-        >
-          <div
-            className="w-full max-w-sm border border-border bg-background p-4 shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-            onPointerDown={(e) => e.stopPropagation()}
-            draggable={false}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="text-sm font-semibold text-foreground">
-                  Delete component?
-                </div>
-                <div className="mt-1 text-xs text-muted-foreground">
-                  This will remove{' '}
-                  <span className="font-medium">{displayName}</span> from the
-                  form.
-                </div>
-              </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setDeleteConfirmOpen(false);
-                }}
-                className="flex h-7 w-7 items-center justify-center rounded-none border border-border bg-background text-muted-foreground transition-colors hover:text-foreground"
-                aria-label="Close delete confirmation"
-              >
-                ×
-              </button>
-            </div>
-
-            <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
-              <input
-                type="checkbox"
-                checked={deleteDoNotAskAgain}
-                onChange={(e) => setDeleteDoNotAskAgain(e.target.checked)}
-              />
-              Do this for every delete (don't ask again)
-            </label>
-
-            <div className="mt-4 flex justify-end gap-2">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setDeleteConfirmOpen(false);
-                }}
-                className="flex h-8 items-center justify-center rounded-none border border-border bg-background px-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (deleteDoNotAskAgain) {
-                    try {
-                      window.localStorage.setItem(
-                        'form-builder:skipDeleteConfirm',
-                        '1'
-                      );
-                      setSkipDeleteConfirm(true);
-                    } catch {}
-                  }
-                  removeComponent(instanceId);
-                  setDeleteConfirmOpen(false);
-                }}
-                className="flex h-8 items-center justify-center rounded-none border border-destructive/50 bg-destructive/10 px-3 text-sm text-destructive transition-colors hover:bg-destructive/15"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmModal
+        isOpen={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        onConfirm={(doNotAskAgain) => handleConfirm(doNotAskAgain, () => removeComponent(instanceId))}
+        componentName={displayName}
+      />
     </div>
   );
 }
