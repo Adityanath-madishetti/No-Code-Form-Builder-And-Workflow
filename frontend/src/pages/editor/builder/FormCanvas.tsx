@@ -1,7 +1,7 @@
 // src/pages/FormEditor/components/FormCanvas.tsx
 import { useFormStore } from '@/form/store/form.store';
 import { FormModeProvider } from '@/form/context/FormModeContext';
-import { FormThemeProvider } from '@/form/theme/FormThemeProvider';
+
 import { RenderPage } from '@/form/renderer/edit-renderer/RenderPage';
 import { LayoutGrid } from 'lucide-react';
 
@@ -26,18 +26,16 @@ export function FormCanvas({ currentPageIndex }: FormCanvasProps) {
   const pageId = form.pages[currentPageIndex];
 
   return (
-    <FormThemeProvider>
-      <FormModeProvider value="edit">
-        <div className="mx-auto w-full max-w-3xl px-8 py-6">
-          {/* Editable form title on first page */}
-          <FormHeader />
-          <PageHeader pageId={pageId} pageNumber={currentPageIndex + 1} />
+    <FormModeProvider value="edit">
+      <div className="mx-auto w-full max-w-3xl px-8 py-6">
+        {/* Editable form title on first page */}
+        <FormHeader />
+        <PageHeader pageId={pageId} pageNumber={currentPageIndex + 1} />
 
-          {/* Always render RenderPage — it handles empty state with Add Component button */}
-          <RenderPage pageId={pageId} index={currentPageIndex} />
-        </div>
-      </FormModeProvider>
-    </FormThemeProvider>
+        {/* Always render RenderPage — it handles empty state with Add Component button */}
+        <RenderPage pageId={pageId} index={currentPageIndex} />
+      </div>
+    </FormModeProvider>
   );
 }
 

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useFormStore } from '@/form/store/form.store';
 
-export type FormEditorView = 'formProperties' | 'builder' | 'logic' | 'workflow' | 'theming';
+export type FormEditorView = 'formProperties' | 'builder' | 'logic' | 'workflow';
 
 function isEditableElement(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;

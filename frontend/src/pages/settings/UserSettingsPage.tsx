@@ -20,7 +20,6 @@ import {
   BellRing,
   Clock3,
   Keyboard,
-  Layers,
   Mail,
   Moon,
   Sun,
@@ -193,12 +192,7 @@ export default function UserSettingsPage() {
                   label="Account"
                   description="Profile, user ID, sign out"
                 />
-                <SettingsNavCard
-                  to="/settings/editor-theme-templates"
-                  icon={Layers}
-                  label="Editor theme & templates"
-                  description="Theme panel and template groups"
-                />
+
                 <SettingsNavCard
                   to="/settings/activity"
                   icon={Clock3}

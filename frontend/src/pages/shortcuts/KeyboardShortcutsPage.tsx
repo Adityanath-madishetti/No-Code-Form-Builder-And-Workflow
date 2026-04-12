@@ -326,18 +326,7 @@ export default function KeyboardShortcutsPage() {
                 </>
               ),
             },
-            {
-              action: 'Open Theme',
-              keys: (
-                <>
-                  <Kbd>{M}</Kbd>
-                  <span className="text-muted-foreground">+</span>
-                  <Kbd>⇧</Kbd>
-                  <span className="text-muted-foreground">+</span>
-                  <Kbd>M</Kbd>
-                </>
-              ),
-            },
+
             {
               action: 'Open Logic',
               keys: (

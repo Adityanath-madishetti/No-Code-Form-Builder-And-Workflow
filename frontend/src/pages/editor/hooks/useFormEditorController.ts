@@ -37,7 +37,7 @@ export function useFormEditorController(formId: string) {
   // STATE
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [editorView, setEditorView] = useState<
-    'formProperties' | 'builder' | 'logic' | 'workflow' | 'theming'
+    'formProperties' | 'builder' | 'logic' | 'workflow'
   >('builder');
 
   // Sidebar removed — no activePanel needed

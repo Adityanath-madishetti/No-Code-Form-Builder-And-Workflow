@@ -43,7 +43,6 @@ import type {
   FormSettings,
   InstanceID,
   PageID,
-  FormTheme,
 } from '../components/base';
 import type { AnyFormComponent } from '../registry/componentRegistry';
 
@@ -59,7 +58,6 @@ const createForm = (
     updatedAt: new Date().toISOString(),
     ...metadata,
   },
-  theme: null,
   access: {
     visibility: 'private',
     editors: [],
@@ -93,7 +91,6 @@ import type {
   DRAG_PAGE_TYPE,
 } from '../utils/DndUtils';
 import type { Group } from './group.store';
-import { DEFAULT_FORM_THEME } from '../theme/formTheme';
 // import {
 //   TEMP_COMPONENT_PLACEHOLDER_ID,
 //   TEMP_PAGE_PLACEHOLDER_ID,
@@ -203,7 +200,6 @@ interface FormSchemaActions {
   updateFormName: (name: string) => void;
   updateFormMetadata: (metadata: Partial<FormMetadata>) => void;
 
-  updateFormTheme: (theme: Partial<FormTheme>) => void;
   updateFormAccess: (access: Partial<FormAccess>) => void;
   updateFormSettings: (settings: Partial<FormSettings>) => void;
 
@@ -253,11 +249,6 @@ interface FormSchemaActions {
     pageId: PageID,
     clipboardText: string
   ) => InstanceID | undefined;
-
-  updatePageThemeOverrides: (
-    pageId: PageID,
-    overrides: Partial<FormTheme> | undefined
-  ) => void;
 }
 
 interface FormUIActions {
@@ -346,7 +337,6 @@ function syncPageOrdering(state: {
 export const formSelectors = {
   form: (s: FormStore) => s.form,
   formMetadata: (s: FormStore) => s.form?.metadata,
-  formTheme: (s: FormStore) => s.form?.theme ?? null, // <-- Add this selector
   formAccess: (s: FormStore) => s.form?.access ?? null,
   formSettings: (s: FormStore) => s.form?.settings ?? null,
   pages: (s: FormStore) => s.pages,
@@ -468,22 +458,6 @@ export const useFormStore = create<FormStore>()(
       set((state) => {
         if (!state.form) return;
         Object.assign(state.form.metadata, metadata);
-        state.form.metadata.updatedAt = new Date().toISOString();
-      }),
-
-    updateFormTheme: (themeUpdates: Partial<FormTheme>) =>
-      set((state) => {
-        if (!state.form) return;
-
-        // If theme is currently null, initialize it with a default baseline
-        if (!state.form.theme) {
-          state.form.theme = DEFAULT_FORM_THEME;
-        }
-
-        // Apply the partial updates over the existing theme
-        Object.assign(state.form.theme, themeUpdates);
-
-        // Optionally bump the updatedAt timestamp
         state.form.metadata.updatedAt = new Date().toISOString();
       }),
 
@@ -778,22 +752,6 @@ export const useFormStore = create<FormStore>()(
       })),
 
     clearSelectedComponents: () => set({ selectedComponentIds: [] }),
-
-    updatePageThemeOverrides: (pageId, overrides) =>
-      set((state) => {
-        if (!state.pages[pageId]) return;
-        if (overrides === undefined) {
-          delete state.pages[pageId].themeOverrides;
-        } else {
-          state.pages[pageId].themeOverrides = {
-            ...state.pages[pageId].themeOverrides,
-            ...overrides,
-          };
-        }
-        if (state.form) {
-          state.form.metadata.updatedAt = new Date().toISOString();
-        }
-      }),
 
     openPropertiesPanel: () =>
       set((state) => {

@@ -12,7 +12,6 @@ import {
   Copy,
   Check,
 } from 'lucide-react';
-import { useFormStore } from '@/form/store/form.store';
 
 import { useState } from 'react';
 import {
@@ -33,9 +32,9 @@ import {
 } from '@/components/ui/tooltip';
 
 interface WorkspacesProps {
-  editorView: 'formProperties' | 'builder' | 'logic' | 'workflow' | 'theming';
+  editorView: 'formProperties' | 'builder' | 'logic' | 'workflow';
   setEditorView: (
-    view: 'formProperties' | 'builder' | 'logic' | 'workflow' | 'theming'
+    view: 'formProperties' | 'builder' | 'logic' | 'workflow'
   ) => void;
   logicActiveRuleId: string | null;
   logicActiveFormulaId: string | null;
@@ -298,20 +297,6 @@ export function Workspaces({
           <LayoutGrid className="h-3 w-3" />
           Canvas
         </button>
-        {/* <button
-          onClick={() => {
-            setActivePanel(null);
-            setEditorView('theming');
-          }}
-          className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors ${
-            editorView === 'theming'
-              ? 'bg-primary text-primary-foreground shadow-sm'
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-          }`}
-        >
-          <Palette className="h-3 w-3" />
-          Themes
-        </button> */}
         <button
           onClick={() => setEditorView('logic')}
           className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors ${
@@ -326,17 +311,6 @@ export function Workspaces({
             <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
           )}
         </button>
-        {/* <button
-          onClick={() => setEditorView('workflow')}
-          className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors ${
-            editorView === 'workflow'
-              ? 'bg-primary text-primary-foreground shadow-sm'
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-          }`}
-        >
-          <GitBranch className="h-3 w-3" />
-          Workflow
-        </button> */}
         <button
           onClick={() => setEditorView('formProperties')}
           className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors ${
@@ -358,7 +332,6 @@ export function Workspaces({
             const next = isDark ? 'light' : 'dark';
 
             setEditorTheme(next);
-            useFormStore.getState().updateFormTheme({ mode: next });
             if (next === 'dark') {
               document.documentElement.classList.add('dark');
             } else {

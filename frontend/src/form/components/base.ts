@@ -77,7 +77,6 @@ export type ComponentID = (typeof ComponentIDs)[keyof typeof ComponentIDs];
 export type InstanceID = string;
 export type PageID = string;
 export type FormID = string;
-export type ThemeID = string;
 export type FormVisibility = 'public' | 'private' | 'link-only';
 export type CollectEmailMode = 'none' | 'optional' | 'required';
 export type SubmissionPolicy =
@@ -143,7 +142,6 @@ export interface FormPage {
   description?: string;
   children: InstanceID[];
   isTerminal: boolean;
-  themeOverrides?: Partial<FormTheme>;
   defaultNextPageId?: PageID;
   defaultPreviousPageId?: PageID;
 }
@@ -153,43 +151,6 @@ export interface FormPage {
 // Form Model
 //
 // ------------------------------------------------------------------------------------------------
-
-export interface FormThemeBackground {
-  color?: string;
-  image?: string;
-  gradient?: string;
-  overlayOpacity?: number;
-  blur?: number | string;
-}
-
-export interface FormThemeLayout {
-  width?: number | string;
-  formWidth?: string | number;
-  alignment?: 'left' | 'center' | 'right';
-  padding?: number | string;
-  spacing?: string | number;
-}
-
-export interface FormThemeComponentProps {
-  borderRadius?: number | string;
-  borderWidth?: number | string;
-  primaryColor?: string;
-  shadow?: string;
-}
-
-export interface FormTheme {
-  mode?: 'light' | 'dark' | 'system';
-  color?: string;
-  primaryColor?: string;
-  textColor?: string;
-  background: FormThemeBackground;
-  layout: FormThemeLayout;
-  components?: FormThemeComponentProps;
-  componentProps?: FormThemeComponentProps;
-  fontFamily?: string;
-  headingFont?: { family?: string };
-  bodyFont?: { family?: string };
-}
 
 export interface FormMetadata {
   description?: string;
@@ -231,7 +192,6 @@ export interface Form {
   access: FormAccess;
   settings: FormSettings;
   pages: PageID[];
-  theme: FormTheme | null;
 }
 
 //------------------------------------------------------------------------------------------------

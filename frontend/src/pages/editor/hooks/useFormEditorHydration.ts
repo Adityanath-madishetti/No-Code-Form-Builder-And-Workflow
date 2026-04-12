@@ -24,7 +24,6 @@ export function useFormEditorHydration(formId: string) {
         id: formId,
         name: '',
         metadata: { createdAt: '', updatedAt: '' },
-        theme: null,
         access: {
           visibility: 'private',
           editors: [],

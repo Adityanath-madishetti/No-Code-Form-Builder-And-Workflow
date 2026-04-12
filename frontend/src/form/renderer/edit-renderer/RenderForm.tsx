@@ -9,23 +9,7 @@ import {
 } from '@/components/RichTextEditor';
 import { Input as ShadInput } from '@/components/ui/input';
 
-import {
-  Select as ShadSelect,
-  SelectContent as ShadSelectContent,
-  SelectItem as ShadSelectItem,
-  SelectTrigger as ShadSelectTrigger,
-  SelectValue as ShadSelectValue,
-} from '@/components/ui/select';
 
-import {
-  formFontNames,
-  formThemeColors,
-  formThemeModes,
-  DEFAULT_FORM_THEME,
-  type formFontName,
-  type formThemeColor,
-  type formThemeMode,
-} from '@/form/theme/formTheme';
 
 export const RenderForm = () => {
   const form = useFormStore(formSelectors.form);
@@ -114,84 +98,6 @@ export const RenderFormOverview = () => {
         />
       </div>
 
-      {/* Theme Options Section */}
-      <div className="space-y-4 border p-4">
-        <h3 className="text-sm font-semibold">Theme Settings</h3>
-        <RenderFormTheme />
-      </div>
-    </div>
-  );
-};
-
-// Extracted Theme Renderer for cleaner organization
-function ThemeSelectField({
-  title,
-  value,
-  options,
-  onChange,
-}: {
-  title: string;
-  value: string;
-  options: Record<string, string>;
-  onChange: (val: string) => void;
-}) {
-  return (
-    <div className="space-y-2">
-      <ComponentPropTitle title={title} />
-      <ShadSelect value={value} onValueChange={onChange}>
-        <ShadSelectTrigger className="w-full">
-          <ShadSelectValue placeholder="Select an option" />
-        </ShadSelectTrigger>
-        <ShadSelectContent>
-          {Object.entries(options).map(([key, val]) => (
-            <ShadSelectItem key={val} value={val}>
-              {key.replace(/([A-Z])/g, ' $1').trim()}
-            </ShadSelectItem>
-          ))}
-        </ShadSelectContent>
-      </ShadSelect>
-    </div>
-  );
-}
-
-const RenderFormTheme = () => {
-  // Grab the theme from the store, fallback to default if it hasn't been initialized yet
-  const theme = useFormStore(formSelectors.formTheme) || DEFAULT_FORM_THEME;
-  const updateFormTheme = useFormStore((s) => s.updateFormTheme);
-
-  return (
-    <div className="space-y-4">
-      <ThemeSelectField
-        title="Color Mode"
-        value={theme.mode}
-        options={formThemeModes}
-        onChange={(val) => updateFormTheme({ mode: val as formThemeMode })}
-      />
-
-      <ThemeSelectField
-        title="Primary Color"
-        value={theme.color}
-        options={formThemeColors}
-        onChange={(val) => updateFormTheme({ color: val as formThemeColor })}
-      />
-
-      <ThemeSelectField
-        title="Heading Font"
-        value={theme.headingFont.family}
-        options={formFontNames}
-        onChange={(val) =>
-          updateFormTheme({ headingFont: { family: val as formFontName } })
-        }
-      />
-
-      <ThemeSelectField
-        title="Body Font"
-        value={theme.bodyFont.family}
-        options={formFontNames}
-        onChange={(val) =>
-          updateFormTheme({ bodyFont: { family: val as formFontName } })
-        }
-      />
     </div>
   );
 };
