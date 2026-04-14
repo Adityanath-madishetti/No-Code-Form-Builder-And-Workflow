@@ -14,6 +14,8 @@ import {
   Copy,
   Check,
   ExternalLink,
+  AlertCircle,
+  AlertTriangle,
 } from 'lucide-react';
 import { useFormStore } from '@/form/store/form.store';
 
@@ -38,14 +40,14 @@ import {
 } from '@/components/ui/tooltip';
 import {
   useLogicStore,
-  findOverlappingRules,
-  type OverlappingRulesPair,
+  getRuleDiagnostics,
+  type RuleWarning,
 } from '@/form/logic/logic.store';
 
 interface RulesWarningDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  overlapData: OverlappingRulesPair[];
+  warnings: RuleWarning[];
   onConfirm: () => void;
   isProcessing: boolean;
   actionText: string;
@@ -56,7 +58,7 @@ interface RulesWarningDialogProps {
 export function RulesWarningDialog({
   open,
   onOpenChange,
-  overlapData,
+  warnings,
   onConfirm,
   isProcessing,
   actionText,
@@ -74,24 +76,59 @@ export function RulesWarningDialog({
         </DialogHeader>
 
         <div className="-mx-4 no-scrollbar max-h-[50vh] overflow-y-auto border-t px-4 pt-4">
-          {overlapData.map((overlap, index) => (
-            <div
-              key={index}
-              className="mb-4 rounded-md border bg-muted/50 p-3 text-sm leading-normal"
-            >
-              <p>
-                <strong>{overlap.ruleA.name}</strong> and{' '}
-                <strong>{overlap.ruleB.name}</strong> share components:
-              </p>
-              <ul className="mt-1 font-mono text-xs text-muted-foreground">
-                {overlap.sharedComponentIds.map((id) => (
-                  <li key={id}>
-                    {components[id]?.metadata.label} ({id})
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          {warnings.map((warning, index) => {
+            const isCritical = warning.warningType === 'SAME_TARGET';
+
+            return (
+              <div
+                key={index}
+                className={`mb-4 rounded-md border p-3 text-sm leading-normal ${
+                  isCritical
+                    ? 'border-red-200 bg-red-50 dark:bg-red-950/20'
+                    : 'bg-muted/50'
+                }`}
+              >
+                {/* Warning Header */}
+                <div className="mb-2 flex items-center gap-2 font-semibold">
+                  {isCritical ? (
+                    <AlertCircle className="h-4 w-4 text-red-500" />
+                  ) : (
+                    <AlertTriangle className="h-4 w-4 text-amber-500" />
+                  )}
+                  <span
+                    className={
+                      isCritical ? 'text-red-600 dark:text-red-400' : ''
+                    }
+                  >
+                    {warning.label}
+                  </span>
+                </div>
+
+                {/* Warning Description */}
+                <p className="mb-2 text-muted-foreground">
+                  {warning.description}
+                </p>
+
+                {/* Rule Breakdown */}
+                <p>
+                  <strong>{warning.ruleA.name}</strong> ↔{' '}
+                  <strong>{warning.ruleB.name}</strong>
+                </p>
+
+                <ul className="mt-2 font-mono text-xs text-muted-foreground">
+                  {warning.componentIds.map((id) => (
+                    <li key={id} className="flex items-center gap-2 py-0.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                      <span>
+                        {components[id]?.metadata?.label || 'Unknown Component'}
+                      </span>
+                      <span className="opacity-50">({id})</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
         </div>
 
         <DialogFooter className="gap-2 sm:gap-2">
@@ -157,7 +194,7 @@ export function SaveButton({ handleSave, saving }: SaveButtonProps) {
   const rules = useLogicStore((s) => s.rules);
   const formulas = useLogicStore((s) => s.formulas);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [overlapData, setOverlapData] = useState<OverlappingRulesPair[]>([]);
+  const [ruleWarningData, setRuleWarningData] = useState<RuleWarning[]>([]);
 
   const executeSave = async () => {
     setIsDialogOpen(false);
@@ -189,9 +226,9 @@ export function SaveButton({ handleSave, saving }: SaveButtonProps) {
   };
 
   const onSaveClick = async () => {
-    const overlaps = findOverlappingRules(rules, formulas);
-    if (overlaps && overlaps.length > 0) {
-      setOverlapData(overlaps);
+    const ruleWarnings = getRuleDiagnostics(rules, formulas);
+    if (ruleWarnings && ruleWarnings.length > 0) {
+      setRuleWarningData(ruleWarnings);
       setIsDialogOpen(true);
     } else {
       await executeSave();
@@ -226,7 +263,7 @@ export function SaveButton({ handleSave, saving }: SaveButtonProps) {
       <RulesWarningDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
-        overlapData={overlapData}
+        warnings={ruleWarningData}
         onConfirm={executeSave}
         isProcessing={saving}
         actionText="Save Anyway"
@@ -279,7 +316,7 @@ export function PublishButton({
   const rules = useLogicStore((s) => s.rules);
   const formulas = useLogicStore((s) => s.formulas);
   const [isOverlapDialogOpen, setIsOverlapDialogOpen] = useState(false);
-  const [overlapData, setOverlapData] = useState<OverlappingRulesPair[]>([]);
+  const [ruleWarningData, setRuleWarningData] = useState<RuleWarning[]>([]);
 
   const shareLink = formId ? `${window.location.origin}/forms/s/${formId}` : '';
   const components = useFormStore((s) => s.components);
@@ -329,10 +366,10 @@ export function PublishButton({
   };
 
   const onPublishClick = async () => {
-    const overlaps = findOverlappingRules(rules, formulas);
+    const ruleWarnings = getRuleDiagnostics(rules, formulas);
 
-    if (overlaps && overlaps.length > 0) {
-      setOverlapData(overlaps);
+    if (ruleWarnings && ruleWarnings.length > 0) {
+      setRuleWarningData(ruleWarnings);
       setIsOverlapDialogOpen(true);
     } else {
       await executePublish();
@@ -341,35 +378,33 @@ export function PublishButton({
 
   return (
     <>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              onClick={onPublishClick}
-              disabled={publishing || saving}
-              className={`flex h-7 w-7 items-center justify-center rounded-sm border shadow-sm transition-colors ${
-                publishing
-                  ? 'cursor-wait border-green-400/40 bg-green-400/10 text-green-600'
-                  : 'border-green-600/60 bg-green-600 text-white hover:bg-green-700'
-              }`}
-            >
-              {publishing ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
-              ) : (
-                <Globe className="h-3 w-3" />
-              )}
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Publish form</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            onClick={onPublishClick}
+            disabled={publishing || saving}
+            className={`flex h-7 w-7 items-center justify-center rounded-sm border shadow-sm transition-colors ${
+              publishing
+                ? 'cursor-wait border-green-400/40 bg-green-400/10 text-green-600'
+                : 'border-green-600/60 bg-green-600 text-white hover:bg-green-700'
+            }`}
+          >
+            {publishing ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <Globe className="h-3 w-3" />
+            )}
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Publish form</p>
+        </TooltipContent>
+      </Tooltip>
 
       <RulesWarningDialog
         open={isOverlapDialogOpen}
         onOpenChange={setIsOverlapDialogOpen}
-        overlapData={overlapData}
+        warnings={ruleWarningData}
         onConfirm={executePublish}
         isProcessing={publishing || saving}
         actionText="Publish Anyway"
@@ -462,7 +497,7 @@ export function Workspaces({
   return (
     <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border bg-background px-3 py-[5.5px]">
       <div className="flex items-center gap-1">
-        <button
+        {/* <button
           onClick={() => setEditorView('canvas')}
           className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors ${
             editorView === 'canvas'
@@ -472,7 +507,7 @@ export function Workspaces({
         >
           <LayoutGrid className="h-3 w-3" />
           Canvas
-        </button>
+        </button> */}
         {/* <button
           onClick={() => {
             setActivePanel(null);
@@ -487,7 +522,7 @@ export function Workspaces({
           <Palette className="h-3 w-3" />
           Themes
         </button> */}
-        <button
+        {/* <button
           onClick={() => setEditorView('logic')}
           className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors ${
             editorView === 'logic'
@@ -500,7 +535,7 @@ export function Workspaces({
           {(logicActiveRuleId || logicActiveFormulaId) && (
             <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
           )}
-        </button>
+        </button> */}
         {/* <button
           onClick={() => setEditorView('workflow')}
           className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors ${
@@ -512,7 +547,7 @@ export function Workspaces({
           <GitBranch className="h-3 w-3" />
           Workflow
         </button> */}
-        <button
+        {/* <button
           onClick={() => setEditorView('formProperties')}
           className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors ${
             editorView === 'formProperties'
@@ -522,7 +557,7 @@ export function Workspaces({
         >
           <Settings2 className="h-3 w-3" />
           Settings
-        </button>
+        </button> */}
       </div>
 
       <div className="flex items-center gap-1">

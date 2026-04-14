@@ -1,12 +1,12 @@
 // src/pages/FormEditor/components/EditorSidebar.tsx
 import {
   LayoutGrid,
-  Layers,
-  Palette,
-  Zap,
-  GitBranch,
-  Sparkles,
-  FolderOpen
+  // Layers,
+  // Palette,
+  // Zap,
+  // GitBranch,
+  // Sparkles,
+  // FolderOpen
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -28,7 +28,7 @@ const NAV_ITEMS: {
     // { id: 'templates', label: 'Templates', icon: Layers },
     // { id: 'theme', label: 'Theme', icon: Palette },
     // { id: 'groups', label: 'Groups', icon: FolderOpen },
-    { id: 'logic', label: 'Logic', icon: Zap },
+    // { id: 'logic', label: 'Logic', icon: Zap },
     // { id: 'workflow', label: 'Workflow', icon: GitBranch },
     // { id: 'ai', label: 'AI Assistant', icon: Sparkles },
   ];

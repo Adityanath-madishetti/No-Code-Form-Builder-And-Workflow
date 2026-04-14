@@ -63,11 +63,11 @@ export function ComponentPropertiesPanel() {
   return (
     <div className="flex flex-col gap-4 p-4">
       {/* Component type badge */}
-      <div className="flex items-center gap-2 border-b border-border pb-3">
+      {/* <div className="flex items-center gap-2 border-b border-border pb-3">
         <span className="text-[10px] font-bold tracking-widest text-muted-foreground/50 uppercase">
           {component.metadata.label}
         </span>
-      </div>
+      </div> */}
 
       {/* Label editor */}
       <div className="flex flex-col gap-1">
@@ -91,31 +91,6 @@ export function ComponentPropertiesPanel() {
           />
         </div>
       )}
-
-      {/* {supportsHidden(component.props) && (
-        <div className="border-t border-border pt-3">
-          <label className="flex cursor-pointer items-center justify-between text-xs text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <EyeOff className="h-3 w-3" />
-              Hidden by default
-            </span>
-            <input
-              type="checkbox"
-              checked={hiddenByDefault}
-              onChange={(e) =>
-                updateComponentProps(component.instanceId, {
-                  hidden: e.target.checked,
-                })
-              }
-            />
-          </label>
-          {hiddenByDefault && (
-            <p className="mt-1 text-[10px] text-muted-foreground/50">
-              This component starts hidden. Use Logic rules to show it.
-            </p>
-          )}
-        </div>
-      )} */}
 
       <div className="border-t border-border pt-3">
         <label className="flex cursor-pointer items-center justify-between text-xs text-muted-foreground">
@@ -181,7 +156,8 @@ function PageProperties({ pageId }: { pageId: string }) {
   if (!page) return null;
 
   const currentIndex = orderedPageIds.indexOf(pageId);
-  const isTerminal = page.isTerminal;
+  // const isTerminal = page.isTerminal;
+  const isTerminal = orderedPageIds.length > 0 && currentIndex === orderedPageIds.length - 1;
   const sequentialNextId = orderedPageIds[currentIndex + 1];
   if (!sequentialNextId) {
     console.log('faaahh!!!');

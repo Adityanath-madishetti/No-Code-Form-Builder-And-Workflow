@@ -73,8 +73,8 @@ export function FormPropertiesPanel() {
 
   return (
     <>
-      <div className="mb-10 flex flex-col gap-5">
-        <Field label="Form Title">
+      <div className="mb-10 flex flex-col gap-5 p-4">
+        <Field label="Form Name">
           <Input
             value={form.name}
             onChange={(e) => updateFormName(e.target.value)}

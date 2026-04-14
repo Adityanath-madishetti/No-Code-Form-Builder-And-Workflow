@@ -116,7 +116,6 @@ import { Input } from '@/components/ui/input';
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
@@ -309,150 +308,138 @@ const EditorBubbleMenu = ({ editor }: { editor: Editor }) => {
       }}
       className="flex w-max max-w-[90vw] flex-wrap items-center justify-center gap-0.5 rounded-lg border border-border bg-background/95 p-1 shadow-md backdrop-blur-md"
     >
-      <TooltipProvider delayDuration={300}>
-        {/* Headings */}
-        <ToolbarButton
-          tooltip="Heading 1"
-          isActive={editor.isActive('heading', { level: 1 })}
-          onClick={() =>
-            editor.chain().focus().toggleHeading({ level: 1 }).run()
-          }
-        >
-          <Heading1 className="h-3 w-3" />
-        </ToolbarButton>
-        <ToolbarButton
-          tooltip="Heading 2"
-          isActive={editor.isActive('heading', { level: 2 })}
-          onClick={() =>
-            editor.chain().focus().toggleHeading({ level: 2 }).run()
-          }
-        >
-          <Heading2 className="h-3 w-3" />
-        </ToolbarButton>
+      {/* Headings */}
+      <ToolbarButton
+        tooltip="Heading 1"
+        isActive={editor.isActive('heading', { level: 1 })}
+        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+      >
+        <Heading1 className="h-3 w-3" />
+      </ToolbarButton>
+      <ToolbarButton
+        tooltip="Heading 2"
+        isActive={editor.isActive('heading', { level: 2 })}
+        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+      >
+        <Heading2 className="h-3 w-3" />
+      </ToolbarButton>
 
-        <Separator orientation="vertical" className="mx-1 h-4" />
+      <Separator orientation="vertical" className="mx-1 h-4" />
 
-        {/* Formatting */}
-        <ToolbarButton
-          tooltip="Bold"
-          isActive={editor.isActive('bold')}
-          onClick={() => editor.chain().focus().toggleBold().run()}
-        >
-          <Bold className="h-3 w-3" />
-        </ToolbarButton>
-        <ToolbarButton
-          tooltip="Italic"
-          isActive={editor.isActive('italic')}
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-        >
-          <Italic className="h-3 w-3" />
-        </ToolbarButton>
-        <ToolbarButton
-          tooltip="Underline"
-          isActive={editor.isActive('underline')}
-          onClick={() => editor.chain().focus().toggleUnderline().run()}
-        >
-          <UnderlineIcon className="h-3 w-3" />
-        </ToolbarButton>
-        <ToolbarButton
-          tooltip="Strikethrough"
-          isActive={editor.isActive('strike')}
-          onClick={() => editor.chain().focus().toggleStrike().run()}
-          className="hidden sm:inline-flex"
-        >
-          <Strikethrough className="h-3 w-3" />
-        </ToolbarButton>
-        <ToolbarButton
-          tooltip="Highlight"
-          isActive={editor.isActive('highlight')}
-          onClick={() => editor.chain().focus().toggleHighlight().run()}
-        >
-          <Highlighter className="h-3 w-3" />
-        </ToolbarButton>
+      {/* Formatting */}
+      <ToolbarButton
+        tooltip="Bold"
+        isActive={editor.isActive('bold')}
+        onClick={() => editor.chain().focus().toggleBold().run()}
+      >
+        <Bold className="h-3 w-3" />
+      </ToolbarButton>
+      <ToolbarButton
+        tooltip="Italic"
+        isActive={editor.isActive('italic')}
+        onClick={() => editor.chain().focus().toggleItalic().run()}
+      >
+        <Italic className="h-3 w-3" />
+      </ToolbarButton>
+      <ToolbarButton
+        tooltip="Underline"
+        isActive={editor.isActive('underline')}
+        onClick={() => editor.chain().focus().toggleUnderline().run()}
+      >
+        <UnderlineIcon className="h-3 w-3" />
+      </ToolbarButton>
+      <ToolbarButton
+        tooltip="Strikethrough"
+        isActive={editor.isActive('strike')}
+        onClick={() => editor.chain().focus().toggleStrike().run()}
+        className="hidden sm:inline-flex"
+      >
+        <Strikethrough className="h-3 w-3" />
+      </ToolbarButton>
+      <ToolbarButton
+        tooltip="Highlight"
+        isActive={editor.isActive('highlight')}
+        onClick={() => editor.chain().focus().toggleHighlight().run()}
+      >
+        <Highlighter className="h-3 w-3" />
+      </ToolbarButton>
 
-        <LinkToolbarButton
-          editor={editor}
-          isOpen={isLinkMenuOpen}
-          setIsOpen={setIsLinkMenuOpen}
-        />
+      <LinkToolbarButton
+        editor={editor}
+        isOpen={isLinkMenuOpen}
+        setIsOpen={setIsLinkMenuOpen}
+      />
 
-        <Separator
-          orientation="vertical"
-          className="mx-1 hidden h-4 lg:block"
-        />
+      <Separator orientation="vertical" className="mx-1 hidden h-4 lg:block" />
 
-        {/* Sub/Superscript */}
-        <ToolbarButton
-          tooltip="Subscript"
-          isActive={editor.isActive('subscript')}
-          onClick={() => editor.chain().focus().toggleSubscript().run()}
-          className="hidden sm:inline-flex"
-        >
-          <SubscriptIcon className="h-3 w-3" />
-        </ToolbarButton>
-        <ToolbarButton
-          tooltip="Superscript"
-          isActive={editor.isActive('superscript')}
-          onClick={() => editor.chain().focus().toggleSuperscript().run()}
-          className="hidden sm:inline-flex"
-        >
-          <SuperscriptIcon className="h-3 w-3" />
-        </ToolbarButton>
+      {/* Sub/Superscript */}
+      <ToolbarButton
+        tooltip="Subscript"
+        isActive={editor.isActive('subscript')}
+        onClick={() => editor.chain().focus().toggleSubscript().run()}
+        className="hidden sm:inline-flex"
+      >
+        <SubscriptIcon className="h-3 w-3" />
+      </ToolbarButton>
+      <ToolbarButton
+        tooltip="Superscript"
+        isActive={editor.isActive('superscript')}
+        onClick={() => editor.chain().focus().toggleSuperscript().run()}
+        className="hidden sm:inline-flex"
+      >
+        <SuperscriptIcon className="h-3 w-3" />
+      </ToolbarButton>
 
-        <Separator
-          orientation="vertical"
-          className="mx-1 hidden h-4 sm:block"
-        />
+      <Separator orientation="vertical" className="mx-1 hidden h-4 sm:block" />
 
-        {/* Alignment */}
-        <ToolbarButton
-          tooltip="Align Left"
-          isActive={editor.isActive({ textAlign: 'left' })}
-          onClick={() => editor.chain().focus().setTextAlign('left').run()}
-        >
-          <AlignLeft className="h-3 w-3" />
-        </ToolbarButton>
-        <ToolbarButton
-          tooltip="Align Center"
-          isActive={editor.isActive({ textAlign: 'center' })}
-          onClick={() => editor.chain().focus().setTextAlign('center').run()}
-        >
-          <AlignCenter className="h-3 w-3" />
-        </ToolbarButton>
-        <ToolbarButton
-          tooltip="Align Right"
-          isActive={editor.isActive({ textAlign: 'right' })}
-          onClick={() => editor.chain().focus().setTextAlign('right').run()}
-        >
-          <AlignRight className="h-3 w-3" />
-        </ToolbarButton>
+      {/* Alignment */}
+      <ToolbarButton
+        tooltip="Align Left"
+        isActive={editor.isActive({ textAlign: 'left' })}
+        onClick={() => editor.chain().focus().setTextAlign('left').run()}
+      >
+        <AlignLeft className="h-3 w-3" />
+      </ToolbarButton>
+      <ToolbarButton
+        tooltip="Align Center"
+        isActive={editor.isActive({ textAlign: 'center' })}
+        onClick={() => editor.chain().focus().setTextAlign('center').run()}
+      >
+        <AlignCenter className="h-3 w-3" />
+      </ToolbarButton>
+      <ToolbarButton
+        tooltip="Align Right"
+        isActive={editor.isActive({ textAlign: 'right' })}
+        onClick={() => editor.chain().focus().setTextAlign('right').run()}
+      >
+        <AlignRight className="h-3 w-3" />
+      </ToolbarButton>
 
-        <Separator orientation="vertical" className="mx-1 h-4" />
+      <Separator orientation="vertical" className="mx-1 h-4" />
 
-        {/* Blocks */}
-        <ToolbarButton
-          tooltip="Quote"
-          isActive={editor.isActive('blockquote')}
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          className="hidden sm:inline-flex"
-        >
-          <Quote className="h-3 w-3" />
-        </ToolbarButton>
-        <ToolbarButton
-          tooltip="Bullet List"
-          isActive={editor.isActive('bulletList')}
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-        >
-          <List className="h-3 w-3" />
-        </ToolbarButton>
-        <ToolbarButton
-          tooltip="Numbered List"
-          isActive={editor.isActive('orderedList')}
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        >
-          <ListOrdered className="h-3 w-3" />
-        </ToolbarButton>
-      </TooltipProvider>
+      {/* Blocks */}
+      <ToolbarButton
+        tooltip="Quote"
+        isActive={editor.isActive('blockquote')}
+        onClick={() => editor.chain().focus().toggleBlockquote().run()}
+        className="hidden sm:inline-flex"
+      >
+        <Quote className="h-3 w-3" />
+      </ToolbarButton>
+      <ToolbarButton
+        tooltip="Bullet List"
+        isActive={editor.isActive('bulletList')}
+        onClick={() => editor.chain().focus().toggleBulletList().run()}
+      >
+        <List className="h-3 w-3" />
+      </ToolbarButton>
+      <ToolbarButton
+        tooltip="Numbered List"
+        isActive={editor.isActive('orderedList')}
+        onClick={() => editor.chain().focus().toggleOrderedList().run()}
+      >
+        <ListOrdered className="h-3 w-3" />
+      </ToolbarButton>
     </BubbleMenu>
   );
 };

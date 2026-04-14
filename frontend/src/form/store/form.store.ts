@@ -179,6 +179,18 @@ interface FormUIState {
   collapsedComponents: Record<InstanceID, boolean>;
 
   selectedComponentIds: InstanceID[];
+
+  // Panel Visibility
+  isFormExplorerRightPanelOpen: boolean;
+  isPropertyRightPanelOpen: boolean;
+  isLogicRightPanelOpen: boolean;
+
+  // Panel Dimensions
+  propertyRightPanelHeight: number;
+  logicRightPanelHeight: number;
+
+  // Tree State
+  expandedPages: Record<string, boolean>;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -272,6 +284,18 @@ interface FormUIActions {
   addSelectedComponent: (instanceId: InstanceID) => void;
   removeSelectedComponent: (instanceId: InstanceID) => void;
   clearSelectedComponents: () => void;
+
+  // Visibility Actions
+  setIsFormExplorerRightPanelOpen: (open: boolean) => void;
+  setIsPropertyRightPanelOpen: (open: boolean) => void;
+  setIsLogicRightPanelOpen: (open: boolean) => void;
+
+  // Dimension Actions
+  setPropertyHeight: (height: number) => void;
+  setLogicHeight: (height: number) => void;
+
+  // Tree Actions
+  setPageExpanded: (pageId: string, expanded: boolean) => void;
 }
 
 export type FormStore = FormSchemaState &
@@ -421,6 +445,13 @@ export const useFormStore = create<FormStore>()(
     collapsedComponents: {},
 
     selectedComponentIds: [],
+
+    isFormExplorerRightPanelOpen: true,
+    isPropertyRightPanelOpen: true,
+    isLogicRightPanelOpen: true, // Default logic to closed or open as you prefer
+    propertyRightPanelHeight: 250,
+    logicRightPanelHeight: 200,
+    expandedPages: {},
 
     initForm: (id, name, metadata) => {
       clearFormUndoHistory();
@@ -871,6 +902,36 @@ export const useFormStore = create<FormStore>()(
       });
       return newInstanceId;
     },
+
+    setIsFormExplorerRightPanelOpen: (open) =>
+      set((state) => {
+        state.isFormExplorerRightPanelOpen = open;
+      }),
+
+    setIsPropertyRightPanelOpen: (open) =>
+      set((state) => {
+        state.isPropertyRightPanelOpen = open;
+      }),
+
+    setIsLogicRightPanelOpen: (open) =>
+      set((state) => {
+        state.isLogicRightPanelOpen = open;
+      }),
+
+    setPropertyHeight: (height) =>
+      set((state) => {
+        state.propertyRightPanelHeight = height;
+      }),
+
+    setLogicHeight: (height) =>
+      set((state) => {
+        state.logicRightPanelHeight = height;
+      }),
+
+    setPageExpanded: (pageId, expanded) =>
+      set((state) => {
+        state.expandedPages[pageId] = expanded;
+      }),
   }))
 );
 

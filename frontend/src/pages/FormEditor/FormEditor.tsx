@@ -30,7 +30,6 @@ import { WorkflowListPanel } from './components/WorkflowListPanel';
 import { FormCanvas } from './components/FormCanvas';
 import { PageNavigator } from './components/PageNavigator';
 import { DebugPanel } from './components/DebugPanel';
-import { ComponentPropertiesPanel } from './components/ComponentPropertiesPanel';
 import { RightFloatingPanel } from './components/RightFloatingPanel';
 import { LogicPlayground } from './components/LogicPlayground';
 import { ThemingPage } from './components/ThemingPage';
@@ -48,6 +47,9 @@ import {
   loadWorkflow,
 } from '@/lib/formApi';
 import { useWorkflowStore } from '@/form/workflow/workflowStore';
+
+import SidebarLayout from './CanvasRightSidePanel';
+import { FloatingLogicPlayground, LogicWindowPortal } from './FloatingLogicPlayground';
 
 const PANEL_TITLES: Record<SidebarPanelId, string> = {
   components: 'Components',
@@ -110,7 +112,6 @@ export default function FormEditor() {
   const [showDebug, setShowDebug] = useState(false);
   const [showProperties, setShowProperties] = useState(true);
   const showPropertiesPanel = useFormStore((s) => s.showPropertiesPanel);
-  const togglePropertiesPanel = useFormStore((s) => s.togglePropertiesPanel);
   const [editorView, setEditorView] = useState<
     'canvas' | 'logic' | 'workflow' | 'formProperties' | 'theming'
   >('canvas');
@@ -127,6 +128,9 @@ export default function FormEditor() {
 
   const logicActiveRuleId = useLogicStore((s) => s.activeRuleId);
   const logicActiveFormulaId = useLogicStore((s) => s.activeFormulaId);
+
+  const popoutRuleIds = useLogicStore((s) => s.popoutRuleIds);
+  const closePopoutRule = useLogicStore((s) => s.closePopoutRule);
 
   const { formId } = useParams<{ formId: string }>();
   const navigate = useNavigate();
@@ -411,35 +415,44 @@ export default function FormEditor() {
 
             {/* Form canvas view */}
             {editorView === 'canvas' && (
-              <div
-                className="flex-1 overflow-y-auto"
-                onClick={handleCanvasClick}
-              >
-                <FormCanvas currentPageIndex={currentPageIndex} />
-
-                {totalPages > 0 && (
-                  <PageNavigator
-                    currentPage={currentPageIndex + 1}
-                    totalPages={totalPages}
-                    onNavigate={handleNavigate}
-                    onAddPage={handleAddPage}
-                  />
-                )}
-
-                {totalPages === 0 && (
-                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                    <button
-                      className="pointer-events-auto border border-dashed border-border bg-background px-5 py-2.5 text-sm text-muted-foreground shadow-sm transition-colors hover:border-primary/50 hover:text-primary"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAddPage();
-                      }}
-                    >
-                      + Add your first page
-                    </button>
+              <>
+                {/* 1. New outer wrapper: Horizontal flex layout */}
+                <div className="flex h-full w-full overflow-hidden bg-muted/20">
+                  {/* 2. Left/Center Area: Your Form Canvas */}
+                  <div
+                    className="relative flex flex-1 flex-col overflow-y-auto"
+                    onClick={handleCanvasClick}
+                  >
+                    <FormCanvas currentPageIndex={currentPageIndex} />
                   </div>
-                )}
-              </div>
+                  {totalPages > 0 && (
+                    <PageNavigator
+                      currentPage={currentPageIndex + 1}
+                      totalPages={totalPages}
+                      onNavigate={handleNavigate}
+                      onAddPage={handleAddPage}
+                    />
+                  )}
+
+                  {totalPages === 0 && (
+                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center shadow-none">
+                      <button
+                        className="pointer-events-auto border border-dashed border-border bg-background px-5 py-2.5 text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddPage();
+                        }}
+                      >
+                        + Add your first page
+                      </button>
+                    </div>
+                  )}
+                  {/* 3. Right Area: The Sidebar */}
+                  <div className="z-10 flex shrink-0">
+                    <SidebarLayout />
+                  </div>
+                </div>
+              </>
             )}
 
             {/* Logic playground view */}
@@ -474,7 +487,7 @@ export default function FormEditor() {
           </div>
 
           {/* ── Right properties panel (custom resizable, anchored right) ── */}
-          {showProperties && hasSelection && (
+          {/* {showProperties && hasSelection && (
             <RightFloatingPanel
               width={rightWidth as number}
               onWidthChange={(w) => setRightWidth(w)}
@@ -501,7 +514,7 @@ export default function FormEditor() {
                 </div>
               </div>
             </RightFloatingPanel>
-          )}
+          )} */}
 
           {/* ── Debug panel (custom resizable, anchored right) ── */}
           {showDebug && (
@@ -533,45 +546,45 @@ export default function FormEditor() {
               </div>
             </RightFloatingPanel>
           )}
+          <div
+            className="fixed bottom-4 left-4 z-[600000] flex gap-1 will-change-transform"
+            // style={{
+            //   transform: `translateX(-${(showProperties ? rightWidth : 0) + (showDebug ? debugWidth : 0)}px)`,
+            //   transition: 'transform 100ms ease-out',
+            // }}
+          >
+            <button
+              onClick={() => navigate('/')}
+              title="Back to Dashboard"
+              className="flex h-7 w-7 items-center justify-center border border-border bg-background text-muted-foreground shadow-sm transition-colors hover:text-foreground"
+            >
+              <ArrowLeft className="h-3 w-3" />
+            </button>
+            <span
+              title={`Currently editing version ${currentVersion}`}
+              className="flex h-7 items-center rounded-sm border border-border bg-muted px-1.5 text-[10px] font-semibold text-muted-foreground"
+            >
+              v{currentVersion}
+            </span>
+            <button
+              onClick={() => setShowDebug((p) => !p)}
+              title="Toggle debug panel"
+              className={`flex h-7 w-7 items-center justify-center border shadow-sm transition-colors ${
+                showDebug
+                  ? 'border-amber-400/60 bg-amber-400/10 text-amber-500'
+                  : 'border-border bg-background text-muted-foreground hover:text-amber-500'
+              }`}
+            >
+              <Bug className="h-3 w-3" />
+            </button>
+            <KeyboardShortcutsHelp
+              open={shortcutsOpen}
+              onOpenChange={setShortcutsOpen}
+            />
+          </div>
         </div>
 
         {/* ── Bottom-right utility buttons ── */}
-        <div
-          className="fixed right-4 bottom-4 z-[60] flex gap-1 will-change-transform"
-          style={{
-            transform: `translateX(-${(showProperties ? rightWidth : 0) + (showDebug ? debugWidth : 0)}px)`,
-            transition: 'transform 100ms ease-out',
-          }}
-        >
-          <button
-            onClick={() => navigate('/')}
-            title="Back to Dashboard"
-            className="flex h-7 w-7 items-center justify-center border border-border bg-background text-muted-foreground shadow-sm transition-colors hover:text-foreground"
-          >
-            <ArrowLeft className="h-3 w-3" />
-          </button>
-          <span
-            title={`Currently editing version ${currentVersion}`}
-            className="flex h-7 items-center rounded-sm border border-border bg-muted px-1.5 text-[10px] font-semibold text-muted-foreground"
-          >
-            v{currentVersion}
-          </span>
-          <button
-            onClick={() => setShowDebug((p) => !p)}
-            title="Toggle debug panel"
-            className={`flex h-7 w-7 items-center justify-center border shadow-sm transition-colors ${
-              showDebug
-                ? 'border-amber-400/60 bg-amber-400/10 text-amber-500'
-                : 'border-border bg-background text-muted-foreground hover:text-amber-500'
-            }`}
-          >
-            <Bug className="h-3 w-3" />
-          </button>
-          <KeyboardShortcutsHelp
-            open={shortcutsOpen}
-            onOpenChange={setShortcutsOpen}
-          />
-        </div>
       </div>
 
       {/* ── Drag overlay ── */}
@@ -661,6 +674,22 @@ export default function FormEditor() {
           </div>
         )}
       </DragOverlay>
+
+      {popoutRuleIds.map((ruleId) => (
+        <LogicWindowPortal
+          key={ruleId}
+          title={`Editing Rule: ${ruleId}`}
+          // CRITICAL: This syncs the user manually clicking the "X"
+          // on the browser window back to your Zustand store
+          windowName={`logic_portal_${ruleId}`}
+          onClose={() => closePopoutRule(ruleId)}
+        >
+          <FloatingLogicPlayground
+            targetRuleId={ruleId}
+            onClose={() => closePopoutRule(ruleId)}
+          />
+        </LogicWindowPortal>
+      ))}
     </DragDropProvider>
   );
 }

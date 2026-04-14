@@ -33,6 +33,7 @@ interface LogicState {
   activeRuleId: string | null;
   activeFormulaId: string | null;
   showDependencyGraph: boolean;
+  popoutRuleIds: string[];
 }
 
 // ── Actions ──
@@ -74,6 +75,10 @@ interface LogicActions {
   setActiveFormula: (formulaId: string | null) => void;
   toggleDependencyGraph: () => void;
 
+  // New actions for window management
+  openPopoutRule: (ruleId: string) => void;
+  closePopoutRule: (ruleId: string) => void;
+
   // Bulk
   loadRules: (
     rules: LogicRule[],
@@ -95,6 +100,7 @@ export const useLogicStore = create<LogicStore>()(
     activeRuleId: null,
     activeFormulaId: null,
     showDependencyGraph: false,
+    popoutRuleIds: [],
 
     // ── Rules ──
 
@@ -120,6 +126,7 @@ export const useLogicStore = create<LogicStore>()(
       set((state) => {
         state.rules = state.rules.filter((r) => r.ruleId !== ruleId);
         if (state.activeRuleId === ruleId) state.activeRuleId = null;
+        state.popoutRuleIds = state.popoutRuleIds.filter((id) => id !== ruleId);
       }),
 
     duplicateRule: (ruleId) => {
@@ -199,6 +206,7 @@ export const useLogicStore = create<LogicStore>()(
       set((state) => {
         state.formulas = state.formulas.filter((f) => f.ruleId !== ruleId);
         if (state.activeFormulaId === ruleId) state.activeFormulaId = null;
+        state.popoutRuleIds = state.popoutRuleIds.filter((id) => id !== ruleId);
       }),
 
     // ── Shuffle stacks ──
@@ -231,12 +239,21 @@ export const useLogicStore = create<LogicStore>()(
 
     setActiveRule: (ruleId) =>
       set((state) => {
-        state.activeRuleId = ruleId;
+        if (ruleId === state.activeRuleId) {
+          state.activeRuleId = null;
+        } else {
+          state.activeRuleId = ruleId;
+        }
         if (ruleId) state.activeFormulaId = null;
       }),
 
     setActiveFormula: (formulaId) =>
       set((state) => {
+        if (formulaId === state.activeFormulaId) {
+          state.activeFormulaId = null;
+        } else {
+          state.activeFormulaId = formulaId;
+        }
         state.activeFormulaId = formulaId;
         if (formulaId) state.activeRuleId = null;
       }),
@@ -245,6 +262,19 @@ export const useLogicStore = create<LogicStore>()(
       set((state) => {
         state.showDependencyGraph = !state.showDependencyGraph;
       }),
+
+    openPopoutRule: (ruleId) =>
+      set((state) => ({
+        // Prevent duplicates
+        popoutRuleIds: state.popoutRuleIds.includes(ruleId)
+          ? state.popoutRuleIds
+          : [...state.popoutRuleIds, ruleId],
+      })),
+
+    closePopoutRule: (ruleId) =>
+      set((state) => ({
+        popoutRuleIds: state.popoutRuleIds.filter((id) => id !== ruleId),
+      })),
 
     // ── Bulk ──
 
@@ -355,28 +385,36 @@ export function getDependencyEdges(
   return edges;
 }
 
-export interface OverlappingRulesPair {
+export type RuleWarningType = 'SAME_TARGET' | 'CASCADING';
+
+export interface RuleWarning {
+  warningType: RuleWarningType;
+  label: string;
   ruleA: { id: string; name: string; type: 'logic' | 'formula' };
   ruleB: { id: string; name: string; type: 'logic' | 'formula' };
-  sharedComponentIds: string[];
+  componentIds: string[];
+  description: string;
 }
 
-/** * Finds pairs of rules/formulas that share one or more of the same components
- * (either checking them in conditions or modifying them in actions/targets).
+/**
+ * Scans all rules and formulas to find specific architectural conflicts:
+ * - SAME_TARGET: Two different rules/formulas try to modify the exact same component.
+ * - CASCADING: One rule modifies a component that another rule relies on for its condition.
  */
-export function findOverlappingRules(
+export function getRuleDiagnostics(
   rules: LogicRule[],
   formulas: FormulaRule[] = []
-): OverlappingRulesPair[] {
+): RuleWarning[] {
   const footprints: Array<{
     id: string;
     name: string;
     type: 'logic' | 'formula';
-    components: Set<string>;
+    reads: Set<string>; // Components checked in conditions or formulas
+    writes: Set<string>; // Components modified by actions or formula targets
   }> = [];
 
-  // Helper to extract component IDs from a condition tree
-  function extractConditionIds(
+  // Helper to extract READS from a condition tree
+  function extractReads(
     condition?: Condition,
     set = new Set<string>()
   ): Set<string> {
@@ -384,89 +422,118 @@ export function findOverlappingRules(
     if (condition.type === 'leaf') {
       if (condition.instanceId) set.add(condition.instanceId);
     } else {
-      condition.conditions.forEach((cond) => extractConditionIds(cond, set));
+      condition.conditions.forEach((cond) => extractReads(cond, set));
     }
     return set;
   }
 
-  // Helper to extract component IDs from actions (including nested conditionals)
-  function extractActionIds(
+  // Helper to extract WRITES (and nested READS) from actions
+  function processActions(
     actions: RuleAction[],
-    set = new Set<string>()
-  ): Set<string> {
+    reads: Set<string>,
+    writes: Set<string>
+  ) {
     for (const action of actions) {
-      // Add target component if it's a standard target (ignore the dummy nested block ID)
-      if (action.targetId && action.targetId !== 'NESTED_LOGIC_BLOCK') {
-        set.add(action.targetId);
-      }
-      // Recursively dig into nested conditional actions
       if (action.type === 'CONDITIONAL') {
-        extractConditionIds(action.condition, set);
-        if (action.thenActions) extractActionIds(action.thenActions, set);
-        if (action.elseActions) extractActionIds(action.elseActions, set);
+        // Nested logic block: extract its condition to reads, and process inner actions
+        extractReads(action.condition, reads);
+        if (action.thenActions)
+          processActions(action.thenActions, reads, writes);
+        if (action.elseActions)
+          processActions(action.elseActions, reads, writes);
+      } else {
+        // Standard action: extract target to writes
+        if (action.targetId && action.targetId !== 'NESTED_LOGIC_BLOCK') {
+          writes.add(action.targetId);
+        }
       }
     }
-    return set;
   }
 
-  // 1. Calculate component footprint for Logic Rules
+  // 1. Calculate Read/Write footprints for Logic Rules
   for (const rule of rules) {
-    const components = new Set<string>();
-    extractConditionIds(rule.condition, components);
-    extractActionIds(rule.thenActions, components);
-    extractActionIds(rule.elseActions, components);
+    if (!rule.enabled) continue; // Optional: skip disabled rules
+    const reads = new Set<string>();
+    const writes = new Set<string>();
+
+    extractReads(rule.condition, reads);
+    processActions(rule.thenActions, reads, writes);
+    processActions(rule.elseActions, reads, writes);
 
     footprints.push({
       id: rule.ruleId,
       name: rule.name,
       type: 'logic',
-      components,
+      reads,
+      writes,
     });
   }
 
-  // 2. Calculate component footprint for Formula Rules
+  // 2. Calculate Read/Write footprints for Formula Rules
   for (const formula of formulas) {
-    const components = new Set<string>(formula.referencedFields || []);
-    if (formula.targetId) components.add(formula.targetId);
+    if (!formula.enabled) continue;
+    const reads = new Set<string>(formula.referencedFields || []);
+    const writes = new Set<string>();
+
+    if (formula.targetId) writes.add(formula.targetId);
 
     footprints.push({
       id: formula.ruleId,
       name: formula.name,
       type: 'formula',
-      components,
+      reads,
+      writes,
     });
   }
 
-  // 3. Cross-reference all footprints to find pairwise overlaps
-  const overlaps: OverlappingRulesPair[] = [];
+  // 3. Cross-reference footprints to find exact warning types
+  const warnings: RuleWarning[] = [];
 
   for (let i = 0; i < footprints.length; i++) {
     for (let j = i + 1; j < footprints.length; j++) {
-      const footprintA = footprints[i];
-      const footprintB = footprints[j];
+      const a = footprints[i];
+      const b = footprints[j];
 
-      // Find intersection of the two sets
-      const shared = [...footprintA.components].filter((id) =>
-        footprintB.components.has(id)
-      );
+      // Warning 1: SAME TARGET (Both try to write to the same component)
+      const sharedWrites = [...a.writes].filter((id) => b.writes.has(id));
+      if (sharedWrites.length > 0) {
+        warnings.push({
+          warningType: 'SAME_TARGET',
+          label: 'Same Target Warning',
+          ruleA: { id: a.id, name: a.name, type: a.type },
+          ruleB: { id: b.id, name: b.name, type: b.type },
+          componentIds: sharedWrites,
+          description: `Both rules are trying to modify the same component(s). This can create race conditions.`,
+        });
+      }
 
-      if (shared.length > 0) {
-        overlaps.push({
-          ruleA: {
-            id: footprintA.id,
-            name: footprintA.name,
-            type: footprintA.type,
-          },
-          ruleB: {
-            id: footprintB.id,
-            name: footprintB.name,
-            type: footprintB.type,
-          },
-          sharedComponentIds: shared,
+      // Warning 2: CASCADING (A writes to a component that B reads)
+      const cascadeAtoB = [...a.writes].filter((id) => b.reads.has(id));
+      if (cascadeAtoB.length > 0) {
+        warnings.push({
+          warningType: 'CASCADING',
+          label: 'Cascading Warning',
+          ruleA: { id: a.id, name: a.name, type: a.type }, // A modifies
+          ruleB: { id: b.id, name: b.name, type: b.type }, // B reads
+          componentIds: cascadeAtoB,
+          description: `'${a.name}' modifies a component that '${b.name}' relies on. Ensure this cascade is intentional.`,
+        });
+      }
+
+      // Warning 3: CASCADING (B writes to a component that A reads)
+      const cascadeBtoA = [...b.writes].filter((id) => a.reads.has(id));
+      if (cascadeBtoA.length > 0) {
+        warnings.push({
+          warningType: 'CASCADING',
+          label: 'Cascading Warning',
+          ruleA: { id: b.id, name: b.name, type: b.type }, // B modifies
+          ruleB: { id: a.id, name: a.name, type: a.type }, // A reads
+          componentIds: cascadeBtoA,
+          description: `'${b.name}' modifies a component that '${a.name}' relies on. Ensure this cascade is intentional.`,
         });
       }
     }
   }
 
-  return overlaps;
+  return warnings;
 }
