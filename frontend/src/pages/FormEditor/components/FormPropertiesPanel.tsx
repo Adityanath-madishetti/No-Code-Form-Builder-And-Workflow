@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/select';
 import { DeleteFormDialog } from '@/components/DeleteFormDialog';
 import { useNavigate } from 'react-router-dom';
-// import { RichTextEditor } from '@/components/RichTextEditor';
+import { RichTextEditor } from '@/components/RichTextEditor';
 
 function toLocalDateTime(iso: string | null): string {
   if (!iso) return '';
@@ -84,7 +84,7 @@ export function FormPropertiesPanel() {
         </Field>
 
         <Field label="Description">
-          <textarea
+          {/* <textarea
             value={form.metadata.description ?? ''}
             onChange={(e) =>
               updateFormMetadata({ description: e.target.value })
@@ -92,12 +92,12 @@ export function FormPropertiesPanel() {
             placeholder="Describe what this form is for..."
             rows={3}
             className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+          /> */}
+          <RichTextEditor
+            value={form.metadata.description ?? ''}
+            placeholder="Description"
+            onChange={(newHTML) => updateFormMetadata({ description: newHTML })}
           />
-          {/* <RichTextEditor
-          value={form.metadata.description ?? ''}
-          placeholder="Description"
-          onChange={(newHTML) => updateFormMetadata({ description: newHTML })}
-        /> */}
         </Field>
 
         <Field label="Owner">

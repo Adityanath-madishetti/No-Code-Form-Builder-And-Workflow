@@ -25,9 +25,9 @@ import type {
   ActionType,
 } from '@/form/logic/logicTypes';
 import { RULE_TYPES } from '@/form/logic/logicTypes';
-import { ConditionBuilder } from './components/ConditionBuilder';
-import { ActionRow } from './components/ActionRow';
-import { FormulaEditor } from './components/FormulaEditor';
+import { ConditionBuilder } from './ConditionBuilder';
+import { ActionRow } from './ActionRow';
+import { FormulaEditor } from './FormulaEditor';
 
 // ── Recursive Action List Component ──
 interface RecursiveActionListProps {

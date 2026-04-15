@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/collapsible';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-import { ComponentPropertiesPanel } from './components/ComponentPropertiesPanel';
+import { ComponentPropertiesPanel } from './ComponentPropertiesPanel';
 import { ComponentLogicPanel } from './ComponentsLogicPanel';
 import { useShallow } from 'zustand/react/shallow';
 

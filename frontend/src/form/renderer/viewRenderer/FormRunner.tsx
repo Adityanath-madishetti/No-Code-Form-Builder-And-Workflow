@@ -689,38 +689,43 @@ export function FormRunner() {
       const storeState = useRuntimeFormStore.getState();
       const pageStates = storeState.renderState?.PageStates || {};
 
+      const traversedPageIds = new Set([...pageStack, currentPageId]);
+
       // 2. Build the nested payload structure
-      const pagesPayload = formData.version.pages.map((page) => {
-        // Extract the component states specifically for this page
-        const currentPageState = pageStates[page.pageId];
-        const componentStatesForPage = currentPageState?.ComponentStates || {};
+      const pagesPayload = formData.version.pages
+        .filter((page) => traversedPageIds.has(page.pageId))
+        .map((page) => {
+          // Extract the component states specifically for this page
+          const currentPageState = pageStates[page.pageId];
+          const componentStatesForPage =
+            currentPageState?.ComponentStates || {};
 
-        const activeResponses = page.components
-          .filter((comp) => comp.componentType !== 'heading') // Ignore visual components
-          .filter((comp) => {
-            const state = componentStatesForPage[comp.componentId];
+          const activeResponses = page.components
+            .filter((comp) => comp.componentType !== 'heading') // Ignore visual components
+            .filter((comp) => {
+              const state = componentStatesForPage[comp.componentId];
 
-            // Use the new nested schema properties
-            if (state?.isHidden) return false;
-            if (state?.isEnabled === false) return false;
+              // Use the new nested schema properties
+              if (state?.isHidden) return false;
+              if (state?.isEnabled === false) return false;
 
-            return true;
-          })
-          .filter(
-            (comp) =>
-              data[comp.componentId] !== undefined &&
-              data[comp.componentId] !== ''
-          )
-          .map((comp) => ({
-            componentId: comp.componentId,
-            response: data[comp.componentId],
-          }));
+              return true;
+            })
+            .filter(
+              (comp) =>
+                data[comp.componentId] !== undefined &&
+                data[comp.componentId] !== ''
+            )
+            .map((comp) => ({
+              componentId: comp.componentId,
+              response: data[comp.componentId],
+            }));
 
-        return {
-          pageNo: page.pageNo,
-          responses: activeResponses,
-        };
-      });
+          return {
+            pageNo: page.pageNo,
+            responses: activeResponses,
+          };
+        });
 
       const payload = {
         email: settings.collectEmailMode === 'none' ? undefined : userEmail,

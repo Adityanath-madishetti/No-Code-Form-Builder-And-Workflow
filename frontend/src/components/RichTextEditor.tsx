@@ -1,103 +1,3 @@
-// src/components/RichTextEditor.tsx
-/**
- * RichTextEditor
- * ------------------------------------------------------------------------------------------------
- * A lightweight, extensible rich text editor built on top of TipTap.
- *
- * Features:
- * - Inline formatting: bold, italic, underline, strike, highlight
- * - Headings (H1, H2)
- * - Lists: bullet and ordered
- * - Blockquote support
- * - Text alignment (left, center, right)
- * - Links with inline popover editor
- * - Subscript / superscript
- * - Floating bubble menu for contextual editing
- * - Sanitized HTML output using DOMPurify (prevents XSS)
- *
- * Behavior:
- * - Controlled component: `value` is the source of truth
- * - Emits sanitized HTML via `onChange`
- * - Automatically syncs external value updates into the editor
- *
- * Styling:
- * - Uses shared prose classes (`sharedProseClasses`) for consistent rendering
- * - Designed to integrate with shadcn/ui components
- *
- * ------------------------------------------------------------------------------------------------
- * Usage:
- *
- * import { useState } from 'react';
- * import { RichTextEditor } from '@/components/RichTextEditor';
- *
- * export default function Example() {
- *   const [content, setContent] = useState('<p>Hello world</p>');
- *
- *   return (
- *     <div className="max-w-xl">
- *       <RichTextEditor
- *         value={content}
- *         onChange={setContent}
- *         placeholder="Start typing..."
- *       />
- *
- *       <div className="mt-4">
- *         <h3 className="text-sm font-medium mb-2">Preview:</h3>
- *         <div
- *           className="border rounded-md p-3 text-sm"
- *           dangerouslySetInnerHTML={{ __html: content }}
- *         />
- *       </div>
- *     </div>
- *   );
- * }
- *
- * ------------------------------------------------------------------------------------------------
- * References:
- * - TipTap (core editor framework):
- *   https://tiptap.dev/
- *
- * - TipTap React integration (`@tiptap/react`):
- *   https://tiptap.dev/docs/editor/installation/react
- *
- * - TipTap StarterKit (basic nodes & marks):
- *   https://tiptap.dev/docs/editor/extensions/starter-kit
- *
- * - TipTap Extensions used:
- *   - Underline:
- *     https://tiptap.dev/docs/editor/extensions/marks/underline
- *   - TextAlign:
- *     https://tiptap.dev/docs/editor/extensions/functionality/textalign
- *   - Link:
- *     https://tiptap.dev/docs/editor/extensions/marks/link
- *   - Highlight:
- *     https://tiptap.dev/docs/editor/extensions/marks/highlight
- *   - Subscript:
- *     https://tiptap.dev/docs/editor/extensions/marks/subscript
- *   - Superscript:
- *     https://tiptap.dev/docs/editor/extensions/marks/superscript
- *   - BubbleMenu:
- *     https://tiptap.dev/docs/editor/extensions/functionality/bubble-menu
- *
- * - DOMPurify (HTML sanitization):
- *   https://github.com/cure53/DOMPurify
- *
- * - shadcn/ui (UI components used for toolbar, popovers, etc.):
- *   https://ui.shadcn.com/
- *
- * - lucide-react (icons):
- *   https://lucide.dev/
- *
- *
- * ------------------------------------------------------------------------------------------------
- * Notes:
- * - The output is HTML (not Markdown). Store as-is or post-process if needed.
- * - Sanitization is intentionally permissive for styling (`class`, `style`, `href`, etc.)
- *   — tighten DOMPurify config if stricter security is required.
- * - For advanced use cases, extend TipTap via additional extensions.
- *
- * ------------------------------------------------------------------------------------------------
- */
 import { useEffect, useState } from 'react';
 import DOMPurify from 'dompurify';
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
@@ -110,6 +10,7 @@ import Highlight from '@tiptap/extension-highlight';
 import Subscript from '@tiptap/extension-subscript';
 import Superscript from '@tiptap/extension-superscript';
 
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
@@ -142,19 +43,21 @@ import {
   Superscript as SuperscriptIcon,
 } from 'lucide-react';
 
+// Moved text-sm and empty paragraph heights into the shared classes!
 // eslint-disable-next-line react-refresh/only-export-components
-export const sharedProseClasses = [
-  'whitespace-pre-wrap break-words',
-  '[&_ul]:list-disc [&_ul]:pl-6 [&_ul]:my-2',
-  '[&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:my-2',
-  '[&_li]:my-1 [&_li>p]:inline-block [&_li>p]:m-0',
-  '[&>p]:my-1',
-  '[&_h1]:text-3xl [&_h1]:mt-3 [&_h1]:mb-3',
-  '[&_h2]:text-2xl [&_h2]:mt-3 [&_h2]:mb-3',
-  '[&_blockquote]:border-l-4 [&_blockquote]:border-primary/50 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:my-4 [&_blockquote]:text-muted-foreground',
+export const sharedProseClasses = cn(
+  'text-sm text-foreground',
+  'break-words whitespace-pre-wrap',
+  '[&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6',
+  '[&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-6',
+  '[&_li]:my-1 [&_li>p]:m-0 [&_li>p]:inline-block',
+  '[&>p]:my-1 [&>p:empty]:h-5', // Forces empty paragraphs to render as a blank line outside the editor
+  '[&_h1]:mt-0 [&_h1]:mb-3 [&_h1]:text-3xl',
+  '[&_h2]:mt-0 [&_h2]:mb-3 [&_h2]:text-2xl',
+  '[&_blockquote]:my-4 [&_blockquote]:border-l-4 [&_blockquote]:border-primary/50 [&_blockquote]:pl-4 [&_blockquote]:text-muted-foreground [&_blockquote]:italic',
   '[&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4',
-  '[&_mark]:bg-yellow-200 [&_mark]:text-black [&_mark]:px-1 [&_mark]:rounded-sm',
-].join(' ');
+  '[&_mark]:rounded-sm [&_mark]:bg-yellow-200 [&_mark]:px-1 [&_mark]:text-black'
+);
 
 type ToolbarButtonProps = {
   tooltip: string;
@@ -178,7 +81,11 @@ const ToolbarButton = ({
           variant="ghost"
           size="icon"
           aria-label={tooltip}
-          className={`h-6 w-6 rounded-md ${isActive ? 'bg-muted shadow-sm' : ''} ${className || ''}`}
+          className={cn(
+            'h-6 w-6 rounded-md',
+            isActive && 'bg-muted shadow-sm',
+            className
+          )}
           onClick={onClick}
         >
           {children}
@@ -242,7 +149,10 @@ const LinkToolbarButton = ({
               <Button
                 variant="ghost"
                 size="icon"
-                className={`h-6 w-6 rounded-md ${editor.isActive('link') ? 'bg-muted shadow-sm' : ''}`}
+                className={cn(
+                  'h-6 w-6 rounded-md',
+                  editor.isActive('link') && 'bg-muted shadow-sm'
+                )}
               >
                 <LinkIcon className="h-3 w-3" />
               </Button>
@@ -303,10 +213,10 @@ const EditorBubbleMenu = ({ editor }: { editor: Editor }) => {
       shouldShow={({ editor }) => editor.isFocused || isLinkMenuOpen}
       options={{
         strategy: 'absolute',
-        placement: 'bottom',
-        offset: 0,
+        placement: 'top', // Placed above the text so it doesn't block the next line
+        offset: { mainAxis: 8, crossAxis: 0 },
       }}
-      className="flex w-max max-w-[90vw] flex-wrap items-center justify-center gap-0.5 rounded-lg border border-border bg-background/95 p-1 shadow-md backdrop-blur-md"
+      className="flex w-max max-w-[260px] flex-wrap items-center justify-center gap-0.5 rounded-lg border border-border bg-background/95 p-1 shadow-md backdrop-blur-md"
     >
       {/* Headings */}
       <ToolbarButton
@@ -324,7 +234,7 @@ const EditorBubbleMenu = ({ editor }: { editor: Editor }) => {
         <Heading2 className="h-3 w-3" />
       </ToolbarButton>
 
-      <Separator orientation="vertical" className="mx-1 h-4" />
+      <Separator orientation="vertical" className="mx-1 h-6" />
 
       {/* Formatting */}
       <ToolbarButton
@@ -370,7 +280,7 @@ const EditorBubbleMenu = ({ editor }: { editor: Editor }) => {
         setIsOpen={setIsLinkMenuOpen}
       />
 
-      <Separator orientation="vertical" className="mx-1 hidden h-4 lg:block" />
+      <Separator orientation="vertical" className="mx-1 hidden h-6 lg:block" />
 
       {/* Sub/Superscript */}
       <ToolbarButton
@@ -390,7 +300,7 @@ const EditorBubbleMenu = ({ editor }: { editor: Editor }) => {
         <SuperscriptIcon className="h-3 w-3" />
       </ToolbarButton>
 
-      <Separator orientation="vertical" className="mx-1 hidden h-4 sm:block" />
+      <Separator orientation="vertical" className="mx-1 hidden h-6 sm:block" />
 
       {/* Alignment */}
       <ToolbarButton
@@ -415,7 +325,7 @@ const EditorBubbleMenu = ({ editor }: { editor: Editor }) => {
         <AlignRight className="h-3 w-3" />
       </ToolbarButton>
 
-      <Separator orientation="vertical" className="mx-1 h-4" />
+      <Separator orientation="vertical" className="mx-1 h-6" />
 
       {/* Blocks */}
       <ToolbarButton
@@ -444,18 +354,6 @@ const EditorBubbleMenu = ({ editor }: { editor: Editor }) => {
   );
 };
 
-const normalizeHTML = (html: string) => {
-  if (!html) return '';
-
-  // Remove empty paragraphs (including whitespace, nbsp, <br>)
-  let cleaned = html.replace(/<p[^>]*>(\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, '');
-
-  // Trim leftover whitespace
-  cleaned = cleaned.trim();
-
-  return cleaned;
-};
-
 export interface RichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
@@ -466,7 +364,7 @@ export interface RichTextEditorProps {
 export const RichTextEditor = ({
   value,
   onChange,
-  className = '',
+  className,
 }: RichTextEditorProps) => {
   const editor = useEditor({
     extensions: [
@@ -483,31 +381,15 @@ export const RichTextEditor = ({
     ],
     content: value || '',
     onUpdate: ({ editor }) => {
-      let html = editor.getHTML();
+      const html = editor.getHTML();
 
-      if (editor.isEmpty) {
+      // If it's completely empty, save as empty string to avoid saving ghost tags
+      if (editor.isEmpty || html === '<p></p>') {
         onChange('');
         return;
       }
 
-      html = normalizeHTML(html);
-
-      // const isEmpty =
-      //   html === '<p></p>' ||
-      //   html === '<p><br></p>' ||
-      //   html === '<p class=""></p>' ||
-      //   html.replace(/<p[^>]*>(\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, '').trim() ===
-      //     '';
-      // if (isEmpty) {
-      //   onChange('');
-      //   editor.commands.clearContent();
-      //   return;
-      // }
-      if (!html) {
-        onChange('');
-        return;
-      }
-
+      // Straight passthrough to DOMPurify
       const cleanHTML = DOMPurify.sanitize(html, {
         ALLOWED_ATTR: ['class', 'style', 'href', 'target', 'rel'],
       });
@@ -515,26 +397,21 @@ export const RichTextEditor = ({
       onChange(cleanHTML);
     },
     editorProps: {
-      // Prevent link clicks from navigating away (but still allow cursor placement)
       handleClick: (_view, _pos, event) => {
         const target = event.target as HTMLElement;
         if (target.closest('a')) {
           event.preventDefault();
-          // We return false so ProseMirror still moves the text cursor into the link for editing
           return false;
         }
         return false;
       },
       attributes: {
-        class: `
-        w-full rounded-md border border-input bg-card 
-        px-4 py-3 text-sm placeholder:text-muted-foreground 
-        focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 
-        min-h-[100px] cursor-text rounded-none [&_a]:pointer-events-none
-        ${sharedProseClasses}
-        `
-          .replace(/\s+/g, ' ')
-          .trim(),
+        // text-sm removed from here because it's now in sharedProseClasses
+        class: cn(
+          'min-h-[100px] w-full cursor-text rounded-md border border-input bg-background px-4 py-3 ring-offset-background placeholder:text-muted-foreground focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
+          '[&_a]:pointer-events-none', // prevents default link behavior while editing
+          sharedProseClasses
+        ),
       },
     },
   });
@@ -549,7 +426,7 @@ export const RichTextEditor = ({
   if (!editor) return null;
 
   return (
-    <div className={`group relative ${className}`}>
+    <div className={cn('group relative', className)}>
       <EditorBubbleMenu editor={editor} />
       <EditorContent editor={editor} />
     </div>

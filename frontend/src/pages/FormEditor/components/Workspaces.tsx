@@ -1,10 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
-  Settings2,
-  LayoutGrid,
-  Palette,
-  Zap,
-  GitBranch,
   Sun,
   Moon,
   Save,
@@ -59,6 +54,8 @@ import {
   MenubarSubTrigger,
   MenubarTrigger,
 } from '@/components/ui/menubar';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 
 interface RulesWarningDialogProps {
   open: boolean;
@@ -328,20 +325,58 @@ export function PublishButton({
 }: PublishButtonProps) {
   const [publishing, setPublishing] = useState(false);
   const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
-  const [hasCopied, setHasCopied] = useState(false);
+  const [hasCopiedLink, setHasCopiedLink] = useState(false);
+  const [hasCopiedEmbed, setHasCopiedEmbed] = useState(false);
   const rules = useLogicStore((s) => s.rules);
   const formulas = useLogicStore((s) => s.formulas);
   const [isOverlapDialogOpen, setIsOverlapDialogOpen] = useState(false);
   const [ruleWarningData, setRuleWarningData] = useState<RuleWarning[]>([]);
 
   const shareLink = formId ? `${window.location.origin}/forms/${formId}` : '';
-  const components = useFormStore((s) => s.components);
+  const embedLink = formId
+    ? `${window.location.origin}/embed/forms/${formId}`
+    : '';
 
-  const handleCopy = async () => {
+  const expectedOrigin = new URL(embedLink).origin;
+  const embedCode = `
+<iframe 
+  id="form-iframe-${formId}"
+  src="${embedLink}" 
+  style="width: 1px; min-width: 100%; border: none;"
+  scrolling="no"
+></iframe>
+<script>
+  window.addEventListener('message', function(e) {
+    // 1. SECURITY: Only accept messages from YOUR application's domain
+    if (e.origin !== '${expectedOrigin}') return;
+
+    const iframe = document.getElementById('form-iframe-${formId}');
+    
+    // 2. SECURITY: Validate the payload type and ensure height is a safe number
+    if (iframe && e.data && e.data.type === 'FRAME_RESIZE') {
+      const newHeight = parseInt(e.data.height, 10);
+      
+      // Prevent malicious negative heights or absurdly large numbers
+      if (!isNaN(newHeight) && newHeight > 0 && newHeight < 20000) {
+        iframe.style.height = newHeight + 'px';
+      }
+    }
+  });
+</script>
+`;
+
+  const handleCopyLink = async () => {
     if (!shareLink) return;
     await navigator.clipboard.writeText(shareLink);
-    setHasCopied(true);
-    setTimeout(() => setHasCopied(false), 2000);
+    setHasCopiedLink(true);
+    setTimeout(() => setHasCopiedLink(false), 2000);
+  };
+
+  const handleCopyEmbed = async () => {
+    await navigator.clipboard.writeText(embedCode);
+    setHasCopiedEmbed(true);
+    setTimeout(() => setHasCopiedEmbed(false), 2000);
+    toast.success('Embed code copied to clipboard');
   };
 
   const executePublish = async () => {
@@ -428,31 +463,74 @@ export function PublishButton({
         descriptionText="Some rules share the same components. Are you sure you want to publish anyway?"
       />
       <Dialog open={isPublishDialogOpen} onOpenChange={setIsPublishDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="min-w-xl gap-0 sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>Form published successfully</DialogTitle>
           </DialogHeader>
 
-          <div className="flex items-center space-x-2 pt-4">
-            <div className="grid flex-1 gap-2">
-              <label htmlFor="link" className="sr-only">
-                Link
-              </label>
-              <Input
-                id="link"
-                defaultValue={shareLink}
-                readOnly
-                className="w-full text-sm text-muted-foreground"
-              />
+          <div className="space-y-6 pt-4">
+            {/* Share Link Section */}
+            <div className="space-y-2">
+              <Label
+                htmlFor="link"
+                className="text-xs font-semibold tracking-wider text-muted-foreground uppercase"
+              >
+                Public Link
+              </Label>
+              <div className="flex items-center space-x-2">
+                <Input
+                  id="link"
+                  defaultValue={shareLink}
+                  readOnly
+                  className="h-9 flex-1 bg-muted/50 text-sm text-muted-foreground"
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-9 px-3"
+                  onClick={handleCopyLink}
+                >
+                  {hasCopiedLink ? (
+                    <Check className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
             </div>
-            <Button size="sm" className="px-3" onClick={handleCopy}>
-              <span className="sr-only">Copy</span>
-              {hasCopied ? (
-                <Check className="h-4 w-4 text-green-500" />
-              ) : (
-                <Copy className="h-4 w-4" />
-              )}
-            </Button>
+
+            {/* Embed Code Section */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label
+                  htmlFor="embed"
+                  className="text-xs font-semibold tracking-wider text-muted-foreground uppercase"
+                >
+                  Embed Code (Iframe)
+                </Label>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-[10px] font-bold uppercase"
+                  onClick={handleCopyEmbed}
+                >
+                  {hasCopiedEmbed ? 'Copied!' : 'Copy Code'}
+                </Button>
+              </div>
+              <div className="group relative">
+                <Textarea
+                  id="embed"
+                  value={embedCode}
+                  readOnly
+                  className="h-24 resize-none bg-muted/30 font-mono text-sm text-[11px] leading-relaxed text-muted-foreground"
+                />
+                <div className="pointer-events-none absolute inset-0 rounded-md border border-transparent transition-colors group-hover:border-primary/20" />
+              </div>
+              <p className="text-[10px] text-muted-foreground italic">
+                This includes a script to automatically adjust the height of the
+                form.
+              </p>
+            </div>
           </div>
           <DialogFooter className="flex justify-end pt-4">
             <a
@@ -483,7 +561,7 @@ interface MenuItem {
   value?: string; // For Radio items
   onClick?: () => void;
   items?: MenuItem[]; // For Submenus
-  className?: string
+  className?: string;
 }
 
 interface MenuSection {
@@ -579,7 +657,9 @@ export function DynamicMenubar() {
       if (item.type === 'sub') {
         return (
           <MenubarSub key={item.text}>
-            <MenubarSubTrigger className={item.className}>{item.text}</MenubarSubTrigger>
+            <MenubarSubTrigger className={item.className}>
+              {item.text}
+            </MenubarSubTrigger>
             <MenubarSubContent className="shadow-none">
               {item.items && renderMenuItems(item.items)}
             </MenubarSubContent>
@@ -639,109 +719,24 @@ export function DynamicMenubar() {
 }
 
 interface WorkspacesProps {
-  editorView: 'canvas' | 'logic' | 'workflow' | 'formProperties' | 'theming';
-  setEditorView: (
-    view: 'canvas' | 'logic' | 'workflow' | 'formProperties' | 'theming'
-  ) => void;
-  setActivePanel: (panel: null) => void;
-  logicActiveRuleId: string | null;
-  logicActiveFormulaId: string | null;
-  showProperties: boolean;
-  showDebug: boolean;
-  rightWidth: number | string;
-  debugWidth: number | string;
   editorTheme: 'dark' | 'light' | 'system' | string;
   setEditorTheme: (theme: 'dark' | 'light' | 'system') => void;
   saving: boolean;
   handleSave: () => Promise<boolean>;
   formId?: string;
-  publishing: boolean;
-  setPublishing: (pub: boolean) => void;
 }
 
 export function Workspaces({
-  editorView,
-  setEditorView,
-  setActivePanel,
-  logicActiveRuleId,
-  logicActiveFormulaId,
-  showProperties,
-  showDebug,
-  rightWidth,
-  debugWidth,
   editorTheme,
   setEditorTheme,
   saving,
   handleSave,
   formId,
-  publishing,
-  setPublishing,
 }: WorkspacesProps) {
   return (
     <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border bg-background px-3 py-[5.5px]">
       <div className="flex items-center gap-1">
         <DynamicMenubar />
-        {/* <button
-          onClick={() => setEditorView('canvas')}
-          className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors ${
-            editorView === 'canvas'
-              ? 'bg-primary text-primary-foreground shadow-sm'
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-          }`}
-        >
-          <LayoutGrid className="h-3 w-3" />
-          Canvas
-        </button> */}
-        {/* <button
-          onClick={() => {
-            setActivePanel(null);
-            setEditorView('theming');
-          }}
-          className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors ${
-            editorView === 'theming'
-              ? 'bg-primary text-primary-foreground shadow-sm'
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-          }`}
-        >
-          <Palette className="h-3 w-3" />
-          Themes
-        </button> */}
-        {/* <button
-          onClick={() => setEditorView('logic')}
-          className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors ${
-            editorView === 'logic'
-              ? 'bg-primary text-primary-foreground shadow-sm'
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-          }`}
-        >
-          <Zap className="h-3 w-3" />
-          Logic
-          {(logicActiveRuleId || logicActiveFormulaId) && (
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-          )}
-        </button> */}
-        {/* <button
-          onClick={() => setEditorView('workflow')}
-          className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors ${
-            editorView === 'workflow'
-              ? 'bg-primary text-primary-foreground shadow-sm'
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-          }`}
-        >
-          <GitBranch className="h-3 w-3" />
-          Workflow
-        </button> */}
-        {/* <button
-          onClick={() => setEditorView('formProperties')}
-          className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors ${
-            editorView === 'formProperties'
-              ? 'bg-primary text-primary-foreground shadow-sm'
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-          }`}
-        >
-          <Settings2 className="h-3 w-3" />
-          Settings
-        </button> */}
       </div>
 
       <div className="flex items-center gap-1">

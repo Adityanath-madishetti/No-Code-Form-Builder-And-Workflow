@@ -213,16 +213,16 @@ export function useFormEditorShortcuts(opts: UseFormEditorShortcutsParams) {
       }
 
       // ── Toggle properties (backslash) ─────────────────────────────────
-      if (
-        mod &&
-        !e.shiftKey &&
-        (e.key === '\\' || e.code === 'Backslash' || e.code === 'IntlBackslash')
-      ) {
-        if (editable || !o.hasSelection) return;
-        e.preventDefault();
-        useFormStore.getState().togglePropertiesPanel();
-        return;
-      }
+      // if (
+      //   mod &&
+      //   !e.shiftKey &&
+      //   (e.key === '\\' || e.code === 'Backslash' || e.code === 'IntlBackslash')
+      // ) {
+      //   if (editable || !o.hasSelection) return;
+      //   e.preventDefault();
+      //   useFormStore.getState().togglePropertiesPanel();
+      //   return;
+      // }
 
       // ── Debug panel ───────────────────────────────────────────────────
       if (mod && e.altKey && !e.shiftKey && (e.key === 'd' || e.key === 'D')) {

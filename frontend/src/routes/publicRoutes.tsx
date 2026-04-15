@@ -1,20 +1,21 @@
 import Login from "../pages/Login/page";
-// import FormFill from "../pages/FormFill/FormFill";
 import FormSuccess from "../pages/FormFill/FormSuccess";
-import FormSubmit from "../pages/FormSubmit/FormSubmit";
+// import FormSubmit from "../pages/FormSubmit/FormSubmit";
+import { FormRunner } from "@/form/renderer/viewRenderer/FormRunner";
+import EmbedForm from "@/components/EmbedForm";
 
 export const publicRoutes = [
   {
     path: "/login",
     element: <Login />,
   },
-  // {
-  //   path: "/forms/:formId",
-  //   element: <FormFill />,
-  // },
   {
-    path: "forms/:formId",
-    element: <FormSubmit />,
+    path: "/forms/:formId",
+    element: <FormRunner />,
+  },
+  {
+    path: "/embed/forms/:formId",
+    element: <EmbedForm />,
   },
   {
     path: "/forms/:formId/success",

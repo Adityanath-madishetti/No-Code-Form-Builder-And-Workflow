@@ -61,8 +61,6 @@ export const SelectableComponent = ({
   const toggleComponentCollapsed = useFormStore(
     (s) => s.toggleComponentCollapsed
   );
-  const showPropertiesPanel = useFormStore((s) => s.showPropertiesPanel);
-  const togglePropertiesPanel = useFormStore((s) => s.togglePropertiesPanel);
   const isCollapsed = useFormStore(
     (s) => !!s.collapsedComponents[component.instanceId]
   );
@@ -371,7 +369,6 @@ export const SelectableComponent = ({
                       e.stopPropagation();
                       setActiveComponent(component.instanceId);
                       setActivePage(null);
-                      if (!showPropertiesPanel) togglePropertiesPanel();
                     }}
                     className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-none border border-border/50 bg-background text-muted-foreground/60 transition-colors hover:bg-muted/50 hover:text-foreground"
                     aria-label="Component properties"

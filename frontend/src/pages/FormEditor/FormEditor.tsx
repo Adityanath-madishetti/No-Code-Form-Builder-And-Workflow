@@ -16,25 +16,13 @@ import {
   DRAG_CATALOG_GROUP_ID,
 } from '@/form/utils/DndUtils';
 
-import { EditorSidebar, type SidebarPanelId } from './components/EditorSidebar';
-import { ComponentCatalogPanel } from './components/ComponentCatalogPanel';
-import { TemplateCatalogPanel } from './components/TemplateCatalogPanel';
-import { GroupCatalogPanel } from './components/GroupCatalogPanel';
-import { ThemePanel } from './components/ThemePanel';
-import { LogicPanel } from './components/LogicPanel';
-import { WorkflowPanel } from './components/WorkflowPanel';
-import { AIPanel } from './components/AIPanel';
-import { FormPropertiesPanel } from './components/FormPropertiesPanel';
-import { WorkflowListPanel } from './components/WorkflowListPanel';
+import { type SidebarPanelId } from './components/EditorSidebar';
 import { FormCanvas } from './components/FormCanvas';
-import { PageNavigator } from './components/PageNavigator';
 import { DebugPanel } from './components/DebugPanel';
 import { RightFloatingPanel } from './components/RightFloatingPanel';
-import { LogicPlayground } from './components/LogicPlayground';
-import { ThemingPage } from './components/ThemingPage';
 import { useTheme } from '@/components/theme-provider';
 import { useLogicStore } from '@/form/logic/logic.store';
-import { Bug, PanelLeftClose, PanelRightClose, ArrowLeft } from 'lucide-react';
+import { Bug, PanelRightClose, ArrowLeft } from 'lucide-react';
 import { Workspaces } from './components/Workspaces';
 import { useFormEditorShortcuts } from './useFormEditorShortcuts';
 import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
@@ -47,40 +35,11 @@ import {
 } from '@/lib/formApi';
 import { useWorkflowStore } from '@/form/workflow/workflowStore';
 
-import SidebarLayout from './CanvasRightSidePanel';
+import SidebarLayout from './components/CanvasRightSidePanel';
 import {
   FloatingLogicPlayground,
   LogicWindowPortal,
-} from './FloatingLogicPlayground';
-
-const PANEL_TITLES: Record<SidebarPanelId, string> = {
-  components: 'Components',
-  templates: 'Templates',
-  theme: 'Theme',
-  logic: 'Logic',
-  workflow: 'Workflow',
-  ai: 'AI Assistant',
-  groups: 'Groups',
-};
-
-function PanelContent({ panelId }: { panelId: SidebarPanelId }) {
-  switch (panelId) {
-    case 'components':
-      return <ComponentCatalogPanel />;
-    case 'templates':
-      return <TemplateCatalogPanel />;
-    case 'groups':
-      return <GroupCatalogPanel />;
-    case 'theme':
-      return <ThemePanel />;
-    case 'logic':
-      return <LogicPanel />;
-    case 'workflow':
-      return <WorkflowListPanel />;
-    case 'ai':
-      return <AIPanel />;
-  }
-}
+} from './components/FloatingLogicPlayground';
 
 export default function FormEditor() {
   const form = useFormStore((s) => s.form);
@@ -114,24 +73,17 @@ export default function FormEditor() {
     'components'
   );
   const [showDebug, setShowDebug] = useState(false);
-  const [showProperties, setShowProperties] = useState(true);
-  const showPropertiesPanel = useFormStore((s) => s.showPropertiesPanel);
   const [editorView, setEditorView] = useState<
     'canvas' | 'logic' | 'workflow' | 'formProperties' | 'theming'
   >('canvas');
 
   const { theme: editorTheme, setTheme: setEditorTheme } = useTheme();
 
-  const [leftWidth, setLeftWidth] = useState<number | string>('20%');
-  const [rightWidth, setRightWidth] = useState(340);
   const [debugWidth, setDebugWidth] = useState(400);
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [formLoaded, setFormLoaded] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
-
-  const logicActiveRuleId = useLogicStore((s) => s.activeRuleId);
-  const logicActiveFormulaId = useLogicStore((s) => s.activeFormulaId);
 
   const popoutRuleIds = useLogicStore((s) => s.popoutRuleIds);
   const closePopoutRule = useLogicStore((s) => s.closePopoutRule);
@@ -237,35 +189,6 @@ export default function FormEditor() {
       : 'Editor — Form Builder';
   }, [form?.name]);
 
-  // Auto-show/hide properties based on selection
-  useEffect(() => {
-    if (activeComponentId || activePageId) {
-      setShowProperties(true);
-    } else {
-      setShowProperties(false);
-    }
-  }, [activeComponentId, activePageId]);
-
-  // Sync local state with store state for properties panel
-  useEffect(() => {
-    setShowProperties(showPropertiesPanel);
-  }, [showPropertiesPanel]);
-
-  // Auto-switch to logic view when a rule/formula is activated
-  // useEffect(() => {
-  //   if (logicActiveRuleId || logicActiveFormulaId) {
-  //     setEditorView('logic');
-  //   }
-  // }, [logicActiveRuleId, logicActiveFormulaId]);
-
-  const handleAddPage = useCallback(() => {
-    addPage();
-    setCurrentPageIndex(totalPages);
-  }, [addPage, setCurrentPageIndex, totalPages]);
-
-  const handleNavigate = (page: number) => {
-    setCurrentPageIndex(page - 1);
-  };
 
   const handleCanvasClick = () => {
     setActiveComponent(null);
@@ -288,16 +211,16 @@ export default function FormEditor() {
       // Save current editor state to the new version
       const logicState = useLogicStore.getState();
 
-      console.log({
-        formId,
-        newVersionNum,
-        form,
-        pages,
-        components,
-        uid: user?.uid || 'unknown',
-        rules: logicState.rules,
-        formulas: logicState.formulas,
-      });
+      // console.log({
+      //   formId,
+      //   newVersionNum,
+      //   form,
+      //   pages,
+      //   components,
+      //   uid: user?.uid || 'unknown',
+      //   rules: logicState.rules,
+      //   formulas: logicState.formulas,
+      // });
 
       await saveFormVersion(
         formId,
@@ -348,191 +271,30 @@ export default function FormEditor() {
       onDragEnd={onDragEnd}
     >
       <div className="isolate flex h-screen w-full overflow-hidden bg-neutral-50 dark:bg-neutral-950">
-        {/* ── Left icon rail ── */}
-        {/* <EditorSidebar
-          activePanel={activePanel}
-          onPanelChange={(panel) => {
-            if (panel === 'theme') {
-              setActivePanel(null);
-              setEditorView('theming');
-              return;
-            }
-            setActivePanel(panel);
-          }}
-        /> */}
-
-        {/* ── Main area with react-rnd custom resizable panels ── */}
         <div className="relative flex h-full flex-1 overflow-hidden">
-          {/* ── Left fly-out panel ── */}
-
-          {/* ── Centre area: Form canvas OR Logic playground ── */}
           <div className="relative flex h-full min-w-[400px] flex-1 flex-col overflow-hidden bg-neutral-100 dark:bg-neutral-900">
-            {/* Workspaces navbar */}
-
             <Workspaces
-              editorView={editorView}
-              setEditorView={setEditorView}
-              setActivePanel={setActivePanel}
-              logicActiveRuleId={logicActiveRuleId}
-              logicActiveFormulaId={logicActiveFormulaId}
-              showProperties={showProperties}
-              showDebug={showDebug}
-              rightWidth={rightWidth}
-              debugWidth={debugWidth}
               editorTheme={editorTheme}
               setEditorTheme={setEditorTheme}
               saving={saving}
               handleSave={handleSave}
               formId={formId}
-              publishing={publishing}
-              setPublishing={setPublishing}
             />
-
-            {/* Form canvas view */}
-            {editorView === 'canvas' && (
-              <>
-                {/* 1. New outer wrapper: Horizontal flex layout */}
-                <div className="flex h-full w-full overflow-hidden bg-muted/20">
-                  {/* <EditorSidebar
-                    activePanel={activePanel}
-                    onPanelChange={(panel) => {
-                      if (panel === 'theme') {
-                        setActivePanel(null);
-                        setEditorView('theming');
-                        return;
-                      }
-                      setActivePanel(panel);
-                    }}
-                  /> */}
-                  {/* 2. Left/Center Area: Your Form Canvas */}
-                  {/* {activePanel && (
-                    <Rnd
-                      disableDragging
-                      enableResizing={{ right: true }}
-                      size={{ width: leftWidth, height: '100%' }}
-                      minWidth="250px"
-                      maxWidth="35%"
-                      onResize={(_e, _dir, ref) =>
-                        setLeftWidth(ref.style.width)
-                      }
-                      style={{ transform: 'none' }}
-                      className="z-10 shrink-0 border-r border-border bg-background"
-                    >
-                      <div className="flex h-full flex-col">
-                        <div className="flex h-10 shrink-0 items-center gap-2 border-b border-border px-3">
-                          <span className="flex-1 text-xs font-semibold tracking-widest text-muted-foreground uppercase">
-                            {PANEL_TITLES[activePanel]}
-                          </span>
-                          <button
-                            onClick={() => setActivePanel(null)}
-                            title="Collapse Sidebar"
-                            className="text-muted-foreground transition-colors hover:text-foreground"
-                          >
-                            <PanelLeftClose className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-3">
-                          <PanelContent panelId={activePanel} />
-                        </div>
-                      </div>
-                    </Rnd>
-                  )} */}
-                  <div
-                    className="relative flex flex-1 flex-col overflow-y-auto"
-                    onClick={handleCanvasClick}
-                  >
-                    <FormCanvas currentPageIndex={currentPageIndex} />
-                  </div>
-                  {/* {totalPages > 0 && (
-                    <PageNavigator
-                      currentPage={currentPageIndex + 1}
-                      totalPages={totalPages}
-                      onNavigate={handleNavigate}
-                      onAddPage={handleAddPage}
-                    />
-                  )}
-
-                  {totalPages === 0 && (
-                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center shadow-none">
-                      <button
-                        className="pointer-events-auto border border-dashed border-border bg-background px-5 py-2.5 text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAddPage();
-                        }}
-                      >
-                        + Add your first page
-                      </button>
-                    </div>
-                  )} */}
-                  {/* 3. Right Area: The Sidebar */}
-                  <div className="z-10 flex shrink-0">
-                    <SidebarLayout />
-                  </div>
+            <>
+              <div className="flex h-full w-full overflow-hidden bg-muted/20">
+                <div
+                  className="relative flex flex-1 flex-col overflow-y-auto"
+                  onClick={handleCanvasClick}
+                >
+                  <FormCanvas currentPageIndex={currentPageIndex} />
                 </div>
-              </>
-            )}
 
-            {/* Logic playground view */}
-            {/* {editorView === 'logic' && (
-              <div className="flex-1 overflow-hidden">
-                <LogicPlayground onClose={() => setEditorView('canvas')} />
-              </div>
-            )} */}
-
-            {/* Workflow editor view */}
-            {/* {editorView === 'workflow' && (
-              <div className="flex-1 overflow-y-auto">
-                <WorkflowPanel />
-              </div>
-            )} */}
-
-            {/* Theming editor view */}
-            {/* {editorView === 'theming' && (
-              <div className="flex-1 overflow-hidden">
-                <ThemingPage />
-              </div>
-            )} */}
-
-            {/* Form properties view */}
-            {/* {editorView === 'formProperties' && (
-              <div className="flex-1 overflow-y-auto">
-                <div className="p-3">
-                  <FormPropertiesPanel />
+                <div className="z-10 flex shrink-0">
+                  <SidebarLayout />
                 </div>
               </div>
-            )} */}
+            </>
           </div>
-
-          {/* ── Right properties panel (custom resizable, anchored right) ── */}
-          {/* {showProperties && hasSelection && (
-            <RightFloatingPanel
-              width={rightWidth as number}
-              onWidthChange={(w) => setRightWidth(w)}
-              minWidth={280}
-              maxWidth={500}
-              zIndex={40}
-              rightOffset={showDebug ? debugWidth : 0}
-            >
-              <div className="flex h-full w-full flex-col">
-                <div className="flex h-10 shrink-0 items-center border-b border-border px-3">
-                  <span className="flex-1 text-xs font-semibold tracking-widest text-muted-foreground uppercase">
-                    Properties
-                  </span>
-                  <button
-                    onClick={togglePropertiesPanel}
-                    title="Collapse Properties"
-                    className="text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    <PanelRightClose className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-                <div className="flex min-h-0 w-full flex-1 flex-col overflow-y-auto">
-                  <ComponentPropertiesPanel />
-                </div>
-              </div>
-            </RightFloatingPanel>
-          )} */}
 
           {/* ── Debug panel (custom resizable, anchored right) ── */}
           {showDebug && (

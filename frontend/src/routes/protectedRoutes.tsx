@@ -10,7 +10,8 @@ export const protectedRoutes = {
   element: <ProtectedLayout />,
   children: [
     {
-      index: true,
+      // index: true,
+      path: "dashboard",
       element: <Dashboard />,
     },
     {

@@ -254,7 +254,6 @@ interface FormSchemaActions {
   duplicateComponent: (instanceId: InstanceID) => InstanceID | undefined;
   toggleComponentCollapsed: (instanceId: InstanceID) => void;
   setComponentCollapsed: (instanceId: InstanceID, collapsed: boolean) => void;
-  togglePropertiesPanel: () => void;
   openPropertiesPanel: () => void;
   closePropertiesPanel: () => void;
 
@@ -802,11 +801,6 @@ export const useFormStore = create<FormStore>()(
     setComponentCollapsed: (instanceId, collapsed) =>
       set((state) => {
         state.collapsedComponents[instanceId] = collapsed;
-      }),
-
-    togglePropertiesPanel: () =>
-      set((state) => {
-        state.showPropertiesPanel = !state.showPropertiesPanel;
       }),
 
     addSelectedComponent: (instanceId) =>
