@@ -204,6 +204,7 @@ const RuleActionSchema = new Schema(
             required: true,
         },
         targetId: { type: String, required: true },
+        toPageId: { type: String, required: false },
         value: { type: Schema.Types.Mixed },
         condition: { type: Schema.Types.Mixed },
     },

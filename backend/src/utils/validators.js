@@ -27,6 +27,7 @@ const formVersionPayloadSchema = {
                     ],
                 },
                 targetId: { type: "string" }, // Empty string is valid for CONDITIONAL
+                toPageId: { type: "string" },
                 
                 // Safe way to allow any type without crashing AJV strict mode
                 value: { 

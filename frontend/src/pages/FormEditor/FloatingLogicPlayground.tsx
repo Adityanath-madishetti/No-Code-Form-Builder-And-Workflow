@@ -30,8 +30,6 @@ import { ActionRow } from './components/ActionRow';
 import { FormulaEditor } from './components/FormulaEditor';
 
 // ── Recursive Action List Component ──
-// This handles infinite nesting of IF/THEN/ELSE blocks when ActionType is CONDITIONAL
-// ── Recursive Action List Component ──
 interface RecursiveActionListProps {
   actions: RuleAction[];
   onChange: (actions: RuleAction[]) => void;
@@ -49,25 +47,35 @@ function RecursiveActionList({
 }: RecursiveActionListProps) {
   const handleActionChange = (index: number, updated: RuleAction) => {
     const newActions = [...actions];
+    const oldAction = newActions[index];
 
     // Intercept: If the user just switched the type to CONDITIONAL
-    if (
-      updated.type === 'CONDITIONAL' &&
-      newActions[index].type !== 'CONDITIONAL'
-    ) {
+    if (updated.type === 'CONDITIONAL' && oldAction.type !== 'CONDITIONAL') {
       updated.condition = updated.condition || createConditionGroup('AND');
       updated.thenActions = updated.thenActions || [];
       updated.elseActions = updated.elseActions || [];
       // Fix: Populate the targetId to bypass Mongoose validation
       updated.targetId = 'NESTED_LOGIC_BLOCK';
+      delete updated.toPageId; // Clean up skip page target
     }
     // Intercept: If the user switched FROM Conditional back to a standard action
     else if (
       updated.type !== 'CONDITIONAL' &&
-      newActions[index].type === 'CONDITIONAL'
+      oldAction.type === 'CONDITIONAL'
     ) {
-      // Clear the dummy ID so they are forced to pick a real component target
+      // Clear the dummy ID so they are forced to pick a real component/page target
       updated.targetId = '';
+      updated.toPageId = '';
+    }
+    // Intercept: Switching between standard actions (e.g., SHOW -> SKIP_PAGE)
+    else if (updated.type !== oldAction.type) {
+      if (updated.type === 'SKIP_PAGE') {
+        updated.targetId = ''; // Clear component target
+        updated.toPageId = ''; // Reset page target
+      } else if (oldAction.type === 'SKIP_PAGE') {
+        updated.toPageId = ''; // Clear page target
+        updated.targetId = ''; // Reset component target
+      }
     }
 
     newActions[index] = updated;
@@ -272,7 +280,6 @@ export function FloatingLogicPlayground({
   if (!rule && !formula) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
-        {/* <Zap className="h-12 w-12 text-muted-foreground/20" /> */}
         <div>
           <p className="text-sm font-medium text-muted-foreground">
             No rule selected
@@ -340,13 +347,6 @@ export function FloatingLogicPlayground({
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-2 border-b border-border bg-background/80 px-4 py-2.5 backdrop-blur-sm">
-        {/* <button
-          onClick={onClose}
-          className="text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </button> */}
-        {/* <Zap className="h-4 w-4 text-amber-500" /> */}
         <input
           type="text"
           value={rule!.name}
@@ -386,7 +386,6 @@ export function FloatingLogicPlayground({
             <h3 className="mb-2 text-xs font-bold tracking-widest text-green-600 uppercase">
               THEN
             </h3>
-            {/* Replaced manual map with RecursiveActionList */}
             <RecursiveActionList
               actions={rule!.thenActions}
               onChange={(actions) =>

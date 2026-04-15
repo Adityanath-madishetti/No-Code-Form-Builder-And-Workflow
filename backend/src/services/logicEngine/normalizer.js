@@ -64,10 +64,16 @@ function normalizeAction(action) {
     let targetId = typeof action?.targetId === "string" ? action.targetId : "";
     if (targetId.trim() === "") targetId = "UNASSIGNED";
 
+    let toPageId = typeof action?.toPageId === "string" ? action.toPageId : "";
+    if (type === "SKIP_PAGE" && toPageId.trim() === "") {
+        toPageId = "UNASSIGNED_PAGE"; 
+    }
+
     const normalized = {
         id: typeof action?.id === "string" ? action.id : crypto.randomUUID(),
         type,
         targetId,
+        toPageId,
         value: action?.value,
     };
 

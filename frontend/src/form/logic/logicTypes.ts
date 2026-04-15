@@ -104,6 +104,8 @@ export interface RuleAction {
   targetId: string; // componentId or pageId
   value?: unknown; // for SET_VALUE
 
+  toPageId?: string; // For skip page
+
   condition?: Condition;
   thenActions?: RuleAction[];
   elseActions?: RuleAction[];

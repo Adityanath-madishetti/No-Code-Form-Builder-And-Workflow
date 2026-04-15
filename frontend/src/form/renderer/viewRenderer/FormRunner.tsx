@@ -612,60 +612,13 @@ export function FormRunner() {
           store.setNextPageOfPage(page.pageId, nextId);
         });
 
-        // Helper to recursively find the first instanceId in a logic condition tree
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const findInstanceId = (cond: any): string | null => {
-          if (cond?.type === 'leaf') return cond.instanceId;
-          if (cond?.type === 'group' && Array.isArray(cond.conditions)) {
-            for (const c of cond.conditions) {
-              const id = findInstanceId(c);
-              if (id) return id;
-            }
-          }
-          return null;
-        };
-
-        // Helper to find if an action ID exists inside nested logic arrays
-        const actionExistsInTree = (
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          actionsTree: any[],
-          actionId: string
-        ): boolean => {
-          if (!actionsTree) return false;
-          for (const a of actionsTree) {
-            if (a.id === actionId) return true;
-            if (a.type === 'CONDITIONAL') {
-              if (actionExistsInTree(a.thenActions, actionId)) return true;
-              if (actionExistsInTree(a.elseActions, actionId)) return true;
-            }
-          }
-          return false;
-        };
-
         // Step B: Apply active skips dynamically to their specific origin pages
+        // Apply dynamic skips
         skipActions.forEach((action) => {
-          // 1. Find the rule that generated this action
-          const rule = formData.version.logic?.rules?.find(
-            (r) =>
-              actionExistsInTree(r.thenActions, action.id) ||
-              actionExistsInTree(r.elseActions, action.id)
-          );
-
-          if (rule) {
-            // 2. Extract the instanceId that triggers the rule
-            const instanceId = findInstanceId(rule.condition);
-            if (instanceId) {
-              // 3. Find the page that contains that component
-              const sourcePage = pages.find((p) =>
-                p.components.some((c) => c.componentId === instanceId)
-              );
-
-              // 4. Overwrite pointers for the origin page specifically
-              if (sourcePage) {
-                store.setNextPageOfPage(sourcePage.pageId, action.targetId);
-                // store.setPreviousPageOfPage(action.targetId, sourcePage.pageId);
-              }
-            }
+          if (action.targetId && action.toPageId) {
+            // targetId acts as the exact Page we are routing FROM
+            // toPageId acts as the exact Page we are routing TO
+            store.setNextPageOfPage(action.targetId, action.toPageId);
           }
         });
       }

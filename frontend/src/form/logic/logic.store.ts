@@ -349,6 +349,8 @@ export function getDependencyEdges(
           processActions(action.elseActions, combinedSources, ruleId);
       } else {
         // Standard Action: Create edges linking all inherited sources to this target
+        // if (!action.targetId || action.targetId === 'NESTED_LOGIC_BLOCK')
+        //   continue;
         if (!action.targetId) continue;
         for (const sourceFieldId of inheritedSourceFields) {
           edges.push({

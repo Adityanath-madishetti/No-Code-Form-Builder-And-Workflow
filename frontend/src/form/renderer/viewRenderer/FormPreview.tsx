@@ -184,6 +184,7 @@ export default function FormPreview() {
       if (formData) {
         const pages = formData.version.pages;
 
+        // Reset all pages to their default next behavior
         pages.forEach((page, index) => {
           // FIX: Respect the defaultNextPageId if it exists in the schema
           const nextId =
@@ -193,51 +194,12 @@ export default function FormPreview() {
           store.setNextPageOfPage(page.pageId, nextId);
         });
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const findInstanceId = (cond: any): string | null => {
-          if (cond?.type === 'leaf') return cond.instanceId;
-          if (cond?.type === 'group' && Array.isArray(cond.conditions)) {
-            for (const c of cond.conditions) {
-              const id = findInstanceId(c);
-              if (id) return id;
-            }
-          }
-          return null;
-        };
-
-        const actionExistsInTree = (
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          actionsTree: any[],
-          actionId: string
-        ): boolean => {
-          if (!actionsTree) return false;
-          for (const a of actionsTree) {
-            if (a.id === actionId) return true;
-            if (a.type === 'CONDITIONAL') {
-              if (actionExistsInTree(a.thenActions, actionId)) return true;
-              if (actionExistsInTree(a.elseActions, actionId)) return true;
-            }
-          }
-          return false;
-        };
-
+        // Apply dynamic skips
         skipActions.forEach((action) => {
-          const rule = formData.version.logic?.rules?.find(
-            (r) =>
-              actionExistsInTree(r.thenActions, action.id) ||
-              actionExistsInTree(r.elseActions, action.id)
-          );
-
-          if (rule) {
-            const instanceId = findInstanceId(rule.condition);
-            if (instanceId) {
-              const sourcePage = pages.find((p) =>
-                p.components.some((c) => c.componentId === instanceId)
-              );
-              if (sourcePage) {
-                store.setNextPageOfPage(sourcePage.pageId, action.targetId);
-              }
-            }
+          if (action.targetId && action.toPageId) {
+            // targetId acts as the exact Page we are routing FROM
+            // toPageId acts as the exact Page we are routing TO
+            store.setNextPageOfPage(action.targetId, action.toPageId);
           }
         });
       }
