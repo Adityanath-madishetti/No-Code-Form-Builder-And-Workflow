@@ -237,15 +237,13 @@ export default function MyFormsTab({ forms, onReload }: Props) {
                   <CardHeader className="px-4">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0 flex-1">
-                        <CardTitle className="truncate text-base font-semibold">
-                          <button
-                            onClick={() =>
-                              navigate(`/form-builder/${form.formId}`)
-                            }
-                            className="hover:underline focus:outline-none"
-                          >
-                            {form.title}
-                          </button>
+                        <CardTitle
+                          className="truncate text-base font-semibold hover:cursor-pointer"
+                          onClick={() =>
+                            navigate(`/form-builder/${form.formId}`)
+                          }
+                        >
+                          {form.title}
                         </CardTitle>
                         <CardDescription className="mt-1.5 truncate text-xs">
                           {getCreatorLabel(form, user?.uid)}

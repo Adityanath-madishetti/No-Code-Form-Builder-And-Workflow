@@ -9,6 +9,7 @@ import {
   Settings2,
   ListTree,
   FilePlus,
+  Trash2,
 } from 'lucide-react';
 import { useFormStore } from '@/form/store/form.store';
 import { cn } from '@/lib/utils';
@@ -24,104 +25,233 @@ import { ComponentPropertiesPanel } from './ComponentPropertiesPanel';
 import { ComponentLogicPanel } from './ComponentsLogicPanel';
 import { useShallow } from 'zustand/react/shallow';
 
-function ExplorerPanel() {
+import { useMemo } from 'react';
+
+import { type CursorProps } from 'react-arborist';
+
+function CustomCursor({ top, left }: CursorProps) {
+  return (
+    <div
+      className="pointer-events-none absolute z-50 flex items-center"
+      style={{
+        top,
+        left,
+        right: 0, // Stretch to the right edge
+      }}
+    >
+      {/* The little circle on the left */}
+      {/* <div className="absolute -left-1.5 h-3 w-3 rounded-full border-[2.5px] border-primary bg-background" /> */}
+      
+      {/* The main line */}
+      <div className="h-[2px] w-full bg-primary" />
+    </div>
+  );
+}
+
+// This is the shape Arborist expects. 
+// We add `isFolder` to distinguish Pages from Components.
+export type TreeNodeData = {
+  id: string;
+  name: string;
+  isFolder: boolean;
+  children?: TreeNodeData[];
+};
+
+function useTreeData(): TreeNodeData[] {
   const form = useFormStore((s) => s.form);
   const pages = useFormStore((s) => s.pages);
   const components = useFormStore((s) => s.components);
 
-  const setCurrentPageIndex = useFormStore((s) => s.setCurrentPageIndex);
+  return useMemo(() => {
+    if (!form) return [];
 
+    return form.pages.map((pageId) => {
+      const page = pages[pageId];
+      if (!page) return { id: pageId, name: 'Unknown Page', isFolder: true };
+
+      return {
+        id: pageId,
+        name: page.title || '[UNNAMED PAGE]',
+        isFolder: true,
+        // Map the component IDs into nested objects
+        children: page.children.map((compId) => {
+          const comp = components[compId];
+          return {
+            id: compId,
+            name: comp?.metadata?.label || 'Unknown Component',
+            isFolder: false,
+          };
+        }),
+      };
+    });
+  }, [form, pages, components]);
+}
+
+
+import { Tree, type NodeRendererProps, type MoveHandler } from 'react-arborist';
+
+// --- 1. The Individual Row Renderer ---
+function Node({ node, style, dragHandle }: NodeRendererProps<TreeNodeData>) {
+  const { data } = node;
+  const isPage = data.isFolder;
+
+  // Access UI state from your store
   const activePageId = useFormStore((s) => s.activePageId);
   const activeComponentId = useFormStore((s) => s.activeComponentId);
   const setActivePage = useFormStore((s) => s.setActivePage);
   const setActiveComponent = useFormStore((s) => s.setActiveComponent);
+  const removePage = useFormStore((s) => s.removePage);
+  
+  const isActive = isPage ? activePageId === data.id : activeComponentId === data.id;
 
-  const expandedPages = useFormStore((s) => s.expandedPages);
-  const setPageExpanded = useFormStore((s) => s.setPageExpanded);
-
-  const handlePageClick = useCallback(
-    (pageId: string, pageIndex: number, isCurrentlyExpanded: boolean) => {
-      setActivePage(pageId);
+  const handleClick = () => {
+    if (isPage) {
+      setActivePage(data.id);
       setActiveComponent(null);
-      setCurrentPageIndex(pageIndex);
-      if (!isCurrentlyExpanded) setPageExpanded(pageId, true);
-    },
-    [setActivePage, setActiveComponent, setCurrentPageIndex, setPageExpanded]
-  );
-
-  const handleComponentClick = useCallback(
-    (id: string, index: number) => {
-      setActiveComponent(id);
+      node.toggle();
+    } else {
+      setActiveComponent(data.id);
       setActivePage(null);
-      setCurrentPageIndex(index);
-    },
-    [setActiveComponent, setActivePage, setCurrentPageIndex]
-  );
-
-  if (!form) {
-    return (
-      <div className="p-4 text-sm text-muted-foreground">No active schema</div>
-    );
-  }
+    }
+  };
 
   return (
-    <div className="flex flex-col py-1">
-      {form.pages.map((pageId, index) => {
-        const page = pages[pageId];
-        if (!page) return null;
-        const isExpanded = !!expandedPages[pageId];
-        return (
-          <Collapsible
-            key={pageId}
-            open={isExpanded}
-            onOpenChange={(open) => setPageExpanded(pageId, open)}
+    <div
+      ref={dragHandle} // Arborist handles the drag attributes here!
+      style={style}
+      onClick={handleClick}
+      className={cn(
+        'group flex cursor-pointer items-center pr-2 outline-none hover:bg-accent/50',
+        isActive ? 'bg-accent text-accent-foreground' : 'text-muted-foreground',
+        node.state.isDragging && 'opacity-50', // Dim while dragging
+        node.state.willReceiveDrop && 'bg-primary/20 ring-1 ring-primary' // Highlight when hovering over a folder
+      )}
+    >
+      {/* Indentation based on tree depth */}
+      <div style={{ width: node.level * 13 }} className="shrink-0" />
+
+      {isPage ? (
+        // PAGE (FOLDER) UI
+        <div className="flex w-full items-center py-1.5 pl-2 pr-2">
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              node.toggle(); // Built-in open/close method!
+            }}
+            className="mr-1 flex h-4 w-4 items-center justify-center hover:bg-muted/50"
           >
-            <CollapsibleTrigger
-              onClick={() => handlePageClick(pageId, index, isExpanded)}
-              className={cn(
-                'flex w-full cursor-pointer items-center px-2 py-1.5 outline-none hover:bg-accent/50',
-                activePageId === pageId && 'bg-accent text-accent-foreground'
-              )}
-            >
-              <div className="mr-1 flex h-4 w-4 items-center justify-center">
-                {isExpanded ? (
-                  <ChevronDown size={14} />
-                ) : (
-                  <ChevronRight size={14} />
-                )}
-              </div>
-              <span className="mr-2 text-muted-foreground">
-                {isExpanded ? <FolderOpen size={14} /> : <Folder size={14} />}
-              </span>
-              <span className="truncate">{page.title || '[UNNAMED PAGE]'}</span>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="relative flex flex-col before:absolute before:top-0 before:bottom-0 before:left-[15px] before:w-px before:bg-border/50">
-                {page.children.map((id) => (
-                  <div
-                    key={id}
-                    onClick={() => handleComponentClick(id, index)}
-                    className={cn(
-                      'flex cursor-pointer items-center py-1.5 pr-2 pl-7 hover:bg-accent/50',
-                      activeComponentId === id
-                        ? 'bg-accent text-accent-foreground'
-                        : 'text-muted-foreground'
-                    )}
-                  >
-                    <ComponentIcon
-                      size={13}
-                      className="mr-2 shrink-0 opacity-70"
-                    />
-                    <span className="truncate">
-                      {components[id]?.metadata.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-        );
-      })}
+            {node.isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          </div>
+          <span className="mr-2 shrink-0">
+            {node.isOpen ? <FolderOpen size={14} /> : <Folder size={14} />}
+          </span>
+          <span className="flex-1 truncate font-medium">{data.name}</span>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              removePage(data.id); // Note: using data.id as it represents the pageId here
+            }}
+            className="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-sm text-muted-foreground/50 opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+            aria-label="Remove page"
+            title="Remove page"
+          >
+            <Trash2 size={13} />
+          </button>
+        </div>
+      ) : (
+        // COMPONENT (FILE) UI
+        <div className="flex w-full items-center py-1.5">
+          <ComponentIcon size={13} className="mr-2 shrink-0 opacity-70" />
+          <span className="truncate">{data.name}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- 2. The Main Tree Component ---
+export function ExplorerPanel() {
+  const data = useTreeData();
+  const pages = useFormStore((s) => s.pages);
+  const form = useFormStore((s) => s.form);
+  const reorderPages = useFormStore((s) => s.reorderPages);
+  const moveComponent = useFormStore((s) => s.moveComponent);
+
+  if (!form) return <div className="p-4 text-sm text-muted-foreground">No active schema</div>;
+
+  // Map Arborist drop events to your Zustand actions
+  const handleMove: MoveHandler<TreeNodeData> = ({ dragIds, parentId, parentNode, index }) => {
+    const draggedId = dragIds[0];
+
+    // Scenario A: Dragged to the root level (parentId is null)
+    // FIX: Safely check if we are dropping at the root level using parentNode.isRoot
+    if (parentNode?.isRoot || parentId === null) {
+      const oldIndex = form.pages.indexOf(draggedId);
+      if (oldIndex !== -1 && index !== -1) {
+        // Adjust the destination index when moving an item further down the array
+        let targetIndex = index;
+        if (oldIndex < targetIndex) {
+          targetIndex -= 1;
+        }
+        reorderPages(oldIndex, targetIndex);
+      }
+      return;
+    }
+    
+    // Scenario B: Dragged into a folder (parentId is a pageId)
+    // First, we need to find out where the component currently is
+    let sourcePageId: string | null = null;
+    let sourceIndex = -1;
+
+    for (const [pId, pageData] of Object.entries(pages)) {
+      const compIndex = pageData.children.indexOf(draggedId);
+      if (compIndex !== -1) {
+        sourcePageId = pId;
+        sourceIndex = compIndex;
+        break;
+      }
+    }
+
+    if (sourcePageId && sourceIndex !== -1 && index !== -1) {
+      // Same adjustment needed if moving a component down within the SAME page
+      let targetIndex = index;
+      if (sourcePageId === parentId && sourceIndex < targetIndex) {
+        targetIndex -= 1;
+      }
+      moveComponent(sourcePageId, sourceIndex, parentId, targetIndex);
+    }
+  };
+
+  return (
+    <div className="flex h-full w-full flex-col py-1">
+      <Tree
+        data={data}
+        onMove={handleMove}
+        width="100%"
+        rowHeight={32}
+        indent={16}
+        openByDefault={false}
+        disableMultiSelection={true}
+        renderCursor={CustomCursor}
+        disableDrag={(node) => false} 
+        disableDrop={({ dragNodes, parentNode }) => {
+          const draggedNode = dragNodes[0];
+          if (!draggedNode) return false;
+
+          const isPage = draggedNode.data.isFolder;
+
+          // FIX: Use isRoot instead of checking parent data IDs
+          // 1. Pages can ONLY be dropped at the root level
+          if (isPage && !parentNode.isRoot) return true;
+
+          // 2. Components can ONLY be dropped inside a page (not at root)
+          if (!isPage && parentNode.isRoot) return true;
+
+          return false;
+        }}
+      >
+        {Node}
+      </Tree>
     </div>
   );
 }
