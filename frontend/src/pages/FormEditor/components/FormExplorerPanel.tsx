@@ -41,14 +41,14 @@ function CustomCursor({ top, left }: CursorProps) {
     >
       {/* The little circle on the left */}
       {/* <div className="absolute -left-1.5 h-3 w-3 rounded-full border-[2.5px] border-primary bg-background" /> */}
-      
+
       {/* The main line */}
       <div className="h-[2px] w-full bg-primary" />
     </div>
   );
 }
 
-// This is the shape Arborist expects. 
+// This is the shape Arborist expects.
 // We add `isFolder` to distinguish Pages from Components.
 export type TreeNodeData = {
   id: string;
@@ -87,7 +87,6 @@ function useTreeData(): TreeNodeData[] {
   }, [form, pages, components]);
 }
 
-
 import { Tree, type NodeRendererProps, type MoveHandler } from 'react-arborist';
 
 // --- 1. The Individual Row Renderer ---
@@ -101,17 +100,27 @@ function Node({ node, style, dragHandle }: NodeRendererProps<TreeNodeData>) {
   const setActivePage = useFormStore((s) => s.setActivePage);
   const setActiveComponent = useFormStore((s) => s.setActiveComponent);
   const removePage = useFormStore((s) => s.removePage);
-  
-  const isActive = isPage ? activePageId === data.id : activeComponentId === data.id;
+  const setCurrentPageIndex = useFormStore((s) => s.setCurrentPageIndex);
+
+  const isActive = isPage
+    ? activePageId === data.id
+    : activeComponentId === data.id;
 
   const handleClick = () => {
     if (isPage) {
       setActivePage(data.id);
       setActiveComponent(null);
+      if (typeof node.rowIndex === 'number') {
+        setCurrentPageIndex(node.rowIndex);
+      }
       node.toggle();
     } else {
       setActiveComponent(data.id);
       setActivePage(null);
+      const parentNode = node.parent;
+      if (parentNode && typeof parentNode.rowIndex === 'number') {
+        setCurrentPageIndex(parentNode.rowIndex);
+      }
     }
   };
 
@@ -132,7 +141,7 @@ function Node({ node, style, dragHandle }: NodeRendererProps<TreeNodeData>) {
 
       {isPage ? (
         // PAGE (FOLDER) UI
-        <div className="flex w-full items-center py-1.5 pl-2 pr-2">
+        <div className="flex w-full items-center py-1.5 pr-2 pl-2">
           <div
             onClick={(e) => {
               e.stopPropagation();
@@ -140,7 +149,11 @@ function Node({ node, style, dragHandle }: NodeRendererProps<TreeNodeData>) {
             }}
             className="mr-1 flex h-4 w-4 items-center justify-center hover:bg-muted/50"
           >
-            {node.isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            {node.isOpen ? (
+              <ChevronDown size={14} />
+            ) : (
+              <ChevronRight size={14} />
+            )}
           </div>
           <span className="mr-2 shrink-0">
             {node.isOpen ? <FolderOpen size={14} /> : <Folder size={14} />}
@@ -151,7 +164,7 @@ function Node({ node, style, dragHandle }: NodeRendererProps<TreeNodeData>) {
               e.stopPropagation();
               removePage(data.id); // Note: using data.id as it represents the pageId here
             }}
-            className="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-sm text-muted-foreground/50 opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+            className="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-sm text-muted-foreground/50 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive"
             aria-label="Remove page"
             title="Remove page"
           >
@@ -177,10 +190,18 @@ export function ExplorerPanel() {
   const reorderPages = useFormStore((s) => s.reorderPages);
   const moveComponent = useFormStore((s) => s.moveComponent);
 
-  if (!form) return <div className="p-4 text-sm text-muted-foreground">No active schema</div>;
+  if (!form)
+    return (
+      <div className="p-4 text-sm text-muted-foreground">No active schema</div>
+    );
 
   // Map Arborist drop events to your Zustand actions
-  const handleMove: MoveHandler<TreeNodeData> = ({ dragIds, parentId, parentNode, index }) => {
+  const handleMove: MoveHandler<TreeNodeData> = ({
+    dragIds,
+    parentId,
+    parentNode,
+    index,
+  }) => {
     const draggedId = dragIds[0];
 
     // Scenario A: Dragged to the root level (parentId is null)
@@ -197,7 +218,7 @@ export function ExplorerPanel() {
       }
       return;
     }
-    
+
     // Scenario B: Dragged into a folder (parentId is a pageId)
     // First, we need to find out where the component currently is
     let sourcePageId: string | null = null;
@@ -233,7 +254,7 @@ export function ExplorerPanel() {
         openByDefault={false}
         disableMultiSelection={true}
         renderCursor={CustomCursor}
-        disableDrag={(node) => false} 
+        disableDrag={(node) => false}
         disableDrop={({ dragNodes, parentNode }) => {
           const draggedNode = dragNodes[0];
           if (!draggedNode) return false;

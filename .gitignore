@@ -2,3 +2,5 @@
 node_modules/
 planning/
 serviceAccountKey.json
+
+run.sh

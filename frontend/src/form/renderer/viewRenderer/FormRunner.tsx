@@ -768,8 +768,10 @@ export function FormRunner() {
 
   const handleNext = async (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
-    const currentInstanceIds = componentsData.map((comp) => comp.componentId);
-    const isPageValid = await methods.trigger(currentInstanceIds);
+    const visibleInstanceIds = componentsData
+      .filter((comp) => !componentsStates[comp.componentId]?.isHidden)
+      .map((comp) => comp.componentId);
+    const isPageValid = await methods.trigger(visibleInstanceIds);
     if (!isPageValid) {
       console.log('Validation failed. Staying on current page.');
       return;

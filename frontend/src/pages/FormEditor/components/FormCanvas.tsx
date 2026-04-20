@@ -50,19 +50,17 @@ function EmptyPageDrop({ pageId, index }: { pageId: string; index: number }) {
 export function FormCanvas({ currentPageIndex }: FormCanvasProps) {
   const form = useFormStore((s) => s.form);
   const pages = useFormStore(useShallow((s) => s.pages));
-  const globalTheme = useFormStore(formSelectors.formTheme)
+  const globalTheme = useFormStore(formSelectors.formTheme);
 
-  if (!form || form.pages.length === 0) {
+  if (!form) {
     return (
       <div className="flex h-full items-center justify-center text-muted-foreground">
-        <div className="flex flex-col items-center gap-2 text-center">
-          <LayoutGrid className="h-8 w-8 opacity-15" />
-          <p className="text-xs">Add a page to get started</p>
-        </div>
+        <p className="text-xs">No form found.</p>
       </div>
     );
   }
 
+  const hasPages = form.pages.length > 0;
   const pageId = form.pages[currentPageIndex];
   const page = pageId ? pages[pageId] : null;
   const hasComponents = (page?.children ?? []).length > 0;
@@ -70,18 +68,28 @@ export function FormCanvas({ currentPageIndex }: FormCanvasProps) {
   return (
     <FormThemeProvider globalTheme={globalTheme}>
       <FormModeProvider value="edit">
-        <div className="mx-auto w-full max-w-3xl min-h-screen px-8 py-6">
+        <div className="mx-auto min-h-screen w-full max-w-3xl px-8 py-6">
           {/* Editable form title on first page */}
           <FormHeader />
           <Separator className="mt-5" />
 
-          <PageHeader pageId={pageId} pageNumber={currentPageIndex + 1} />
-
-          {/* Components or empty drop zone */}
-          {!hasComponents ? (
-            <EmptyPageDrop pageId={pageId} index={currentPageIndex} />
+          {!hasPages ? (
+            <div className="flex h-[50vh] items-center justify-center text-muted-foreground">
+              <div className="flex flex-col items-center gap-2 text-center">
+                <LayoutGrid className="h-8 w-8 opacity-15" />
+                <p className="text-xs">Add a page to get started</p>
+              </div>
+            </div>
           ) : (
-            <RenderPage pageId={pageId} index={currentPageIndex} />
+            <>
+              <PageHeader pageId={pageId} pageNumber={currentPageIndex + 1} />
+
+              {!hasComponents ? (
+                <EmptyPageDrop pageId={pageId} index={currentPageIndex} />
+              ) : (
+                <RenderPage pageId={pageId} index={currentPageIndex} />
+              )}
+            </>
           )}
         </div>
       </FormModeProvider>

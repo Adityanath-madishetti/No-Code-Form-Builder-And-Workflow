@@ -561,7 +561,7 @@ export const useFormStore = create<FormStore>()(
 
     removePage: (pageId) =>
       set((state) => {
-        if (!state.form || state.form.pages.length <= 1) return;
+        if (!state.form || state.form.pages.length <= 0) return;
         for (const instanceId of state.pages[pageId].children) {
           delete state.components[instanceId];
           if (state.activeComponentId === instanceId)
@@ -585,13 +585,13 @@ export const useFormStore = create<FormStore>()(
 
     updatePageTitle: (pageId: PageID, name: string) =>
       set((state) => {
-        if (!state.form || state.form.pages.length === 1) return;
+        if (!state.form || state.form.pages.length === 0) return;
         state.pages[pageId].title = name;
       }),
 
     updatePageDesc: (pageId: PageID, desc: string) =>
       set((state) => {
-        if (!state.form || state.form.pages.length === 1) return;
+        if (!state.form || state.form.pages.length === 0) return;
         state.pages[pageId].description = desc;
       }),
 

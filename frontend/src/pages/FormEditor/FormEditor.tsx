@@ -169,11 +169,11 @@ export default function FormEditor() {
   }, [formId, initForm, loadForm, setCurrentVersionInStore]);
 
   // Ensure at least one page exists after load
-  useEffect(() => {
-    if (formLoaded && form && form.pages.length === 0) {
-      addPage();
-    }
-  }, [addPage, form, formLoaded]);
+  // useEffect(() => {
+  //   if (formLoaded && form && form.pages.length === 0) {
+  //     addPage();
+  //   }
+  // }, [addPage, form, formLoaded]);
 
   // Clamp page index
   useEffect(() => {
