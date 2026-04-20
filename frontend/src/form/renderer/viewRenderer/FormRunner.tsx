@@ -764,7 +764,12 @@ export function FormRunner() {
     currentPageId && renderState ? renderState.PageStates[currentPageId] : null;
 
   const hasPrevious = pageStack.length > 0;
-  const hasNext = !!currentPageState?.nextPageId;
+  const isTerminal = currentPage?.isTerminal;
+  const isLastPageIndex = formData
+    ? formData.version.pages.findIndex((p) => p.pageId === currentPageId) ===
+      formData.version.pages.length - 1
+    : false;
+  const hasNext = !!currentPageState?.nextPageId && !isTerminal && !isLastPageIndex;
 
   const handleNext = async (e?: React.MouseEvent) => {
     if (e) e.preventDefault();

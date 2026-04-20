@@ -45,12 +45,12 @@ export async function createFormService(uid, { title, description }) {
             viewers: [],
         },
         pages: [
-            {
-                pageId: crypto.randomUUID(),
-                pageNo: 1,
-                title: "Page 1",
-                components: [],
-            },
+            // {
+            //     pageId: crypto.randomUUID(),
+            //     pageNo: 1,
+            //     title: "Page 1",
+            //     components: [],
+            // },
         ],
         versionHistory: [
             {

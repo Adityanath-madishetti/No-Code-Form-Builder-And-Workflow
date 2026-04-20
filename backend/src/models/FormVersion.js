@@ -180,6 +180,10 @@ const PageSchema = new Schema(
             default: [],
         },
 
+        isTerminal: {
+            type: Boolean,
+        },
+
         defaultPreviousPageId: {
             type: String,
             // required: true,

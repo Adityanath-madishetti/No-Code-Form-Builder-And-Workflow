@@ -161,12 +161,15 @@ function PageProperties({ pageId }: { pageId: string }) {
   const updatePageTitle = useFormStore((s) => s.updatePageTitle);
   const updatePageDesc = useFormStore((s) => s.updatePageDesc);
   const updatePageNextPage = useFormStore((s) => s.updatePageNextPage);
+  const updatePageTerminal = useFormStore((s) => s.updatePageTerminal);
 
   if (!page) return null;
 
   const currentIndex = orderedPageIds.indexOf(pageId);
-  // const isTerminal = page.isTerminal;
-  const isTerminal =
+  const isTerminal = page.isTerminal;
+  // const isTerminal =
+  //   orderedPageIds.length > 0 && currentIndex === orderedPageIds.length - 1;
+  const isLast =
     orderedPageIds.length > 0 && currentIndex === orderedPageIds.length - 1;
   const sequentialNextId = orderedPageIds[currentIndex + 1];
   if (!sequentialNextId) {
@@ -202,13 +205,30 @@ function PageProperties({ pageId }: { pageId: string }) {
           className=""
         />
       </div>
-       {/* Logic Routing Section */}
+
+      {!isLast && (
+        <div className="border-t border-border pt-3">
+          <label className="flex cursor-pointer items-center justify-between text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              Submit Page
+            </span>
+            <input
+              type="checkbox"
+              checked={isTerminal}
+              onChange={(e) => updatePageTerminal(pageId, e.target.checked)}
+              className="accent-primary"
+            />
+          </label>
+        </div>
+      )}
+
+      {/* Logic Routing Section */}
       <div className="space-y-2">
         <Label className="text-xs font-medium text-muted-foreground">
           After this page
         </Label>
 
-        {isTerminal ? (
+        {isLast ? (
           <div className="flex h-10 w-full items-center rounded-md border border-input bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
             <Badge
               variant="outline"

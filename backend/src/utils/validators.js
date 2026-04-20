@@ -184,6 +184,7 @@ const formVersionPayloadSchema = {
                             required: ["componentId", "componentType"],
                         },
                     },
+                    isTerminal: { type: "boolean" },
                     defaultPreviousPageId: { type: "string" },
                     defaultNextPageId: { type: "string" },
                 },

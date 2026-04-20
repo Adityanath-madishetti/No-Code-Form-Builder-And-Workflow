@@ -227,6 +227,7 @@ interface FormSchemaActions {
   updatePageTitle: (pageId: PageID, name: string) => void;
   updatePageDesc: (pageId: PageID, desc: string) => void;
   updatePageNextPage: (pageId: PageID, nextPageId?: PageID) => void;
+  updatePageTerminal: (pageId: PageID, isTerminal: boolean) => void;
 
   addComponent: (
     pageId: PageID,
@@ -331,7 +332,7 @@ function syncPageOrdering(state: {
     const isLast = i === pagesArray.length - 1;
     const sequentialNextId = pagesArray[i + 1];
 
-    page.isTerminal = page.isTerminal || isLast;
+    // page.isTerminal = page.isTerminal || isLast;
 
     if (isLast) {
       page.defaultNextPageId = undefined;
@@ -614,6 +615,13 @@ export const useFormStore = create<FormStore>()(
         }
 
         syncPageOrdering(state);
+      }),
+
+    updatePageTerminal: (pageId: PageID, isTerminal: boolean) =>
+      set((state) => {
+        if (!state.form || state.form.pages.length === 0) return;
+        const isLastPage = state.form.pages[state.form.pages.length - 1] === pageId;
+        state.pages[pageId].isTerminal = isLastPage ? true : isTerminal;
       }),
 
     addComponent: (pageId, component, index) =>

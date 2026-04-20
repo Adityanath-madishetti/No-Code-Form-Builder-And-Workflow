@@ -31,6 +31,7 @@ export interface PublicPageData {
   title: string;
   description?: string;
   components: PublicComponent[];
+  isTerminal: boolean;
   defaultNextPageId?: string;
   defaultPreviousPageId?: string;
 }
@@ -55,7 +56,7 @@ export interface PublicFormData {
     formId: string;
     version: number;
     meta: { name: string; description: string };
-    theme: FormTheme
+    theme: FormTheme;
     settings: VersionSettings;
     pages: PublicPageData[];
     logic?: PublicLogicData;
