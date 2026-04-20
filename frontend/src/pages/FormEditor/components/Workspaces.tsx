@@ -22,6 +22,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,6 +57,12 @@ import {
 } from '@/components/ui/menubar';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+
+import { executeAIActionStream } from '@/form/ai/actionStream';
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Sparkles, X } from 'lucide-react';
+import { generateAiFormDraft } from '@/lib/formApi';
 
 interface RulesWarningDialogProps {
   open: boolean;
@@ -718,6 +725,132 @@ export function DynamicMenubar() {
   );
 }
 
+/**
+ * 
+Create a 3-page Tech Conference Registration form.
+
+Page 1 is 'Basic Info' and should ask for Full Name, Email Address, and Attendee Type.
+
+If the Attendee Type is exactly 'Student', skip to Page 3.
+
+Page 2 is 'Professional Details'. Ask for Company Name and Job Title.
+
+Page 3 is 'Student Details'. Ask for University Name and Graduation Year (as a number)." 
+
+===
+
+Create a 4-page Software Engineer Assessment form.
+
+Page 1 is 'Candidate Profile'. Ask for Full Name (text) and Email Address (email). Also add a Radio question asking 'Primary Role' with a vertical layout and three options: 'Frontend', 'Backend', and 'DevOps'.
+If Primary Role equals 'Frontend', skip to Page 2.
+If Primary Role equals 'Backend', skip to Page 3.
+
+Page 2 is 'Frontend Skills'. Ask for 'Years of React Experience' (as a number).
+If Years of React Experience is greater than 5, skip to Page 4.
+
+Page 3 is 'Backend Skills'. Ask for 'Preferred Database' (text).
+
+Page 4 is 'Senior Assessment'. Ask for 'Architecture Portfolio URL' (text)."
+ */
+export function AIGenerateButton() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [prompt, setPrompt] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleGenerate = async () => {
+    if (!prompt.trim()) return;
+
+    setIsGenerating(true);
+    setError(null);
+
+    try {
+      const aiDraft = await generateAiFormDraft(prompt);
+      // Inject the JSON directly into your Zustand store using your function
+      executeAIActionStream(aiDraft);
+      setPrompt('');
+      setIsOpen(false);
+    } catch (err) {
+      console.error('AI Generation failed:', err);
+      setError('Failed to generate form. Is the backend running?');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button
+          variant="outline"
+          className="gap-2 border-dashed border-primary/50 transition-colors hover:border-primary"
+        >
+          <Sparkles className="h-4 w-4 text-primary" />
+          Generate with AI
+        </Button>
+      </DialogTrigger>
+
+      {/* Used max-w-3xl to match your previous w-3xl size */}
+      <DialogContent className="sm:max-w-3xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <Sparkles className="h-4 w-4 text-primary" />
+            Draft Form with AI
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4 py-4">
+          <div className="flex items-start gap-2 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <p>
+              <strong>Experimental Feature:</strong> Generating an AI draft will
+              discard your existing unsaved form and begin a fresh session. Please
+              note that unsaved progress will be lost.
+            </p>
+          </div>
+          
+          <Textarea
+            placeholder="Describe your form (e.g., A two-page job application asking for name, email, and Github URL...)"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            className="min-h-[400px] resize-none focus-visible:ring-primary/50"
+            autoFocus
+            disabled={isGenerating}
+          />
+
+          {error && (
+            <p className="text-xs font-medium text-destructive">{error}</p>
+          )}
+        </div>
+
+        <DialogFooter className="gap-2 pt-2 sm:space-x-0">
+          <Button
+            variant="ghost"
+            onClick={() => setIsOpen(false)}
+            disabled={isGenerating}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleGenerate}
+            disabled={isGenerating || !prompt.trim()}
+            className="w-[120px]"
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Drafting...
+              </>
+            ) : (
+              'Generate'
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 interface WorkspacesProps {
   editorTheme: 'dark' | 'light' | 'system' | string;
   setEditorTheme: (theme: 'dark' | 'light' | 'system') => void;
@@ -755,6 +888,7 @@ export function Workspaces({
             }
           }}
         /> */}
+        <AIGenerateButton />
 
         <SaveButton handleSave={handleSave} saving={saving} />
         <PreviewButton formId={formId} />

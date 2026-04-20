@@ -351,6 +351,19 @@ export async function deleteForm(formId: string) {
     throw err;
   }
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function generateAiFormDraft(prompt: string): Promise<any> {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const aiDraft = await api.post<any>('/api/ai/generate-form', { prompt });
+    return aiDraft;
+  } catch (err) {
+    console.error('Failed to generate AI form draft:', err);
+    throw err;
+  }
+}
+
 // ── Workflow ──
 
 export async function loadWorkflow(formId: string): Promise<Workflow> {

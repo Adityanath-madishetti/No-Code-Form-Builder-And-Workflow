@@ -5,6 +5,7 @@ import helmet from "helmet";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import formRoutes from "./routes/formRoutes.js";
+import aiRoutes from "./routes/aiRoutes.js"
 import { getMySubmissions } from "./controllers/submissionController.js";
 import { verifyToken } from "./middleware/auth.js";
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -63,6 +64,7 @@ app.use("/api/forms", formRoutes);
  *                 type: object
  */
 app.get("/api/submissions/mine", verifyToken, getMySubmissions);
+app.use('/api/ai', aiRoutes);
 
 // ── Error Handling (must be last) ──
 app.use(errorHandler);
