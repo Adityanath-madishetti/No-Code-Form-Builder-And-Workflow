@@ -10,7 +10,7 @@ function mod(): string {
 
 function Kbd({ children }: { children: ReactNode }) {
   return (
-    <kbd className="pointer-events-none inline-flex min-h-[1.5rem] min-w-[1.75rem] select-none items-center justify-center rounded border border-border bg-muted px-1.5 font-mono text-[11px] font-medium text-muted-foreground">
+    <kbd className="pointer-events-none inline-flex min-h-[1.5rem] min-w-[1.75rem] items-center justify-center rounded border border-border bg-muted px-1.5 font-mono text-[11px] font-medium text-muted-foreground select-none">
       {children}
     </kbd>
   );
@@ -48,7 +48,9 @@ function ShortcutTable({
               >
                 <td className="px-4 py-2.5 text-foreground">{row.action}</td>
                 <td className="px-4 py-2.5">
-                  <span className="flex flex-wrap items-center gap-1">{row.keys}</span>
+                  <span className="flex flex-wrap items-center gap-1">
+                    {row.keys}
+                  </span>
                 </td>
               </tr>
             ))}
@@ -71,7 +73,7 @@ export default function KeyboardShortcutsPage() {
       <header className="border-b border-border bg-background px-6 py-3">
         <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-2">
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/">
+            <Link to="/dashboard">
               <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
               Dashboard
             </Link>
@@ -187,7 +189,8 @@ export default function KeyboardShortcutsPage() {
               ),
             },
             {
-              action: 'Open the properties panel (when a component is selected)',
+              action:
+                'Open the properties panel (when a component is selected)',
               keys: <Kbd>Enter</Kbd>,
             },
             {

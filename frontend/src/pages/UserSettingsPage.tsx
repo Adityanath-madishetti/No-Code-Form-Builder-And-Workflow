@@ -87,7 +87,7 @@ export default function UserSettingsPage() {
             size="sm"
             className="pl-0 text-muted-foreground hover:text-foreground"
           >
-            <Link to="/">
+            <Link to="/dashboard">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Dashboard
             </Link>

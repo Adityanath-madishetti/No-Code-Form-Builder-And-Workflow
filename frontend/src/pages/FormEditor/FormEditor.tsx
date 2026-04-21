@@ -1,7 +1,6 @@
 // src/pages/FormEditor/FormEditor.tsx
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
 import { useFormStore } from '@/form/store/form.store';
 import { DragDropProvider, DragOverlay } from '@dnd-kit/react';
 import {
@@ -27,15 +26,9 @@ import { Workspaces } from './components/Workspaces';
 import { useFormEditorShortcuts } from './useFormEditorShortcuts';
 import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
 import { useShallow } from 'zustand/react/shallow';
-import {
-  loadFormVersion,
-  saveFormVersion,
-  createNewVersion,
-  loadWorkflow,
-} from '@/lib/formApi';
-import { useWorkflowStore } from '@/form/workflow/workflowStore';
-
 import SidebarLayout from './components/CanvasRightSidePanel';
+import { useLoadFormVersion } from './hooks/useLoadFormVersion';
+import { useSaveForm } from './hooks/useSaveForm';
 import {
   FloatingLogicPlayground,
   LogicWindowPortal,
@@ -43,17 +36,12 @@ import {
 
 export default function FormEditor() {
   const form = useFormStore((s) => s.form);
-  const pages = useFormStore((s) => s.pages);
   const components = useFormStore((s) => s.components);
 
-  const loadForm = useFormStore((s) => s.loadForm);
-  const initForm = useFormStore((s) => s.initForm);
-  const setCurrentVersionInStore = useFormStore((s) => s.setCurrentVersion);
   const setActiveComponent = useFormStore((s) => s.setActiveComponent);
   const setActivePage = useFormStore((s) => s.setActivePage);
   const currentPageIndex = useFormStore((s) => s.currentPageIndex);
   const setCurrentPageIndex = useFormStore((s) => s.setCurrentPageIndex);
-  const { user } = useAuth();
 
   const clearSelectedComponents = useFormStore(
     (s) => s.clearSelectedComponents
@@ -79,9 +67,7 @@ export default function FormEditor() {
   const { theme: editorTheme, setTheme: setEditorTheme } = useTheme();
 
   const [debugWidth, setDebugWidth] = useState(400);
-  const [saving, setSaving] = useState(false);
-  const [publishing, setPublishing] = useState(false);
-  const [formLoaded, setFormLoaded] = useState(false);
+  const [publishing] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
   const popoutRuleIds = useLogicStore((s) => s.popoutRuleIds);
@@ -90,82 +76,8 @@ export default function FormEditor() {
   const { formId } = useParams<{ formId: string }>();
   const navigate = useNavigate();
 
-  // Load form from backend — reset store immediately to avoid stale flash
-  useEffect(() => {
-    if (!formId) return;
-    let cancelled = false;
-
-    // Clear the old form immediately so stale data doesn't flash
-    setFormLoaded(false);
-    loadForm(
-      {
-        id: formId,
-        name: '',
-        metadata: { createdAt: '', updatedAt: '' },
-        theme: null,
-        access: {
-          visibility: 'private',
-          editors: [],
-          reviewers: [],
-          viewers: [],
-        },
-        settings: {
-          submissionLimit: null,
-          closeDate: null,
-          collectEmailMode: 'none',
-          submissionPolicy: 'none',
-          canViewOwnSubmission: false,
-          confirmationMessage: 'Thank you for your response!',
-        },
-        pages: [],
-      },
-      [],
-      [],
-      1
-    );
-
-    loadFormVersion(formId)
-      .then(
-        ({
-          form,
-          pages,
-          components,
-          version,
-          logicRules,
-          logicFormulas,
-          logicShuffleStacks,
-        }) => {
-          if (cancelled) return;
-          loadForm(form, pages, components, version);
-          // Hydrate logic store
-          useLogicStore
-            .getState()
-            .loadRules(logicRules, logicFormulas, logicShuffleStacks);
-          setFormLoaded(true);
-        }
-      )
-      .catch(() => {
-        if (cancelled) return;
-        // Form just created — init locally
-        initForm(formId, 'Untitled Form');
-        setCurrentVersionInStore(1);
-        setFormLoaded(true);
-      });
-
-    // Load workflow separately (it's on the Form model, not FormVersion)
-    loadWorkflow(formId)
-      .then((wf) => {
-        if (cancelled) return;
-        useWorkflowStore.getState().loadWorkflow(wf);
-      })
-      .catch(() => {
-        // No workflow yet — store stays at defaults
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [formId, initForm, loadForm, setCurrentVersionInStore]);
+  const { formLoaded } = useLoadFormVersion(formId);
+  const { saving, handleSave } = useSaveForm(formId);
 
   // Ensure at least one page exists after load
   // useEffect(() => {
@@ -197,48 +109,6 @@ export default function FormEditor() {
   const hasSelection = !!activeComponentId || !!activePageId;
 
   const currentVersion = useFormStore((s) => s.currentVersion);
-
-  const handleSave = useCallback(async () => {
-    if (!formId || !form) return false;
-    setSaving(true);
-    try {
-      // Always create a new version on save
-      const newVersionNum = await createNewVersion(formId);
-      setCurrentVersionInStore(newVersionNum);
-
-      // Save current editor state to the new version
-      const logicState = useLogicStore.getState();
-
-      // console.log({
-      //   formId,
-      //   newVersionNum,
-      //   form,
-      //   pages,
-      //   components,
-      //   uid: user?.uid || 'unknown',
-      //   rules: logicState.rules,
-      //   formulas: logicState.formulas,
-      // });
-
-      await saveFormVersion(
-        formId,
-        newVersionNum,
-        form,
-        pages,
-        components,
-        user?.uid || 'unknown',
-        logicState.rules,
-        logicState.formulas,
-        logicState.componentShuffleStacks
-      );
-      return true;
-    } catch (err) {
-      console.error('Save failed:', err);
-      return false;
-    } finally {
-      setSaving(false);
-    }
-  }, [components, form, formId, pages, setCurrentVersionInStore, user?.uid]);
 
   useFormEditorShortcuts({
     enabled: Boolean(formId && formLoaded),

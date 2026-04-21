@@ -54,9 +54,11 @@ export default function EditorThemeTemplatesPage() {
               <div>
                 <h2 className="text-sm font-medium text-foreground">Theme</h2>
                 <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                  Open any form in the builder, then use the left sidebar and choose{' '}
-                  <span className="font-medium text-foreground">Theme</span>. You can set colors,
-                  typography, backgrounds, and layout options that apply to the published form.
+                  Open any form in the builder, then use the left sidebar and
+                  choose{' '}
+                  <span className="font-medium text-foreground">Theme</span>.
+                  You can set colors, typography, backgrounds, and layout
+                  options that apply to the published form.
                 </p>
               </div>
             </div>
@@ -67,11 +69,14 @@ export default function EditorThemeTemplatesPage() {
                 <Layers className="h-5 w-5 text-foreground" />
               </div>
               <div>
-                <h2 className="text-sm font-medium text-foreground">Templates</h2>
+                <h2 className="text-sm font-medium text-foreground">
+                  Templates
+                </h2>
                 <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                   In the same sidebar, open{' '}
-                  <span className="font-medium text-foreground">Templates</span> to browse reusable
-                  component groups. Save groups you use often to speed up new forms.
+                  <span className="font-medium text-foreground">Templates</span>{' '}
+                  to browse reusable component groups. Save groups you use often
+                  to speed up new forms.
                 </p>
               </div>
             </div>
@@ -79,10 +84,11 @@ export default function EditorThemeTemplatesPage() {
 
           <CardFooter className="flex flex-col items-start gap-3 border-t bg-muted/20 px-4 py-4">
             <Button asChild>
-              <Link to="/">Go to dashboard</Link>
+              <Link to="/dashboard">Go to dashboard</Link>
             </Button>
             <p className="text-xs text-muted-foreground">
-              Create or open a form, then use Theme and Templates from the editor sidebar.
+              Create or open a form, then use Theme and Templates from the
+              editor sidebar.
             </p>
           </CardFooter>
         </Card>
