@@ -50,6 +50,20 @@ export class FormLogicEngine {
       if (Array.isArray(factValue)) return factValue.length > 0;
       return true;
     });
+
+    // --- Numeric-Safe Comparison Operators ---
+    this.engine.addOperator('greaterThan', (factValue, jsonValue) => {
+      if (factValue === undefined || factValue === null || factValue === '')
+        return false;
+      return Number(factValue) > Number(jsonValue);
+    });
+
+    this.engine.addOperator('lessThan', (factValue, jsonValue) => {
+      if (factValue === undefined || factValue === null || factValue === '')
+        return false;
+      return Number(factValue) < Number(jsonValue);
+    });
+
     // ------------------------------------------------
 
     this.rulesMap = new Map(rules.map((r) => [r.ruleId, r]));

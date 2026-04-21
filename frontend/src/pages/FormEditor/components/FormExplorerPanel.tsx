@@ -1,3 +1,4 @@
+// frontend/src/pages/FormEditor/components/FormExplorerPanel.tsx
 import React, { useCallback } from 'react';
 import {
   ChevronRight,
@@ -101,6 +102,7 @@ function Node({ node, style, dragHandle }: NodeRendererProps<TreeNodeData>) {
   const setActiveComponent = useFormStore((s) => s.setActiveComponent);
   const removePage = useFormStore((s) => s.removePage);
   const setCurrentPageIndex = useFormStore((s) => s.setCurrentPageIndex);
+  const form = useFormStore((s) => s.form);
 
   const isActive = isPage
     ? activePageId === data.id
@@ -110,16 +112,22 @@ function Node({ node, style, dragHandle }: NodeRendererProps<TreeNodeData>) {
     if (isPage) {
       setActivePage(data.id);
       setActiveComponent(null);
-      if (typeof node.rowIndex === 'number') {
-        setCurrentPageIndex(node.rowIndex);
+      if (form) {
+        const pageIndex = form.pages.indexOf(data.id);
+        if (pageIndex !== -1) {
+          setCurrentPageIndex(pageIndex);
+        }
       }
       node.toggle();
     } else {
       setActiveComponent(data.id);
       setActivePage(null);
       const parentNode = node.parent;
-      if (parentNode && typeof parentNode.rowIndex === 'number') {
-        setCurrentPageIndex(parentNode.rowIndex);
+      if (form && parentNode && parentNode.data) {
+        const pageIndex = form.pages.indexOf(parentNode.data.id);
+        if (pageIndex !== -1) {
+          setCurrentPageIndex(pageIndex);
+        }
       }
     }
   };
@@ -254,7 +262,7 @@ export function ExplorerPanel() {
         openByDefault={false}
         disableMultiSelection={true}
         renderCursor={CustomCursor}
-        disableDrag={(node) => false}
+        disableDrag={() => false}
         disableDrop={({ dragNodes, parentNode }) => {
           const draggedNode = dragNodes[0];
           if (!draggedNode) return false;

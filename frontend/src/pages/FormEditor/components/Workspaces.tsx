@@ -741,16 +741,35 @@ Page 3 is 'Student Details'. Ask for University Name and Graduation Year (as a n
 
 Create a 4-page Software Engineer Assessment form.
 
-Page 1 is 'Candidate Profile'. Ask for Full Name (text) and Email Address (email). Also add a Radio question asking 'Primary Role' with a vertical layout and three options: 'Frontend', 'Backend', and 'DevOps'.
+Page 1 is 'Candidate Profile'. Ask for Full Name (text) and Email Address (email). Also add a Radio question asking 'Primary Role' with a vertical layout and two options: 'Frontend', 'Backend'.
 If Primary Role equals 'Frontend', skip to Page 2.
 If Primary Role equals 'Backend', skip to Page 3.
 
 Page 2 is 'Frontend Skills'. Ask for 'Years of React Experience' (as a number).
 If Years of React Experience is greater than 5, skip to Page 4.
+Make Page 2 a submit page.
 
 Page 3 is 'Backend Skills'. Ask for 'Preferred Database' (text).
+make Page 3 a submit page (terminal page).
 
-Page 4 is 'Senior Assessment'. Ask for 'Architecture Portfolio URL' (text)."
+Page 4 is 'Senior Assessment'. Ask for 'Architecture Portfolio URL' (text).
+make Page 4 a submit page.
+
+===
+
+
+Create a 3-page Software Engineer Assessment form.
+
+Page 1 is 'Candidate Profile'. Ask for Full Name (text) and Email Address (email). Also add a Radio question asking 'Primary Role' with a vertical layout and two options: 'Frontend', 'Backend'.
+If Primary Role equals 'Frontend', skip to Page 2.
+If Primary Role equals 'Backend', skip to Page 3.
+
+Page 2 is 'Frontend Skills'. Ask for 'Years of React Experience' (as a number).
+Make Page 2 a submit page.
+
+Page 3 is 'Backend Skills'. Ask for 'Preferred Database' (text).
+make Page 3 a submit page (terminal page).
+
  */
 export function AIGenerateButton() {
   const [isOpen, setIsOpen] = useState(false);
@@ -804,11 +823,11 @@ export function AIGenerateButton() {
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <p>
               <strong>Experimental Feature:</strong> Generating an AI draft will
-              discard your existing unsaved form and begin a fresh session. Please
-              note that unsaved progress will be lost.
+              discard your existing unsaved form and begin a fresh session.
+              Please note that unsaved progress will be lost.
             </p>
           </div>
-          
+
           <Textarea
             placeholder="Describe your form (e.g., A two-page job application asking for name, email, and Github URL...)"
             value={prompt}
