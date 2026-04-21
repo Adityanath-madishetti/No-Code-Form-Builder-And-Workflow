@@ -49,7 +49,6 @@ export default function FormEditor() {
   const loadForm = useFormStore((s) => s.loadForm);
   const initForm = useFormStore((s) => s.initForm);
   const setCurrentVersionInStore = useFormStore((s) => s.setCurrentVersion);
-  const addPage = useFormStore((s) => s.addPage);
   const setActiveComponent = useFormStore((s) => s.setActiveComponent);
   const setActivePage = useFormStore((s) => s.setActivePage);
   const currentPageIndex = useFormStore((s) => s.currentPageIndex);
@@ -188,7 +187,6 @@ export default function FormEditor() {
       ? `${form.name} — Form Builder`
       : 'Editor — Form Builder';
   }, [form?.name]);
-
 
   const handleCanvasClick = () => {
     setActiveComponent(null);

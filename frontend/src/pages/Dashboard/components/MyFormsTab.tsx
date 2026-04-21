@@ -100,7 +100,7 @@ export default function MyFormsTab({ forms, onReload }: Props) {
   };
 
   // Triggered by the Dialog "Save" button or Enter key
-  const submitRename = async (e?: React.FormEvent) => {
+  const submitRename = async (e?: React.SubmitEvent) => {
     e?.preventDefault(); // Prevent default form submission
 
     const trimmedTitle = newTitle.trim();
@@ -235,7 +235,7 @@ export default function MyFormsTab({ forms, onReload }: Props) {
                   className="group flex flex-col transition-colors hover:border-primary/50"
                 >
                   <CardHeader className="px-4">
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex w-full min-w-0 items-start justify-between gap-4">
                       <div className="min-w-0 flex-1">
                         <CardTitle
                           className="truncate text-base font-semibold hover:cursor-pointer"
@@ -251,7 +251,7 @@ export default function MyFormsTab({ forms, onReload }: Props) {
                       </div>
                       <Badge
                         variant={form.isActive ? 'default' : 'secondary'}
-                        className={`pointer-events-none ${
+                        className={`pointer-events-none shrink-0 ${
                           form.isActive
                             ? 'bg-green-600 text-white hover:bg-green-600 dark:bg-green-700 dark:hover:bg-green-700'
                             : ''
