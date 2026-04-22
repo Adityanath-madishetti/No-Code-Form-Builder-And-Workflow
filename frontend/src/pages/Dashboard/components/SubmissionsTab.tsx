@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Inbox, FileText } from 'lucide-react';
+import { Search, Inbox } from 'lucide-react';
 
 // shadcn components
 import { Input } from '@/components/ui/input';

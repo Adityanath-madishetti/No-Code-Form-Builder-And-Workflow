@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFormStore, formSelectors } from '@/form/store/form.store';
-import type { AccessIdentity } from '@/form/components/base';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,6 +13,8 @@ import {
 import { DeleteFormDialog } from '@/components/DeleteFormDialog';
 import { useNavigate } from 'react-router-dom';
 import { RichTextEditor } from '@/components/RichTextEditor';
+
+import { EmailChipsField } from '@/components/EmailChipsField';
 
 function toLocalDateTime(iso: string | null): string {
   if (!iso) return '';
@@ -33,10 +34,6 @@ function fromLocalDateTime(value: string): string | null {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return null;
   return date.toISOString();
-}
-
-function normalizeEmail(email: string): string {
-  return email.trim().toLowerCase();
 }
 
 export function FormPropertiesPanel() {
@@ -104,23 +101,26 @@ export function FormPropertiesPanel() {
           <Input value={ownerLabel} readOnly className="text-sm" />
         </Field>
 
-        <EmailChipsField
-          label="Editors"
-          entries={form.access.editors}
-          onChange={(editors) => updateFormAccess({ editors })}
-        />
+        <Field label="Editors">
+          <EmailChipsField
+            entries={form.access.editors}
+            onChange={(editors) => updateFormAccess({ editors })}
+          />
+        </Field>
 
-        <EmailChipsField
-          label="Reviewers"
-          entries={form.access.reviewers}
-          onChange={(reviewers) => updateFormAccess({ reviewers })}
-        />
+        <Field label="Reviewers">
+          <EmailChipsField
+            entries={form.access.reviewers}
+            onChange={(reviewers) => updateFormAccess({ reviewers })}
+          />
+        </Field>
 
-        <EmailChipsField
-          label="Viewers"
-          entries={form.access.viewers}
-          onChange={(viewers) => updateFormAccess({ viewers })}
-        />
+        <Field label="Viewers">
+          <EmailChipsField
+            entries={form.access.viewers}
+            onChange={(viewers) => updateFormAccess({ viewers })}
+          />
+        </Field>
 
         <Field label="Who Can Fill">
           <Select
@@ -282,76 +282,6 @@ export function FormPropertiesPanel() {
         }}
       />
     </>
-  );
-}
-
-function EmailChipsField({
-  label,
-  entries,
-  onChange,
-}: {
-  label: string;
-  entries: AccessIdentity[];
-  onChange: (entries: AccessIdentity[]) => void;
-}) {
-  const [draft, setDraft] = useState('');
-
-  const addEmail = (raw: string) => {
-    const email = normalizeEmail(raw);
-    if (!email) return;
-    if (entries.some((entry) => normalizeEmail(entry.email) === email)) return;
-    onChange([...entries, { email }]);
-  };
-
-  return (
-    <Field label={label}>
-      <div className="rounded-md border border-border p-2">
-        <div className="mb-2 flex flex-wrap gap-1.5">
-          {entries.map((entry) => (
-            <span
-              key={entry.uid || entry.email}
-              className="inline-flex items-center gap-1 rounded bg-muted px-2 py-1 text-xs"
-            >
-              {entry.email}
-              <button
-                type="button"
-                onClick={() =>
-                  onChange(entries.filter((item) => item.email !== entry.email))
-                }
-                className="text-muted-foreground hover:text-foreground"
-              >
-                ×
-              </button>
-            </span>
-          ))}
-        </div>
-        <div className="flex gap-2">
-          <Input
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ',') {
-                e.preventDefault();
-                addEmail(draft);
-                setDraft('');
-              }
-            }}
-            placeholder="Type email and press Enter"
-            className="text-sm"
-          />
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              addEmail(draft);
-              setDraft('');
-            }}
-          >
-            Add
-          </Button>
-        </div>
-      </div>
-    </Field>
   );
 }
 

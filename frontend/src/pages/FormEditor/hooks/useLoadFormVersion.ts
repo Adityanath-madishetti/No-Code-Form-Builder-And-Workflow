@@ -15,7 +15,7 @@ export function useLoadFormVersion(formId: string | undefined) {
     let cancelled = false;
 
     // Clear the old form immediately so stale data doesn't flash
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFormLoaded(false);
     loadForm(
       {

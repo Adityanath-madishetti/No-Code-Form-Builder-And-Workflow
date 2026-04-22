@@ -1,12 +1,8 @@
 // src/pages/FormFill/FormSuccess.tsx
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { CheckCircle2, Home } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 
 export default function FormSuccess() {
-  const navigate = useNavigate();
-
   useEffect(() => {
     document.title = 'Submitted — Form Builder';
   }, []);

@@ -14,6 +14,8 @@ export interface Group {
   createdBy: string;
   sharedWith: string[];
   isPublic: boolean;
+  createdAt?: string;
+  creatorEmail?: string;
 }
 
 interface GroupStore {

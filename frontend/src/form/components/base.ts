@@ -194,11 +194,7 @@ export interface FormMetadata {
   version?: number;
 }
 
-import type {
-  formFontName,
-  formThemeColor,
-  formThemeMode,
-} from '../theme/formTheme';
+import type { formFontName, formThemeMode } from '../theme/formTheme';
 
 export interface Font {
   family: formFontName;

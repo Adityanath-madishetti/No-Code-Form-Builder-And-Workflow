@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import ComponentGroup from "../models/ComponentGroup.js";
+import User from "../models/User.js";
 import { createError } from "../middleware/errorHandler.js";
 import { normalizeEmail } from "../utils/formPermissions.js";
 
@@ -16,7 +17,8 @@ export async function createGroupService(uid, { name, components, sharedWith, is
         isPublic: isPublic || false
     });
 
-    return group;
+    const userObj = await User.findOne({ uid }).lean();
+    return { ...group.toObject(), creatorEmail: userObj ? userObj.email : "Unknown" };
 }
 
 export async function listGroupsService(user) {
@@ -34,7 +36,17 @@ export async function listGroupsService(user) {
         query.$or.push({ sharedWith: email });
     }
 
-    return ComponentGroup.find(query).sort({ updatedAt: -1 });
+    const groups = await ComponentGroup.find(query).sort({ updatedAt: -1 }).lean();
+    
+    const uids = [...new Set(groups.map(g => g.createdBy))];
+    const users = await User.find({ uid: { $in: uids } }).lean();
+    const emailMap = {};
+    users.forEach(u => { emailMap[u.uid] = u.email; });
+
+    return groups.map(g => ({
+        ...g,
+        creatorEmail: emailMap[g.createdBy] || "Unknown"
+    }));
 }
 
 export async function updateGroupService(groupId, uid, updates) {
@@ -50,7 +62,9 @@ export async function updateGroupService(groupId, uid, updates) {
     }
 
     await group.save();
-    return group;
+    
+    const userObj = await User.findOne({ uid: group.createdBy }).lean();
+    return { ...group.toObject(), creatorEmail: userObj ? userObj.email : "Unknown" };
 }
 
 export async function deleteGroupService(groupId, uid) {
