@@ -1,11 +1,14 @@
+import { useState, useEffect } from 'react';
 import { useDraggable } from '@dnd-kit/react';
 import { useGroupStore } from '@/form/store/group.store';
 import type { Group } from '@/form/store/group.store';
 import { DRAG_CATALOG_GROUP_ID } from '@/form/utils/DndUtils';
-import { Layers } from 'lucide-react';
+import { Layers, Edit2, Shield } from 'lucide-react';
 import type { CatalogGroupDragData } from '@/form/store/form.store';
+import { EditGroupDialog } from './EditGroupDialog';
+import { useAuth } from '@/contexts/AuthContext';
 
-function GroupItem({ group }: { group: Group }) {
+function GroupItem({ group, onEdit }: { group: Group; onEdit: (g: Group) => void }) {
   const { ref, isDragging } = useDraggable({
     id: `catalog-group-${group.id}`,
     type: DRAG_CATALOG_GROUP_ID,
@@ -16,6 +19,9 @@ function GroupItem({ group }: { group: Group }) {
   });
 
   const { removeGroup } = useGroupStore.getState();
+  const { user } = useAuth();
+  
+  const isOwner = user?.uid === group.createdBy;
 
   return (
     <div
@@ -25,7 +31,7 @@ function GroupItem({ group }: { group: Group }) {
       }`}
     >
       <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
-        <Layers className="h-4 w-4" />
+        {isOwner ? <Layers className="h-4 w-4" /> : <Shield className="h-4 w-4 text-emerald-500" title="Shared with you" />}
       </div>
       <div className="flex flex-1 flex-col overflow-hidden text-left">
         <span className="truncate text-sm font-medium text-foreground">
@@ -36,22 +42,42 @@ function GroupItem({ group }: { group: Group }) {
           {group.components.length !== 1 ? 's' : ''}
         </span>
       </div>
-      <button
-        className="mr-1 rounded p-1 text-muted-foreground opacity-0 transition-all group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive"
-        onClick={(e) => {
-          e.stopPropagation();
-          removeGroup(group.id);
-        }}
-        title="Remove group"
-      >
-        ×
-      </button>
+      {isOwner && (
+        <div className="flex items-center opacity-0 transition-opacity group-hover:opacity-100">
+          <button
+            className="mr-1 rounded p-1 text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(group);
+            }}
+            title="Edit group"
+          >
+            <Edit2 className="h-4 w-4" />
+          </button>
+          <button
+            className="mr-1 rounded p-3 text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive"
+            onClick={(e) => {
+              e.stopPropagation();
+              removeGroup(group.id);
+            }}
+            title="Remove group"
+          >
+            ×
+          </button>
+        </div>
+      )}
     </div>
   );
 }
 
 export function GroupCatalogPanel() {
   const groups = useGroupStore((state) => state.groups);
+  const { loadGroups, updateGroup } = useGroupStore.getState();
+  const [editingGroup, setEditingGroup] = useState<Group | null>(null);
+
+  useEffect(() => {
+    loadGroups();
+  }, [loadGroups]);
 
   return (
     <div className="flex h-full flex-col p-4">
@@ -79,11 +105,20 @@ export function GroupCatalogPanel() {
         ) : (
           <div className="grid gap-2">
             {groups.map((group) => (
-              <GroupItem key={group.id} group={group} />
+              <GroupItem key={group.id} group={group} onEdit={setEditingGroup} />
             ))}
           </div>
         )}
       </div>
+
+      {editingGroup && (
+        <EditGroupDialog
+          group={editingGroup}
+          open={!!editingGroup}
+          onOpenChange={(open) => !open && setEditingGroup(null)}
+          onSave={updateGroup}
+        />
+      )}
     </div>
   );
 }

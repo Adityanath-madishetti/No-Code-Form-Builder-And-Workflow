@@ -1,41 +1,83 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import type { AnyFormComponent } from '../registry/componentRegistry';
+import {
+  fetchGroups,
+  addGroup as apiAddGroup,
+  updateGroup as apiUpdateGroup,
+  deleteGroup as apiDeleteGroup,
+} from '@/lib/groupApi';
 
 export interface Group {
-  id: string;
+  id: string; // mapped from groupId
   name: string;
   components: AnyFormComponent[];
+  createdBy: string;
+  sharedWith: string[];
+  isPublic: boolean;
 }
 
 interface GroupStore {
   groups: Group[];
-  addGroup: (name: string, components: AnyFormComponent[]) => void;
-  removeGroup: (id: string) => void;
+  isLoading: boolean;
+  error: string | null;
+  loadGroups: () => Promise<void>;
+  addGroup: (name: string, components: AnyFormComponent[]) => Promise<void>;
+  updateGroup: (
+    id: string,
+    updates: { name?: string; sharedWith?: string[]; isPublic?: boolean }
+  ) => Promise<void>;
+  removeGroup: (id: string) => Promise<void>;
 }
 
-// TODO: probably need to fetch the user's groups from the database
-
-export const useGroupStore = create<GroupStore>()(
-  persist(
-    (set) => ({
-      groups: [],
-      addGroup: (name, components) =>
-        set((state) => {
-          const newGroup: Group = {
-            id: `group-${crypto.randomUUID()}`,
-            name,
-            components: JSON.parse(JSON.stringify(components)), // Deep clone exactly what we are saving
-          };
-          return { groups: [...state.groups, newGroup] };
-        }),
-      removeGroup: (id) =>
-        set((state) => ({
-          groups: state.groups.filter((g) => g.id !== id),
+export const useGroupStore = create<GroupStore>((set) => ({
+  groups: [],
+  isLoading: false,
+  error: null,
+  loadGroups: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const dbGroups = await fetchGroups();
+      set({
+        groups: dbGroups.map((g) => ({
+          ...g,
+          id: g.groupId,
         })),
-    }),
-    {
-      name: 'form-builder-groups', // localStorage key
+        isLoading: false,
+      });
+    } catch (err) {
+      set({ error: (err as Error).message, isLoading: false });
     }
-  )
-);
+  },
+  addGroup: async (name, components) => {
+    try {
+      const newGroup = await apiAddGroup(name, components);
+      set((state) => ({
+        groups: [...state.groups, { ...newGroup, id: newGroup.groupId }],
+      }));
+    } catch (err) {
+      console.error(err);
+    }
+  },
+  updateGroup: async (id, updates) => {
+    try {
+      const updated = await apiUpdateGroup(id, updates);
+      set((state) => ({
+        groups: state.groups.map((g) =>
+          g.id === id ? { ...updated, id: updated.groupId } : g
+        ),
+      }));
+    } catch (err) {
+      console.error(err);
+    }
+  },
+  removeGroup: async (id) => {
+    try {
+      await apiDeleteGroup(id);
+      set((state) => ({
+        groups: state.groups.filter((g) => g.id !== id),
+      }));
+    } catch (err) {
+      console.error(err);
+    }
+  },
+}));
