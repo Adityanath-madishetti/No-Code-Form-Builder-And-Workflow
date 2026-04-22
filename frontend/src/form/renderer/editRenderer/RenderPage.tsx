@@ -15,13 +15,7 @@ import {
 } from '@/form/utils/DndUtils';
 import { RenderComponent } from './RenderComponent';
 
-export const RenderPage = ({
-  pageId,
-  index,
-}: {
-  pageId: PageID;
-  index: number;
-}) => {
+export const RenderPage = ({ pageId }: { pageId: PageID }) => {
   const mode = useFormMode();
   const componentIds = useFormStore(
     useShallow((s) => s.pages[pageId]?.children ?? [])
@@ -83,9 +77,7 @@ export const RenderPage = ({
   );
 
   return mode === 'edit' ? (
-    <SelectablePage pageId={pageId} index={index}>
-      {rendered}
-    </SelectablePage>
+    <SelectablePage pageId={pageId}>{rendered}</SelectablePage>
   ) : (
     rendered
   );

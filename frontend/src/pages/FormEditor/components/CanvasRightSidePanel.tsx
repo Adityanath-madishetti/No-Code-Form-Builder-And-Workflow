@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Settings, Form, Component, Palette, Zap } from 'lucide-react';
+import { Settings, Form, Component, Palette, Zap, Layers } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Resizable } from 're-resizable';
 import {
@@ -14,6 +14,7 @@ import { FormPropertiesPanel } from './FormPropertiesPanel';
 
 import { FormFileExplorer } from './FormExplorerPanel';
 import { ComponentCatalogPanel } from './ComponentCatalogPanel';
+import { GroupCatalogPanel } from './GroupCatalogPanel';
 
 import { ThemePanel } from './ThemePanel';
 import { LogicPanel } from './LogicPanel';
@@ -116,25 +117,31 @@ const TABS_DATA: TabItem[] = [
     id: 'formExplorer',
     title: 'Form Explorer',
     icon: Form,
-    content: <FormFileExplorer/>,
+    content: <FormFileExplorer />,
   },
   {
     id: 'formLogic',
     title: 'Form Logic',
     icon: Zap,
-    content: <LogicPanel/>,
+    content: <LogicPanel />,
   },
   {
     id: 'formTheme',
     title: 'Form Theme',
     icon: Palette,
-    content: <ThemePanel/>,
+    content: <ThemePanel />,
   },
   {
     id: 'componentsCatalog',
     title: 'Components Catalog',
     icon: Component,
     content: <ComponentCatalogPanel />,
+  },
+  {
+    id: 'groupsCatalog',
+    title: 'Groups Catalog',
+    icon: Layers,
+    content: <GroupCatalogPanel />,
   },
   {
     id: 'formSettings',

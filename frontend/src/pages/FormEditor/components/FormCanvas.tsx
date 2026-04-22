@@ -21,8 +21,8 @@ interface FormCanvasProps {
   currentPageIndex: number;
 }
 
-function EmptyPageDrop({ pageId, index }: { pageId: string; index: number }) {
-  const { ref, isDropTarget: isOver } = useDroppable({
+function EmptyPageDrop({ pageId }: { pageId: string }) {
+  const { ref } = useDroppable({
     id: `content-drop-${pageId}`,
     accept: [
       DRAG_COMPONENT_ID,
@@ -33,7 +33,7 @@ function EmptyPageDrop({ pageId, index }: { pageId: string; index: number }) {
   });
 
   return (
-    <SelectablePage pageId={pageId} index={index}>
+    <SelectablePage pageId={pageId}>
       <div
         ref={ref}
         className={`flex min-h-[200px] w-full items-center justify-center border-2 transition-colors`}
@@ -85,9 +85,9 @@ export function FormCanvas({ currentPageIndex }: FormCanvasProps) {
               <PageHeader pageId={pageId} pageNumber={currentPageIndex + 1} />
 
               {!hasComponents ? (
-                <EmptyPageDrop pageId={pageId} index={currentPageIndex} />
+                <EmptyPageDrop pageId={pageId} />
               ) : (
-                <RenderPage pageId={pageId} index={currentPageIndex} />
+                <RenderPage pageId={pageId} />
               )}
             </>
           )}
@@ -150,6 +150,7 @@ function FormHeader() {
 
 function PageHeader({
   pageId,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   pageNumber,
 }: {
   pageId: string;

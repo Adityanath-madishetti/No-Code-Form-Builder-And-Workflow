@@ -20,7 +20,7 @@ function GroupItem({ group }: { group: Group }) {
   return (
     <div
       ref={ref}
-      className={`group relative flex cursor-grab items-center gap-3 rounded-lg border border-border bg-card p-3 shadow-sm transition-all hover:border-primary/50 hover:shadow-md ${
+      className={`group relative flex cursor-grab items-center gap-3 rounded-lg border border-border bg-card p-3 transition-all hover:border-primary/50 ${
         isDragging ? 'opacity-50 ring-2 ring-primary' : 'opacity-100'
       }`}
     >
@@ -54,7 +54,7 @@ export function GroupCatalogPanel() {
   const groups = useGroupStore((state) => state.groups);
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col p-4">
       <div className="mb-4 space-y-1">
         <h2 className="text-lg font-semibold tracking-tight text-foreground">
           Groups
