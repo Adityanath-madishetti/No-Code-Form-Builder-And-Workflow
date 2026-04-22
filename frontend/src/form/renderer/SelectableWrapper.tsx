@@ -183,7 +183,7 @@ export const SelectableComponent = ({
               isDragging ? 'opacity-40' : ''
             } ${
               isActive
-                ? 'ring-2 ring-primary/50 ring-offset-1 ring-offset-background'
+                ? 'ring-2 ring-border ring-offset-1 ring-offset-background'
                 : 'hover:ring-1 hover:ring-border'
             } ${
               isHiddenByDefault ? 'opacity-40' : ''
@@ -196,7 +196,7 @@ export const SelectableComponent = ({
                     e.stopPropagation();
                     toggleComponentCollapsed(component.instanceId);
                   }}
-                  className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-none border border-border/50 bg-card text-muted-foreground/60 transition-colors hover:bg-muted/50 hover:text-foreground"
+                  className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-none border border-border/50 bg-white text-black hover:bg-muted/50"
                   aria-label={
                     isCollapsed ? 'Expand component' : 'Collapse component'
                   }
@@ -217,33 +217,9 @@ export const SelectableComponent = ({
                         label: e.target.value,
                       })
                     }
-                    className="h-5 flex-1 truncate rounded-none border border-border/50 bg-card px-1 font-mono text-[11px] font-semibold text-foreground/80 outline-none focus:border-primary"
+                    className="h-5 flex-1 truncate rounded-none border border-border/50 bg-white px-1 font-mono text-[11px] font-semibold text-black outline-none focus:border-black"
                     onClick={(e) => e.stopPropagation()}
                   />
-
-                  <button
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      try {
-                        await navigator.clipboard.writeText(
-                          component.metadata.label
-                        );
-                        setCopiedId(true);
-                        window.setTimeout(() => setCopiedId(false), 900);
-                      } catch {
-                        /* empty */
-                      }
-                    }}
-                    className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-none border border-border/50 bg-card text-muted-foreground/60 transition-colors hover:bg-muted/50 hover:text-foreground"
-                    aria-label="Copy component id"
-                    title="Copy component id"
-                  >
-                    {copiedId ? (
-                      <SquareCheck className="h-3 w-3 text-primary" />
-                    ) : (
-                      <Copy className="h-3 w-3" />
-                    )}
-                  </button>
                 </div>
 
                 {!isCollapsed && (
@@ -258,7 +234,7 @@ export const SelectableComponent = ({
                         setDeleteDoNotAskAgain(false);
                         setDeleteConfirmOpen(true);
                       }}
-                      className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-none border border-border/50 bg-card text-muted-foreground/60 transition-colors hover:bg-destructive/10 hover:text-destructive"
+                      className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-none border border-border/50 bg-white text-black hover:bg-muted/50"
                       aria-label="Delete component"
                       title="Delete component"
                     >
@@ -274,7 +250,7 @@ export const SelectableComponent = ({
                           setActivePage(null);
                         }
                       }}
-                      className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-none border border-border/50 bg-card text-muted-foreground/60 transition-colors hover:bg-muted/50 hover:text-foreground"
+                      className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-none border border-border/50 bg-white text-black hover:bg-muted/50"
                       aria-label="Duplicate component"
                       title="Duplicate component"
                     >
@@ -290,25 +266,25 @@ export const SelectableComponent = ({
                         setMoveTargetPosition(Math.min(index + 1, maxPos));
                         setMoveModalOpen(true);
                       }}
-                      className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-none border border-border/50 bg-card text-muted-foreground/60 transition-colors hover:bg-muted/50 hover:text-foreground"
+                      className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-none border border-border/50 bg-white text-black hover:bg-muted/50"
                       aria-label="Move component"
                       title="Move component"
                     >
                       <Move className="h-3 w-3" />
                     </button>
 
-                    <button
+                    {/* <button
                       onClick={(e) => {
                         e.stopPropagation();
                         setActiveComponent(component.instanceId);
                         setActivePage(null);
                       }}
-                      className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-none border border-border/50 bg-card text-muted-foreground/60 transition-colors hover:bg-muted/50 hover:text-foreground"
+                      className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-none border border-border/50 bg-white text-black hover:bg-muted/50"
                       aria-label="Component properties"
                       title="Component properties"
                     >
                       <Settings className="h-3 w-3" />
-                    </button>
+                    </button> */}
                   </div>
                 )}
               </div>

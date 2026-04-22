@@ -45,11 +45,12 @@ export const DEFAULT_FORM_THEME: {
   headingFont: { family: formFontName };
   bodyFont: { family: formFontName };
   background: {
-    type: 'solid';
+    type: 'solid' | 'gradient' | 'image' | 'pattern' | 'mesh';
     solidColor: string;
     blur: boolean;
     overlayOpacity: number;
     fixed: boolean;
+    animated?: boolean;
   };
   layout: {
     formWidth: '600px' | '800px' | 'full';
@@ -57,9 +58,11 @@ export const DEFAULT_FORM_THEME: {
     spacing: 'compact' | 'comfortable' | 'spacious';
   };
   componentProps: {
-    shadow: 'none' | 'sm' | 'md' | 'lg';
+    shadow: 'none' | 'sm' | 'md' | 'lg' | 'xl';
     borderRadius: 'none' | 'sm' | 'md' | 'lg' | 'full';
     borderWidth: '0' | '1' | '2';
+    buttonStyle: 'solid' | 'outline' | 'glass' | 'gradient' | 'soft';
+    inputStyle: 'default' | 'pill' | 'underlined' | 'filled';
   };
 } = {
   color: formThemeColors.Default,
@@ -82,5 +85,7 @@ export const DEFAULT_FORM_THEME: {
     shadow: 'sm',
     borderRadius: 'md',
     borderWidth: '1',
+    buttonStyle: 'solid',
+    inputStyle: 'default',
   },
 };

@@ -203,14 +203,16 @@ export interface Font {
 // ── Extended theme types ──
 
 export interface FormThemeBackground {
-  type: 'solid' | 'gradient' | 'image' | 'pattern';
+  type: 'solid' | 'gradient' | 'image' | 'pattern' | 'mesh';
   solidColor?: string;
   gradient?: { from: string; to: string; angle: number };
+  mesh?: { colors: string[] };
   imageUrl?: string;
-  pattern?: 'dots' | 'grid' | 'diagonal' | 'waves' | 'noise';
+  pattern?: 'dots' | 'grid' | 'diagonal' | 'waves' | 'noise' | 'plus' | 'topography';
   blur?: boolean;
   overlayOpacity?: number; // 0–100
   fixed?: boolean; // fixed vs scroll
+  animated?: boolean;
 }
 
 export interface FormThemeLayout {
@@ -220,9 +222,11 @@ export interface FormThemeLayout {
 }
 
 export interface FormThemeComponentProps {
-  shadow: 'none' | 'sm' | 'md' | 'lg';
+  shadow: 'none' | 'sm' | 'md' | 'lg' | 'xl';
   borderRadius: 'none' | 'sm' | 'md' | 'lg' | 'full';
   borderWidth: '0' | '1' | '2';
+  buttonStyle?: 'solid' | 'outline' | 'glass' | 'gradient' | 'soft';
+  inputStyle?: 'default' | 'pill' | 'underlined' | 'filled';
 }
 
 export interface FormTheme {
@@ -230,8 +234,8 @@ export interface FormTheme {
   mode: formThemeMode;
   headingFont: Font;
   bodyFont: Font;
-  // primaryColor?: string;
-  // textColor?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
   background?: FormThemeBackground;
   layout?: FormThemeLayout;
   componentProps?: FormThemeComponentProps;

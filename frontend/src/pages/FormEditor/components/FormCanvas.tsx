@@ -171,7 +171,7 @@ function PageHeader({
           }}
         >
           <CardHeader>
-            <div className="text-4xl font-semibold tracking-tight">
+            <div className="text-4xl font-semibold tracking-tight text-foreground">
               {page?.title}
             </div>
           </CardHeader>

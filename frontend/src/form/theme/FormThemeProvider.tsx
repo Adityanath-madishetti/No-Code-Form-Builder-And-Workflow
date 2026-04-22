@@ -13,7 +13,8 @@ import type {
 
 function backgroundStyles(bg?: FormThemeBackground): React.CSSProperties {
   if (!bg) return {};
-  const s: React.CSSProperties = {};
+  const s: React.CSSProperties & Record<string, string | number | undefined> =
+    {};
 
   switch (bg.type) {
     case 'solid':
@@ -29,6 +30,13 @@ function backgroundStyles(bg?: FormThemeBackground): React.CSSProperties {
         s.backgroundImage = `url(${bg.imageUrl})`;
         s.backgroundSize = 'cover';
         s.backgroundPosition = 'center';
+      }
+      break;
+    case 'mesh':
+      if (bg.mesh?.colors) {
+        bg.mesh.colors.forEach((c, i) => {
+          s[`--mesh-c${i + 1}`] = c;
+        });
       }
       break;
     case 'pattern':
@@ -71,6 +79,8 @@ function componentClasses(cp?: FormThemeComponentProps): string {
   if (cp.shadow !== 'none') parts.push(`form-shadow-${cp.shadow}`);
   if (cp.borderRadius !== 'none') parts.push(`form-radius-${cp.borderRadius}`);
   if (cp.borderWidth !== '0') parts.push(`form-border-${cp.borderWidth}`);
+  if (cp.buttonStyle) parts.push(`btn-style-${cp.buttonStyle}`);
+  if (cp.inputStyle) parts.push(`input-style-${cp.inputStyle}`);
   return parts.join(' ');
 }
 
@@ -139,6 +149,8 @@ export function FormThemeProvider({
   const patCls = patternClass(theme?.background);
   const layoutCls = layoutClasses(theme?.layout);
   const compCls = componentClasses(theme?.componentProps);
+  const isAnimated = theme?.background?.animated;
+  const isMesh = theme?.background?.type === 'mesh';
 
   const fontVars = useMemo<React.CSSProperties>(() => {
     const vars: Record<string, string> = {};
@@ -177,8 +189,31 @@ export function FormThemeProvider({
 
   const customColorVars = useMemo<React.CSSProperties>(() => {
     const vars: Record<string, string> = {};
-    // if (theme?.primaryColor) vars['--form-primary'] = theme.primaryColor;
-    // if (theme?.textColor) vars['--form-text'] = theme.textColor;
+    if (theme?.primaryColor) {
+      const pc = theme.primaryColor;
+      vars['--form-primary'] = pc;
+      vars['--foreground'] = pc;
+      vars['--card-foreground'] = pc;
+      vars['--popover-foreground'] = pc;
+      vars['--primary'] = pc;
+      vars['--primary-foreground'] = 'white'; // Default to white for primary actions
+      vars['--ring'] = pc;
+      vars['--muted-foreground'] = `color-mix(in srgb, ${pc}, transparent 40%)`;
+      vars['--accent-foreground'] = pc;
+    }
+    if (theme?.secondaryColor) {
+      const sc = theme.secondaryColor;
+      vars['--form-secondary'] = sc;
+      vars['--card'] = sc;
+      vars['--popover'] = sc;
+      vars['--muted'] = `color-mix(in srgb, ${sc}, var(--foreground) 5%)`;
+      vars['--input'] = sc;
+      vars['--secondary'] = sc;
+      vars['--secondary-foreground'] = 'var(--foreground)';
+      vars['--border'] = `color-mix(in srgb, ${sc}, var(--foreground) 15%)`;
+      vars['--surface'] = sc;
+      vars['--field-background'] = sc;
+    }
     return vars as React.CSSProperties;
   }, [theme]);
 
@@ -190,8 +225,10 @@ export function FormThemeProvider({
         patCls,
         layoutCls,
         compCls,
+        isMesh ? 'form-bg-mesh' : '',
+        isAnimated ? 'form-bg-animated' : '',
         'form-theme-container',
-        'min-h-[99vh]',
+        'min-h-[100vh]',
       ]
         .filter(Boolean)
         .join(' ')}

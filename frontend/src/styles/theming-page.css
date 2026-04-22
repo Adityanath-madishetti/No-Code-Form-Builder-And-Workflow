@@ -28,32 +28,75 @@
   background-image: url("data:image/svg+xml,%3Csvg width='100' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10 Q25 0 50 10 Q75 20 100 10' fill='none' stroke='%23ccc' stroke-width='0.5'/%3E%3C/svg%3E");
   background-size: 100px 20px;
 }
+.form-bg-pattern-plus {
+  background-image: radial-gradient(circle, currentColor 1px, transparent 1px),
+    linear-gradient(to right, currentColor 1px, transparent 1px),
+    linear-gradient(to bottom, currentColor 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: center;
+  color: rgba(128, 128, 128, 0.1);
+}
+.form-bg-pattern-topography {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M0 50 Q25 25 50 50 T100 50' fill='none' stroke='%23888' stroke-width='0.2' opacity='0.2'/%3E%3Cpath d='M0 20 Q25 45 50 20 T100 20' fill='none' stroke='%23888' stroke-width='0.2' opacity='0.2'/%3E%3Cpath d='M0 80 Q25 55 50 80 T100 80' fill='none' stroke='%23888' stroke-width='0.2' opacity='0.2'/%3E%3C/svg%3E");
+}
 .form-bg-pattern-noise {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+}
+
+/* ── Mesh Gradients ── */
+.form-bg-mesh {
+  background-color: var(--background);
+  background-image: 
+    radial-gradient(at 0% 0%, var(--mesh-c1, var(--p)) 0px, transparent 50%),
+    radial-gradient(at 50% 0%, var(--mesh-c2, var(--s)) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, var(--mesh-c3, var(--p)) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, var(--mesh-c4, var(--s)) 0px, transparent 50%),
+    radial-gradient(at 100% 50%, var(--mesh-c5, var(--p)) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, var(--mesh-c6, var(--s)) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, var(--mesh-c1, var(--p)) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, var(--mesh-c2, var(--s)) 0px, transparent 50%);
+  background-size: 100% 100%;
+}
+
+/* ── Animations ── */
+.form-bg-animated {
+  animation: bg-drift 20s ease-in-out infinite alternate;
+  background-size: 200% 200% !important;
+}
+
+@keyframes bg-drift {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 100% 100%; }
 }
 
 /* ── Card styles ── */
 .form-card-flat .form-card,
 .form-card-flat [data-form-card] {
+  background-color: var(--card);
+  color: var(--foreground);
   box-shadow: none;
   border: 1px solid var(--border, rgba(0,0,0,0.08));
 }
 .form-card-elevated .form-card,
 .form-card-elevated [data-form-card] {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  background-color: var(--card);
+  color: var(--foreground);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--border);
 }
 .form-card-glass .form-card,
 .form-card-glass [data-form-card] {
-  background: rgba(255, 255, 255, 0.15);
+  background: color-mix(in srgb, var(--card), transparent 60%);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: 1px solid color-mix(in srgb, var(--foreground), transparent 80%);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  color: var(--foreground);
 }
 .dark .form-card-glass .form-card,
 .dark .form-card-glass [data-form-card] {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--card), transparent 80%);
+  border-color: color-mix(in srgb, var(--foreground), transparent 85%);
 }
 
 /* ── Spacing ── */

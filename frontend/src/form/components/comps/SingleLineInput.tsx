@@ -71,6 +71,7 @@ export function SingleLineInputRenderer({
             type={props.type || 'text'}
             placeholder={props.placeholder}
             defaultValue={props.defaultValue}
+            className="border border-foreground"
             {...register(instanceId, {
               required: validation?.required ? 'This field is required' : false,
               minLength: validation?.minLength

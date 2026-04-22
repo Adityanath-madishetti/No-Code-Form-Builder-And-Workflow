@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // src/pages/FormEditor/components/ThemePanel.tsx
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useEffect } from 'react';
 import { useFormStore, formSelectors } from '@/form/store/form.store';
 import { useThemeUIStore } from '@/form/theme/theme.store';
 import { type formThemeColor } from '@/form/theme/formTheme';
@@ -42,6 +42,8 @@ const PATTERN_OPTIONS: { id: FormThemeBackground['pattern']; label: string }[] =
     { id: 'grid', label: 'Grid' },
     { id: 'diagonal', label: 'Lines' },
     { id: 'waves', label: 'Waves' },
+    { id: 'plus', label: 'Plus' },
+    { id: 'topography', label: 'Topography' },
     { id: 'noise', label: 'Noise' },
   ];
 
@@ -63,6 +65,133 @@ const BORDER_OPTIONS: FormThemeComponentProps['borderWidth'][] = [
   '1',
   '2',
 ];
+
+const BUTTON_STYLE_OPTIONS: NonNullable<
+  FormThemeComponentProps['buttonStyle']
+>[] = ['solid', 'outline', 'glass', 'gradient', 'soft'];
+const INPUT_STYLE_OPTIONS: NonNullable<
+  FormThemeComponentProps['inputStyle']
+>[] = ['default', 'pill', 'underlined', 'filled'];
+
+import type { FormTheme } from '@/form/components/base';
+const PRESETS: { name: string; theme: Partial<FormTheme>; preview: string }[] =
+  [
+    {
+      name: 'Midnight Glow',
+      preview: 'linear-gradient(135deg, #0f172a, #1e293b, #334155)',
+      theme: {
+        mode: 'light',
+        primaryColor: '#22d3ee',
+        secondaryColor: '#818cf8',
+        background: {
+          type: 'mesh',
+          mesh: {
+            colors: [
+              '#0f172a',
+              '#1e293b',
+              '#334155',
+              '#22d3ee',
+              '#818cf8',
+              '#000000',
+            ],
+          },
+          animated: true,
+        },
+        layout: {
+          formWidth: '800px',
+          cardStyle: 'glassmorphism',
+          spacing: 'comfortable',
+        },
+        componentProps: {
+          shadow: 'lg',
+          borderRadius: 'lg',
+          borderWidth: '1',
+          buttonStyle: 'gradient',
+          inputStyle: 'default',
+        },
+      },
+    },
+    {
+      name: 'Sunset Breeze',
+      preview: 'linear-gradient(135deg, #fb923c, #ec4899, #8b5cf6)',
+      theme: {
+        mode: 'light',
+        primaryColor: '#f97316',
+        secondaryColor: '#ec4899',
+        background: {
+          type: 'mesh',
+          mesh: {
+            colors: [
+              '#ffedd5',
+              '#fef3c7',
+              '#fae8ff',
+              '#fb923c',
+              '#ec4899',
+              '#8b5cf6',
+            ],
+          },
+          animated: true,
+        },
+        layout: {
+          formWidth: '800px',
+          cardStyle: 'elevated',
+          spacing: 'spacious',
+        },
+        componentProps: {
+          shadow: 'md',
+          borderRadius: 'full',
+          borderWidth: '0',
+          buttonStyle: 'gradient',
+          inputStyle: 'pill',
+        },
+      },
+    },
+    {
+      name: 'Modern Clean',
+      preview: '#ffffff',
+      theme: {
+        mode: 'light',
+        primaryColor: '#171717',
+        secondaryColor: '#737373',
+        background: { type: 'solid', solidColor: '#ffffff' },
+        layout: {
+          formWidth: '800px',
+          cardStyle: 'flat',
+          spacing: 'comfortable',
+        },
+        componentProps: {
+          shadow: 'none',
+          borderRadius: 'md',
+          borderWidth: '1',
+          buttonStyle: 'solid',
+          inputStyle: 'underlined',
+        },
+      },
+    },
+    {
+      name: 'Cyberpunk',
+      preview:
+        'repeating-linear-gradient(45deg, #000, #000 10px, #111 10px, #111 20px)',
+      theme: {
+        mode: 'light',
+        primaryColor: '#f43f5e',
+        secondaryColor: '#06b6d4',
+        background: { type: 'pattern', pattern: 'grid' },
+        layout: {
+          formWidth: 'full',
+          cardStyle: 'elevated',
+          spacing: 'compact',
+        },
+        componentProps: {
+          shadow: 'xl',
+          borderRadius: 'none',
+          borderWidth: '2',
+          buttonStyle: 'outline',
+          inputStyle: 'filled',
+        },
+      },
+    },
+  ];
 
 // ════════════════════════════════════════════════════════════════
 // Section wrapper for collapsible panels
@@ -104,6 +233,36 @@ function Section({
   );
 }
 
+function PresetsSection() {
+  const update = useFormStore((s) => s.updateFormTheme);
+
+  return (
+    <div className="border-b border-border p-4">
+      <label className="mb-3 block text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+        Theme Presets
+      </label>
+      <div className="grid grid-cols-2 gap-3">
+        {PRESETS.map((p) => (
+          <button
+            key={p.name}
+            onClick={() => update(p.theme)}
+            className="group relative flex h-20 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted transition-all hover:border-primary/50"
+            type="button"
+          >
+            <div
+              className="absolute inset-0 opacity-40 transition-opacity group-hover:opacity-100"
+              style={{ background: p.preview }}
+            />
+            <span className="relative z-10 text-[10px] font-bold text-foreground drop-shadow-sm transition-transform group-hover:scale-110">
+              {p.name}
+            </span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ════════════════════════════════════════════════════════════════
 // Colors Section
 // ════════════════════════════════════════════════════════════════
@@ -117,143 +276,80 @@ function ColorsSection() {
   const pages = useFormStore((s) => s.pages);
   const updatePageOverrides = useFormStore((s) => s.updatePageThemeOverrides);
 
-  const currentColor = useMemo(() => {
+  const currentPrimary = useMemo(() => {
     if (activeTab === 'page' && selectedPageId) {
       return (
-        pages[selectedPageId]?.themeOverrides?.color ??
-        theme?.color ??
-        'default'
+        pages[selectedPageId]?.themeOverrides?.primaryColor ??
+        theme?.primaryColor ??
+        ''
       );
     }
-    return theme?.color ?? 'default';
-  }, [activeTab, selectedPageId, pages, theme?.color]);
+    return theme?.primaryColor ?? '';
+  }, [activeTab, selectedPageId, pages, theme?.primaryColor]);
 
-  // const currentPrimary = useMemo(() => {
-  //   if (activeTab === 'page' && selectedPageId) {
-  //     return pages[selectedPageId]?.themeOverrides?.primaryColor ?? theme?.primaryColor ?? '';
-  //   }
-  //   return theme?.primaryColor ?? '';
-  // }, [activeTab, selectedPageId, pages, theme?.primaryColor]);
+  const currentSecondary = useMemo(() => {
+    if (activeTab === 'page' && selectedPageId) {
+      return (
+        pages[selectedPageId]?.themeOverrides?.secondaryColor ??
+        theme?.secondaryColor ??
+        ''
+      );
+    }
+    return theme?.secondaryColor ?? '';
+  }, [activeTab, selectedPageId, pages, theme?.secondaryColor]);
 
-  // const currentText = useMemo(() => {
-  //   if (activeTab === 'page' && selectedPageId) {
-  //     return pages[selectedPageId]?.themeOverrides?.textColor ?? theme?.textColor ?? '';
-  //   }
-  //   return theme?.textColor ?? '';
-  // }, [activeTab, selectedPageId, pages, theme?.textColor]);
-
-  const setColor = useCallback(
-    (color: formThemeColor) => {
+  const setPrimary = useCallback(
+    (primaryColor: string) => {
       if (activeTab === 'page' && selectedPageId) {
-        updatePageOverrides(selectedPageId, { color });
+        updatePageOverrides(selectedPageId, { primaryColor });
       } else {
-        update({ color });
+        update({ primaryColor });
       }
     },
     [activeTab, selectedPageId, update, updatePageOverrides]
   );
 
-  // const setPrimary = useCallback(
-  //   (primaryColor: string) => {
-  //     if (activeTab === 'page' && selectedPageId) {
-  //       updatePageOverrides(selectedPageId, { primaryColor });
-  //     } else {
-  //       update({ primaryColor });
-  //     }
-  //   },
-  //   [activeTab, selectedPageId, update, updatePageOverrides]
-  // );
-
-  // const setTextColor = useCallback(
-  //   (textColor: string) => {
-  //     if (activeTab === 'page' && selectedPageId) {
-  //       updatePageOverrides(selectedPageId, { textColor });
-  //     } else {
-  //       update({ textColor });
-  //     }
-  //   },
-  //   [activeTab, selectedPageId, update, updatePageOverrides]
-  // );
+  const setSecondary = useCallback(
+    (secondaryColor: string) => {
+      if (activeTab === 'page' && selectedPageId) {
+        updatePageOverrides(selectedPageId, { secondaryColor });
+      } else {
+        update({ secondaryColor });
+      }
+    },
+    [activeTab, selectedPageId, update, updatePageOverrides]
+  );
 
   return (
     <Section id="colors" icon={Palette} title="Colors">
-      <label className="mb-2 block text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-        Theme Color
+      <label className="mb-1.5 block text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+        Custom Colors
       </label>
-      <div className="theme-color-grid mb-4">
-        {THEME_COLORS.map((tc) => (
-          <button
-            key={tc.key}
-            className={`theme-color-swatch ${currentColor === tc.color ? 'active' : ''}`}
-            style={{ backgroundColor: tc.bg }}
-            onClick={() => setColor(tc.color)}
-            title={tc.key}
-            type="button"
-          >
-            {currentColor === tc.color && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="h-3 w-3 rounded-full border-2 border-white bg-white/30" />
-              </div>
-            )}
-          </button>
-        ))}
+      <div className="space-y-3">
+        <div>
+          <label className="mb-1 block text-[10px] text-muted-foreground">
+            Primary Color
+          </label>
+          <div className="flex items-center gap-2">
+            <ColorPicker
+              value={currentPrimary || '#000000'}
+              onChange={setPrimary}
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="mb-1 block text-[10px] text-muted-foreground">
+            Secondary Color
+          </label>
+          <div className="flex items-center gap-2">
+            <ColorPicker
+              value={currentSecondary || '#ffffff'}
+              onChange={setSecondary}
+            />
+          </div>
+        </div>
       </div>
-
-      {/* <label className="mb-1.5 block text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-        Custom Primary Color
-      </label>
-      <div className="mb-3 flex items-center gap-2">
-        <input
-          type="color"
-          value={currentPrimary || '#3b82f6'}
-          onChange={(e) => setPrimary(e.target.value)}
-          className="h-8 w-8 cursor-pointer rounded border border-border"
-        />
-        <input
-          type="text"
-          value={currentPrimary}
-          onChange={(e) => setPrimary(e.target.value)}
-          placeholder="#3b82f6"
-          className="h-8 flex-1 rounded-md border border-border bg-background px-2 text-xs text-foreground"
-        />
-        {currentPrimary && (
-          <button
-            onClick={() => setPrimary('')}
-            className="text-muted-foreground hover:text-foreground"
-            type="button"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        )}
-      </div> */}
-
-      {/* <label className="mb-1.5 block text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-        Text Color
-      </label>
-      <div className="flex items-center gap-2">
-        <input
-          type="color"
-          value={currentText || '#1a1a1a'}
-          onChange={(e) => setTextColor(e.target.value)}
-          className="h-8 w-8 cursor-pointer rounded border border-border"
-        />
-        <input
-          type="text"
-          value={currentText}
-          onChange={(e) => setTextColor(e.target.value)}
-          placeholder="#1a1a1a"
-          className="h-8 flex-1 rounded-md border border-border bg-background px-2 text-xs text-foreground"
-        />
-        {currentText && (
-          <button
-            onClick={() => setTextColor('')}
-            className="text-muted-foreground hover:text-foreground"
-            type="button"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        )}
-      </div> */}
     </Section>
   );
 }
@@ -311,7 +407,13 @@ function BackgroundSection() {
     [setBg]
   );
 
-  const SubTabs: BackgroundSubTab[] = ['solid', 'gradient', 'image', 'pattern'];
+  const SubTabs: BackgroundSubTab[] = [
+    'solid',
+    'gradient',
+    'mesh',
+    'image',
+    'pattern',
+  ];
 
   return (
     <Section id="background" icon={ImageIcon} title="Background">
@@ -413,6 +515,45 @@ function BackgroundSection() {
         </div>
       )}
 
+      {bgSubTab === 'mesh' && (
+        <div className="space-y-4">
+          <label className="mb-1.5 block text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+            Mesh Colors
+          </label>
+          <div className="grid grid-cols-3 gap-2">
+            {[0, 1, 2, 3, 4, 5].map((i) => (
+              <div key={i}>
+                <ColorPicker
+                  value={bg.mesh?.colors?.[i] || '#3b82f6'}
+                  onChange={(color) => {
+                    const colors = [...(bg.mesh?.colors || [])];
+                    while (colors.length <= i) colors.push('#3b82f6');
+                    colors[i] = color;
+                    setBg({ mesh: { colors } });
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={() => {
+              const randomColors = Array.from(
+                { length: 6 },
+                () =>
+                  `#${Math.floor(Math.random() * 16777215)
+                    .toString(16)
+                    .padStart(6, '0')}`
+              );
+              setBg({ mesh: { colors: randomColors } });
+            }}
+            className="w-full rounded-md border border-border bg-muted/50 py-2 text-xs font-medium text-foreground hover:bg-muted"
+            type="button"
+          >
+            Randomize Mesh
+          </button>
+        </div>
+      )}
+
       {bgSubTab === 'image' && (
         <div className="space-y-3">
           <input
@@ -481,39 +622,22 @@ function BackgroundSection() {
           Advanced
         </p> */}
         <div className="space-y-3">
-          {/* <label className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Background Blur</span>
+          <label className="flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">Animated Background</span>
             <button
-              onClick={() => setBg({ blur: !bg.blur })}
+              onClick={() => setBg({ animated: !bg.animated })}
               className={`relative h-5 w-9 rounded-full transition-colors ${
-                bg.blur ? 'bg-primary' : 'bg-muted'
+                bg.animated ? 'bg-primary' : 'bg-muted'
               }`}
               type="button"
             >
               <span
                 className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
-                  bg.blur ? 'translate-x-4' : ''
+                  bg.animated ? 'translate-x-4' : ''
                 }`}
               />
             </button>
           </label>
-
-          <div>
-            <div className="mb-1 flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Overlay Opacity</span>
-              <span className="text-[11px] font-medium text-foreground">
-                {bg.overlayOpacity ?? 0}%
-              </span>
-            </div>
-          <input
-              type="range"
-              min="0"
-              max="100"
-              value={bg.overlayOpacity ?? 0}
-              onChange={(e) => setBg({ overlayOpacity: Number(e.target.value) })}
-              className="theme-slider w-full"
-            />
-          </div> */}
 
           <label className="flex items-center justify-between text-xs">
             <span className="text-muted-foreground">Fixed Background</span>
@@ -862,7 +986,7 @@ function ComponentPropsSection() {
       <label className="mb-2 block text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
         Border Width
       </label>
-      <div className="theme-segmented w-full">
+      <div className="theme-segmented mb-4 w-full">
         {BORDER_OPTIONS.map((b) => (
           <button
             key={b}
@@ -874,53 +998,39 @@ function ComponentPropsSection() {
           </button>
         ))}
       </div>
-    </Section>
-  );
-}
 
-// ════════════════════════════════════════════════════════════════
-// Page Theme Selector (for Page tab)
-// ════════════════════════════════════════════════════════════════
-
-function PageSelector() {
-  const form = useFormStore((s) => s.form);
-  const pages = useFormStore((s) => s.pages);
-  const selectedPageId = useThemeUIStore((s) => s.selectedPageId);
-  const setSelectedPageId = useThemeUIStore((s) => s.setSelectedPageId);
-
-  if (!form) return null;
-
-  return (
-    <div className="border-b border-border px-4 py-3">
       <label className="mb-2 block text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-        Select Page
+        Button Style
       </label>
-      <select
-        value={selectedPageId ?? ''}
-        onChange={(e) => setSelectedPageId(e.target.value || null)}
-        className="w-full rounded-md border border-border bg-background px-2.5 py-1.5 text-xs text-foreground"
-      >
-        <option value="">— Choose a page —</option>
-        {form.pages.map((pageId, i) => (
-          <option key={pageId} value={pageId}>
-            {pages[pageId]?.title || `Page ${i + 1}`}
-          </option>
+      <div className="theme-option-cards mb-4">
+        {BUTTON_STYLE_OPTIONS.map((style) => (
+          <button
+            key={style}
+            className={`theme-option-card ${cp.buttonStyle === style ? 'active' : ''}`}
+            onClick={() => setCp({ buttonStyle: style })}
+            type="button"
+          >
+            {style.charAt(0).toUpperCase() + style.slice(1)}
+          </button>
         ))}
-      </select>
-      {selectedPageId && pages[selectedPageId]?.themeOverrides && (
-        <button
-          onClick={() => {
-            useFormStore
-              .getState()
-              .updatePageThemeOverrides(selectedPageId, undefined);
-          }}
-          className="mt-2 text-[11px] text-destructive hover:underline"
-          type="button"
-        >
-          Reset page to global theme
-        </button>
-      )}
-    </div>
+      </div>
+
+      <label className="mb-2 block text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+        Input Style
+      </label>
+      <div className="theme-option-cards">
+        {INPUT_STYLE_OPTIONS.map((style) => (
+          <button
+            key={style}
+            className={`theme-option-card ${cp.inputStyle === style ? 'active' : ''}`}
+            onClick={() => setCp({ inputStyle: style })}
+            type="button"
+          >
+            {style.charAt(0).toUpperCase() + style.slice(1)}
+          </button>
+        ))}
+      </div>
+    </Section>
   );
 }
 
@@ -929,8 +1039,15 @@ function PageSelector() {
 // ════════════════════════════════════════════════════════════════
 
 export function ThemePanel() {
+  const theme = useFormStore(formSelectors.formTheme);
+  const pages = useFormStore((s) => s.pages);
   const activeTab = useThemeUIStore((s) => s.activeTab);
-  // const setActiveTab = useThemeUIStore((s) => s.setActiveTab);
+  const selectedPageId = useThemeUIStore((s) => s.selectedPageId);
+  const syncWithTheme = useThemeUIStore((s) => s.syncWithTheme);
+
+  useEffect(() => {
+    syncWithTheme(theme, pages);
+  }, [syncWithTheme, theme, pages, activeTab, selectedPageId]);
 
   return (
     <div className="flex h-full flex-col bg-background">
@@ -957,6 +1074,7 @@ export function ThemePanel() {
 
       {/* Sections Scrollable Area */}
       <div className="flex-1 overflow-y-auto pb-8">
+        <PresetsSection />
         <ColorsSection />
         <BackgroundSection />
         <TypographySection />
