@@ -12,6 +12,10 @@ export const formRoutes = [
     element: <FormPreview />,
   },
   {
+    path: 'forms/templates/:templateId/preview',
+    element: <FormPreview />,
+  },
+  {
     path: 'reviews/:formId',
     element: <FormReview />,
   },

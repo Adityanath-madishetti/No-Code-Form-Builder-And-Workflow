@@ -9,6 +9,7 @@ import type {
 import { useFormStore } from '../store/form.store';
 import { createSingleLineInputComponent } from '../components/comps/SingleLineInput';
 import { createRadioComponent } from '../components/comps/Radio';
+import { DEFAULT_FORM_THEME } from '../theme/formTheme';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function executeAIActionStream(payload: any) {
@@ -20,6 +21,7 @@ export function executeAIActionStream(payload: any) {
     addPage,
     addComponent,
     updateFormName,
+    updateFormTheme,
     updatePageTitle,
     updatePageTerminal,
     updatePageNextPage,
@@ -248,6 +250,13 @@ export function executeAIActionStream(payload: any) {
       updateRuleCondition(ruleId, groupCondition);
       updateRuleThenActions(ruleId, [visibilityAction]);
     });
+
+  // ==========================================
+  // PASS 5: Apply Default Theme
+  // ==========================================
+  console.log('--- PASS 5: DEFAULT THEME ---');
+  updateFormTheme(DEFAULT_FORM_THEME);
+  console.log('[Theme] Applied DEFAULT_FORM_THEME to AI-generated form.');
 
   console.log(`[executeAIActionStream] Finished executing AI action stream.`);
   console.groupEnd();

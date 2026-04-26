@@ -15,6 +15,7 @@ import { FormPropertiesPanel } from './FormPropertiesPanel';
 import { FormFileExplorer } from './FormExplorerPanel';
 import { ComponentCatalogPanel } from './ComponentCatalogPanel';
 import { GroupCatalogPanel } from './GroupCatalogPanel';
+import { TemplateCatalogPanel } from './TemplateCatalogPanel';
 
 import { ThemePanel } from './ThemePanel';
 import { LogicPanel } from './LogicPanel';
@@ -142,6 +143,12 @@ const TABS_DATA: TabItem[] = [
     title: 'Groups Catalog',
     icon: Layers,
     content: <GroupCatalogPanel />,
+  },
+  {
+    id: 'templatesCatalog',
+    title: 'Templates Catalog',
+    icon: Layers,
+    content: <TemplateCatalogPanel />,
   },
   {
     id: 'formSettings',
