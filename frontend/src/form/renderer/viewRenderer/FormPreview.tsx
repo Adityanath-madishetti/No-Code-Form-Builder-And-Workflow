@@ -22,6 +22,8 @@ import type {
 } from './runtimeForm.types';
 import { FormThemeProvider } from '@/form/theme/FormThemeProvider';
 
+import { DEFAULT_FORM_THEME } from '@/form/theme/formTheme';
+
 interface VersionData {
   formId: string;
   version: number;
@@ -33,7 +35,10 @@ interface VersionData {
 }
 
 export default function FormPreview() {
-  const { formId } = useParams<{ formId: string }>();
+  const { formId, templateId } = useParams<{
+    formId?: string;
+    templateId?: string;
+  }>();
   const logicEngineRef = useRef<FormLogicEngine | null>(null);
 
   // State for loading and error handling
@@ -54,19 +59,80 @@ export default function FormPreview() {
   const popPageStack = useRuntimeFormStore((s) => s.popPageStack);
 
   useEffect(() => {
-    if (!formId) return;
+    if (!formId && !templateId) return;
 
     setGlobalFormLoading(true);
     setGlobalFormError('');
 
-    api
-      .get<{ version: VersionData }>(`/api/forms/${formId}/versions/latest`)
+    const request = templateId
+      ? api.get<{
+          preview: {
+            templateId: string;
+            name: string;
+            description?: string;
+            snapshot: {
+              meta?: { name?: string; description?: string };
+              theme?: FormTheme;
+              settings?: VersionSettings;
+              pages?: PublicPageData[];
+              logic?: PublicLogicData;
+            };
+          };
+        }>(`/api/form-templates/${templateId}/preview`)
+      : api.get<{ version: VersionData }>(
+          `/api/forms/${formId}/versions/latest`
+        );
+
+    request
       .then((res) => {
-        const versionData = res.version;
+        let versionData: VersionData;
+        if (templateId) {
+          const templateRes = res as {
+            preview: {
+              templateId: string;
+              name: string;
+              description?: string;
+              snapshot: {
+                meta?: { name?: string; description?: string };
+                theme?: FormTheme;
+                settings?: VersionSettings;
+                pages?: PublicPageData[];
+                logic?: PublicLogicData;
+              };
+            };
+          };
+          versionData = {
+            formId: templateRes.preview.templateId,
+            version: 1,
+            theme: templateRes.preview.snapshot.theme || DEFAULT_FORM_THEME,
+            meta: {
+              name:
+                templateRes.preview.snapshot.meta?.name ||
+                templateRes.preview.name ||
+                'Template Preview',
+              description:
+                templateRes.preview.snapshot.meta?.description ||
+                templateRes.preview.description ||
+                '',
+            },
+            settings: templateRes.preview.snapshot.settings || {
+              submissionPolicy: 'none',
+              collectEmailMode: 'none',
+              canViewOwnSubmission: false,
+            },
+            pages: templateRes.preview.snapshot.pages || [],
+            logic: templateRes.preview.snapshot.logic || {
+              rules: [],
+              formulas: [],
+            },
+          };
+        } else {
+          versionData = (res as { version: VersionData }).version;
+        }
 
         const formattedFormData: PublicFormData = {
           form: {
-            formId: versionData.formId || formId,
+            formId: versionData.formId || formId || templateId || '',
             title: versionData.meta?.name || 'Form Preview',
           },
           version: {
@@ -93,7 +159,7 @@ export default function FormPreview() {
         // Ensure loading state is turned off whether it succeeded or failed
         setGlobalFormLoading(false);
       });
-  }, [formId, initRuntimeForm]);
+  }, [formId, initRuntimeForm, templateId]);
 
   const componentsData = useRuntimeFormStore(
     useShallow(runtimeFormSelector.currentPageComponentData)
@@ -223,6 +289,7 @@ export default function FormPreview() {
   }, [formData?.version.logic]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/incompatible-library
     const subscription = methods.watch((value) => {
       if (logicEngineRef.current) {
         triggerLogicEvaluation(value as Record<string, unknown>);
