@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { deleteForm } from '@/lib/formApi';
 
 import { Button } from '@/components/ui/button';
@@ -38,12 +38,20 @@ export function DeleteFormDialog({
   const [dontAskAgain, setDontAskAgain] = useState(false);
 
   // Clear the input field whenever the dialog closes
-  useEffect(() => {
-    if (!open) {
+  // useEffect(() => {
+  //   if (!open) {
+  //     setConfirmText('');
+  //     setDontAskAgain(false);
+  //   }
+  // }, [open]);
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen) {
       setConfirmText('');
       setDontAskAgain(false);
     }
-  }, [open]);
+    onOpenChange(newOpen);
+  };
 
   const isMatch = confirmText === formName;
 
@@ -69,7 +77,7 @@ export function DeleteFormDialog({
         } as React.CSSProperties,
       });
       onSuccess?.();
-      onOpenChange(false);
+      handleOpenChange(false);
     } catch (error) {
       console.error('Failed to delete form:', error);
       toast.error('Failed to delete form. Please try again.');
@@ -88,7 +96,7 @@ export function DeleteFormDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-destructive">Delete Form</DialogTitle>
@@ -114,27 +122,12 @@ export function DeleteFormDialog({
               disabled={isDeleting}
             />
           </div>
-
-          {/* <div className="flex items-center space-x-2 pt-2">
-            <Checkbox 
-              id="dont-ask-delete-form" 
-              checked={dontAskAgain} 
-              onCheckedChange={(checked) => setDontAskAgain(checked === true)} 
-              disabled={isDeleting}
-            />
-            <label
-              htmlFor="dont-ask-delete-form"
-              className="text-sm font-medium leading-none cursor-pointer select-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              Don't ask again
-            </label>
-          </div> */}
         </div>
 
         <DialogFooter className="gap-2 sm:gap-2">
           <Button
             variant="outline"
-            onClick={() => onOpenChange(false)}
+            onClick={() => handleOpenChange(false)}
             disabled={isDeleting}
           >
             Cancel

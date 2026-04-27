@@ -41,7 +41,7 @@ export function useSaveForm(formId: string | undefined) {
     } finally {
       setSaving(false);
     }
-  }, [components, form, formId, pages, setCurrentVersionInStore, user?.uid]);
+  }, [components, form, formId, pages, setCurrentVersionInStore, user]);
 
   return { saving, handleSave };
 }

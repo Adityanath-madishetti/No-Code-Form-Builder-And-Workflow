@@ -145,6 +145,21 @@ export default function FormReview() {
     useState<PublicFormData | null>(null);
   const [reviewFormSchemaError, setReviewFormSchemaError] = useState('');
 
+  const handleSearchChange = (val: string) => {
+    setSearchQuery(val);
+    setLocalPage(1); // Reset page here
+  };
+
+  const handleStatusChange = (val: string) => {
+    setStatusFilter(val);
+    setLocalPage(1); // Reset page here
+  };
+
+  const handleDateChange = (range: DateRange | undefined) => {
+    setDateRange(range);
+    setLocalPage(1); // Reset page here
+  };
+
   // Load submissions (Using a larger limit to enable full frontend filtering)
   const loadSubmissions = useCallback(
     async (keepSelection = false) => {
@@ -173,11 +188,13 @@ export default function FormReview() {
   );
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadSubmissions();
   }, [loadSubmissions]);
 
   useEffect(() => {
     if (!formId || !selectedSubmission?.version) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setReviewFormSchema(null);
       return;
     }
@@ -257,11 +274,6 @@ export default function FormReview() {
       return matchesSearch && matchesStatus && matchesDate;
     });
   }, [submissions, searchQuery, statusFilter, dateRange]);
-
-  // Reset to page 1 whenever filters change
-  useEffect(() => {
-    setLocalPage(1);
-  }, [searchQuery, statusFilter, dateRange]);
 
   // Frontend pagination logic
   const paginatedSubmissions = useMemo(() => {
@@ -406,14 +418,14 @@ export default function FormReview() {
               placeholder="Search by ID, email, or user..."
               className="pl-8"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {handleSearchChange(e.target.value)}}
               disabled={loading}
             />
           </div>
 
           <Select
             value={statusFilter}
-            onValueChange={setStatusFilter}
+            onValueChange={handleStatusChange}
             disabled={loading}
           >
             <SelectTrigger className="w-full sm:w-[180px]">
@@ -461,7 +473,7 @@ export default function FormReview() {
                 mode="range"
                 defaultMonth={dateRange?.from}
                 selected={dateRange}
-                onSelect={setDateRange}
+                onSelect={handleDateChange}
                 numberOfMonths={2}
               />
             </PopoverContent>

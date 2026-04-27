@@ -1,6 +1,10 @@
 // src/form/renderer/viewRenderer/FormRunner.tsx
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useForm, FormProvider, type UseFormReturn } from 'react-hook-form';
+import {
+  useForm,
+  FormProvider,
+  type UseFormReturn,
+} from 'react-hook-form';
 import {
   runtimeFormSelector,
   useRuntimeFormStore,
@@ -182,6 +186,7 @@ export function TrueForm({
 
   sharedProseClasses = '',
 }: TrueFormProps) {
+  
   return (
     <FormProvider {...methods}>
       <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
@@ -252,17 +257,6 @@ export function TrueForm({
               }
 
               return (
-                // <div
-                //   key={comp.componentId}
-                //   className="rounded-md border bg-gray-50 p-4 shadow-sm"
-                // >
-                //   <p className="text-sm font-medium text-gray-700">
-                //     Label: <span className="font-bold">{comp.label}</span>
-                //   </p>
-                //   <p className="mb-4 text-xs text-gray-500">
-                //     Instance ID: {comp.componentId} | Type:{' '}
-                //     {comp.componentType}
-                //   </p>
                 <Renderer
                   key={comp.componentId}
                   metadata={null}
@@ -270,7 +264,6 @@ export function TrueForm({
                   validation={comp.validation}
                   instanceId={comp.componentId}
                 />
-                // </div>
               );
             })
           )}
@@ -675,18 +668,17 @@ export function FormRunner() {
     } else {
       logicEngineRef.current = null;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData?.version.logic]);
+  }, [formData?.version.logic, methods, triggerLogicEvaluation]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/incompatible-library
     const subscription = methods.watch((value) => {
       if (logicEngineRef.current) {
         triggerLogicEvaluation(value as Record<string, unknown>);
       }
     });
     return () => subscription.unsubscribe();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [methods.watch, triggerLogicEvaluation]);
+  }, [methods, triggerLogicEvaluation]);
 
   const onSubmit = async (data: Record<string, unknown>) => {
     if (!formId || !formData) return;
@@ -832,7 +824,9 @@ export function FormRunner() {
           <LogIn className="h-6 w-6 text-primary" />
         </div>
         <div className="flex flex-col gap-1">
-          <p className="text-base font-semibold text-foreground">Sign In Required</p>
+          <p className="text-base font-semibold text-foreground">
+            Sign In Required
+          </p>
           <p className="max-w-sm text-sm text-muted-foreground">
             The creator of this form requires you to sign in before continuing.
           </p>

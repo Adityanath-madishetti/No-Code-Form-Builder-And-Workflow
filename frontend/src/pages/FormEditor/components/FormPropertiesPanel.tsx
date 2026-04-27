@@ -278,7 +278,7 @@ export function FormPropertiesPanel() {
           setDeleteDialog((prev) => ({ ...prev, isOpen }))
         }
         onSuccess={async () => {
-          await navigate('/');
+          await navigate('/dashboard');
         }}
       />
     </>
