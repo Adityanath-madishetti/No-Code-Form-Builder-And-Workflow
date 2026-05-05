@@ -51,7 +51,7 @@ export interface PublicLogicData {
 // }
 
 export interface PublicFormData {
-  form: { formId: string; title: string };
+  form: { formId: string; title: string; fluxorisWebhookPath?: string };
   version: {
     formId: string;
     version: number;

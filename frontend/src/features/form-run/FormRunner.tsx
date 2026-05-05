@@ -66,6 +66,163 @@ function flattenResponses(
   }
   return out;
 }
+
+type FluxorisConnectionSnapshot = {
+  webhook?: {
+    path?: string;
+    auth_type?: string;
+    auth_token?: string;
+  };
+  field_map?: Record<string, string>;
+};
+
+const FLUXORIS_CONNECTION_KEY_PREFIX = 'fluxoris_partner_connection_';
+
+async function hmacSha256Hex(secret: string, text: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(text));
+  return Array.from(new Uint8Array(signature))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+/** Converts a human-readable label to a snake_case webhook key. */
+function slugifyLabel(value: string, fallback: string): string {
+  const slug = String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+  return slug || fallback;
+}
+
+/**
+ * Builds a componentId → slugified-label map from the public form pages.
+ * This is the same slugification used by FluxorisWorkflowPanel so the keys
+ * match what the Fluxoris workflow template expects.
+ */
+function buildLabelMapFromFormData(
+  pages: PublicFormData['version']['pages']
+): Record<string, string> {
+  const map: Record<string, string> = {};
+  const usedKeys = new Set<string>();
+  let fallbackCounter = 1;
+  const nonDataTypes = new Set(['heading', 'section-divider', 'page-break']);
+
+  for (const page of pages) {
+    for (const comp of page.components) {
+      if (nonDataTypes.has(comp.componentType)) continue;
+      const base = slugifyLabel(
+        comp.label || comp.componentId,
+        `field_${fallbackCounter++}`
+      );
+      let key = base;
+      let suffix = 2;
+      while (usedKeys.has(key)) key = `${base}_${suffix++}`;
+      usedKeys.add(key);
+      map[comp.componentId] = key;
+    }
+  }
+  return map;
+}
+
+async function triggerFluxorisWebhookIfConnected(
+  formId: string,
+  submission: SubmissionEntry,
+  dbWebhookPath?: string,
+  labelMap?: Record<string, string>
+) {
+  console.log(`[Fluxoris] Triggering webhook for form: ${formId}`);
+
+  // --- Resolve the connection snapshot from localStorage for auth only ---
+  const raw =
+    localStorage.getItem(`${FLUXORIS_CONNECTION_KEY_PREFIX}${formId}`) || '';
+
+  let snapshot: FluxorisConnectionSnapshot | null = null;
+  if (raw.trim()) {
+    try {
+      snapshot = JSON.parse(raw) as FluxorisConnectionSnapshot;
+    } catch (err) {
+      console.error('[Fluxoris] Failed to parse connection snapshot:', err);
+    }
+  }
+
+  // Prefer the DB-persisted webhook path; fall back to the localStorage snapshot
+  const webhookPath = (
+    dbWebhookPath?.trim() ||
+    String(snapshot?.webhook?.path || '').trim()
+  );
+
+  if (!webhookPath) {
+    console.log('[Fluxoris] No webhook path found (neither DB nor localStorage).');
+    return;
+  }
+
+  const authType = String(snapshot?.webhook?.auth_type || 'none')
+    .trim()
+    .toLowerCase();
+  const authToken = String(snapshot?.webhook?.auth_token || '').trim();
+  const baseUrl =
+    (
+      import.meta.env.VITE_FLUXORIS_API_BASE_URL as string | undefined
+    )?.trim() || '';
+  const normalizedBase = baseUrl.replace(/\/+$/, '');
+  const webhookBase = normalizedBase.endsWith('/api')
+    ? normalizedBase.slice(0, -4)
+    : normalizedBase;
+  const webhookUrl = `${webhookBase}/webhooks/${encodeURIComponent(webhookPath)}`;
+
+  console.log(`[Fluxoris] Target Webhook URL: ${webhookUrl}`);
+
+  const flat = flattenResponses(submission.pages || []);
+
+  // Priority: labelMap from formData > field_map from localStorage snapshot > raw componentId
+  const effectiveMap: Record<string, string> =
+    labelMap && Object.keys(labelMap).length > 0
+      ? labelMap
+      : snapshot?.field_map || {};
+
+  const bodyPayload: Record<string, unknown> = {};
+  for (const [sourceKey, value] of Object.entries(flat)) {
+    const mappedKey = String(effectiveMap[sourceKey] || sourceKey).trim();
+    if (!mappedKey) continue;
+    bodyPayload[mappedKey] = value;
+  }
+  const body = JSON.stringify(bodyPayload);
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (authType === 'bearer' && authToken) {
+    headers.Authorization = `Bearer ${authToken}`;
+  } else if (authType === 'hmac' && authToken) {
+    const timestamp = String(Math.floor(Date.now() / 1000));
+    const digest = await hmacSha256Hex(authToken, `${timestamp}.${body}`);
+    headers['X-Webhook-Timestamp'] = timestamp;
+    headers['X-Webhook-Signature'] = `sha256=${digest}`;
+  }
+
+  console.log('[Fluxoris] Sending payload:', bodyPayload);
+
+  try {
+    const res = await fetch(webhookUrl, {
+      method: 'POST',
+      headers,
+      body,
+    });
+    console.log(`[Fluxoris] Webhook response status: ${res.status}`);
+  } catch (err) {
+    console.error('[Fluxoris] Webhook fetch failed:', err);
+  }
+}
+
 function LoginDialog() {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
@@ -762,8 +919,28 @@ export function FormRunner() {
           payload
         );
       } else {
-        await api.post(`/api/forms/${formId}/submissions`, payload);
+        const result = await api.post<{
+          submission: SubmissionEntry;
+        }>(`/api/forms/${formId}/submissions`, payload);
         localStorage.setItem(`form_${formId}_submitted`, 'true');
+        try {
+          if (result?.submission) {
+            // Pass the DB-persisted webhook path from the already-loaded form data.
+            const dbWebhookPath = formData?.form?.fluxorisWebhookPath || '';
+            // Build label map from loaded form data so payload uses human-readable keys.
+            const labelMap = formData?.version.pages
+              ? buildLabelMapFromFormData(formData.version.pages)
+              : undefined;
+            await triggerFluxorisWebhookIfConnected(
+              formId,
+              result.submission,
+              dbWebhookPath,
+              labelMap
+            );
+          }
+        } catch (webhookError) {
+          console.warn('Fluxoris webhook trigger failed:', webhookError);
+        }
       }
 
       // 4. Update state on success

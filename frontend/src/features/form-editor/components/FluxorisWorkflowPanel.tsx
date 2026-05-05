@@ -186,6 +186,10 @@ export function FluxorisWorkflowPanel() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [connectedWorkflow, setConnectedWorkflow] = useState<any>(null);
 
+  useEffect(() => {
+    console.log('connectedWorkflow', connectedWorkflow);
+  }, [connectedWorkflow]);
+
   // Run History State
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [runs, setRuns] = useState<any[]>([]);
@@ -268,35 +272,40 @@ export function FluxorisWorkflowPanel() {
       'fetchPartnerFormConnection'
     );
 
-    if (fetchConn) {
-      // Manual fetch to detect status code since the MFE wrapper might resolve 404s
-      const checkUrl = `${fluxorisApiBase.replace(/\/+$/, '')}/partner/forms/${form.id}/active-connection`;
-      fetch(checkUrl, {
-        headers: { Authorization: `Bearer ${fluxorisToken}` },
-      })
-        .then((res) => {
-          if (res.status === 404) {
-            setIsServiceDown(true);
-            return { _skip: true };
-          }
-          if (res.ok) {
-            setIsServiceDown(false);
-            return res.json();
-          }
-          return { _skip: true };
-        })
-        .then((data) => {
-          if (data?._skip) return;
-          if (data && data.workflow_id) {
-            setConnectedWorkflow(data);
+    if (!fetchConn) return;
+
+    // Step 1: health-gate — detect 404 / service-down before making real requests
+    const checkUrl = `${fluxorisApiBase.replace(/\/api\/?$/, '').replace(/\/+$/, '')}/health`;
+    fetch(checkUrl, {
+      headers: { Authorization: `Bearer ${fluxorisToken}` },
+    })
+      .then(async (res) => {
+        if (res.status === 404) {
+          setIsServiceDown(true);
+          return;
+        }
+        if (!res.ok) return;
+
+        setIsServiceDown(false);
+
+        // Step 2: fetch the real connection object via the MFE helper
+        try {
+          const conn = await fetchConn(form.id);
+          if (
+            conn &&
+            (conn.workflow_id || conn.connection_status === 'connected')
+          ) {
+            setConnectedWorkflow(conn);
           } else {
             setConnectedWorkflow(null);
           }
-        })
-        .catch(() => {
-          setIsServiceDown(true);
-        });
-    }
+        } catch {
+          setConnectedWorkflow(null);
+        }
+      })
+      .catch(() => {
+        setIsServiceDown(true);
+      });
   }, [isConfigured, fluxorisToken, form?.id, remote, fluxorisApiBase]);
 
   const fetchRuns = useCallback(
@@ -371,6 +380,17 @@ export function FluxorisWorkflowPanel() {
       toast.error('Failed to authenticate with Fluxoris');
     } finally {
       setExchangeLoading(false);
+    }
+  };
+
+  /** Persist the Fluxoris webhook path to the database for this form. */
+  const persistWebhookPath = async (result: any) => {
+    const webhookPath = String(result?.webhook?.path || '').trim();
+    if (!webhookPath || !form?.id) return;
+    try {
+      await api.put(`/api/forms/${form.id}/fluxoris-webhook`, { webhookPath });
+    } catch (err) {
+      console.warn('[Fluxoris] Failed to persist webhook path to DB:', err);
     }
   };
 
@@ -578,8 +598,9 @@ export function FluxorisWorkflowPanel() {
                             fieldMap={fieldMap}
                             statusWebhookUrl={statusWebhookUrl}
                             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            onConnected={(result: any) => {
+                            onConnected={async (result: any) => {
                               setConnectedWorkflow(result);
+                              await persistWebhookPath(result);
                               toast.success('Workflow successfully connected!');
                             }}
                           />
@@ -644,8 +665,9 @@ export function FluxorisWorkflowPanel() {
                               fieldMap={fieldMap}
                               statusWebhookUrl={statusWebhookUrl}
                               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                              onConnected={(result: any) => {
+                              onConnected={async (result: any) => {
                                 setConnectedWorkflow(result);
+                                await persistWebhookPath(result);
                                 toast.success('Workflow updated!');
                               }}
                             />

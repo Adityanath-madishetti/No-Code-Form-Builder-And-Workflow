@@ -7,6 +7,7 @@ export interface IForm {
   isDeleted: boolean;
   createdBy: string;
   currentVersion: number;
+  fluxorisWebhookPath?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -19,6 +20,7 @@ export interface IFormCreate {
 export interface IFormUpdate {
   title?: string;
   isActive?: boolean;
+  fluxorisWebhookPath?: string;
 }
 
 export interface ISharedFormResponse extends Omit<IForm, 'isDeleted'> {
