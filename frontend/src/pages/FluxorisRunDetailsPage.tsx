@@ -1,13 +1,22 @@
 import { useEffect, useState, type ComponentType } from 'react';
-import { getCookie } from '@/lib/cookies';
+import { getCookie } from '@/utils/cookies';
 import '@fluxoris/partner-mfe/style.css';
 
 // shadcn/ui imports
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/shared/components/ui/card';
+import { Input } from '@/shared/components/ui/input';
+import { Button } from '@/shared/components/ui/button';
+import { Label } from '@/shared/components/ui/label';
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from '@/shared/components/ui/alert';
 import { AlertCircle, Info, Loader2 } from 'lucide-react';
 
 const FLUXORIS_PARTNER_TOKEN_KEY = 'fluxoris_partner_token';
@@ -34,9 +43,7 @@ export default function FluxorisRunDetailsPage() {
   const [loadError, setLoadError] = useState('');
 
   const partnerApiBase =
-    import.meta.env.VITE_API_URL ||
-    import.meta.env.VITE_API_BASE_URL ||
-    '';
+    import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '';
 
   const [fluxorisApiBase, setFluxorisApiBase] = useState(
     import.meta.env.VITE_FLUXORIS_API_BASE_URL ||
@@ -50,9 +57,7 @@ export default function FluxorisRunDetailsPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
 
-  const fluxorisToken = (
-    getCookie(FLUXORIS_PARTNER_TOKEN_KEY) || ''
-  ).trim();
+  const fluxorisToken = (getCookie(FLUXORIS_PARTNER_TOKEN_KEY) || '').trim();
 
   useEffect(() => {
     let mounted = true;

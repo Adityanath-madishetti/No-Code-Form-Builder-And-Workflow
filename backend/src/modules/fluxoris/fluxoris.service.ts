@@ -105,7 +105,18 @@ class FluxorisService {
 
   public async proxyRequest(method: string, path: string, headers: Record<string, any>, body: any) {
     const config = this.getConfig();
-    const url = `${config.baseUrl}${path}`;
+
+    // Webhook and health paths live at the Fluxoris root, not under /api.
+    // Rebuild the URL from the base *without* the /api suffix for those paths.
+    const baseWithoutApi = config.baseUrl.replace(/\/api\/?$/, '').replace(/\/+$/, '');
+    let url: string;
+    if (path.startsWith('/webhooks/') || path === '/webhooks') {
+      url = `${baseWithoutApi}${path}`;
+    } else if (path === '/health' || path.startsWith('/health?')) {
+      url = `${baseWithoutApi}${path}`;
+    } else {
+      url = `${config.baseUrl}${path}`;
+    }
 
     // Forward only necessary headers
     const allowedHeaders = ['authorization', 'accept', 'user-agent'];
@@ -139,12 +150,12 @@ class FluxorisService {
       }
     }
 
-    // logger.info(`Proxy request: ${method} ${url}`, {
-    //   headers: safeHeaders,
-    //   bodyType: typeof body,
-    //   isBuffer: Buffer.isBuffer(body),
-    //   bodyPreview: stringifiedBody ? stringifiedBody.slice(0, 100) : null,
-    // });
+    logger.info(`Proxy request: ${method} ${url}`, {
+      headers: safeHeaders,
+      bodyType: typeof body,
+      isBuffer: Buffer.isBuffer(body),
+      bodyPreview: body,
+    });
 
     const response = await fetch(url, {
       method,
@@ -161,11 +172,11 @@ class FluxorisService {
       data = { _raw: text };
     }
 
-    // logger.info(`Proxy response: ${method} ${url}`, {
-    //   status: response.status,
-    //   headers: Object.fromEntries(response.headers.entries()),
-    //   data,
-    // });
+    logger.info(`Proxy response: ${method} ${url}`, {
+      status: response.status,
+      headers: Object.fromEntries(response.headers.entries()),
+      data,
+    });
     return {
       status: response.status,
       data,

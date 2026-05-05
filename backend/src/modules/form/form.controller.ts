@@ -88,3 +88,21 @@ export const getPublicForm = async (req: Request, res: Response, next: NextFunct
     next(err);
   }
 };
+
+export const saveFluxorisWebhookPath = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const formId = req.params.formId as string;
+    const { webhookPath } = req.body as { webhookPath?: string };
+    if (typeof webhookPath !== 'string') {
+      throw new ApiError(400, 'webhookPath must be a string');
+    }
+    const form = await service.updateFormService(
+      formId,
+      { fluxorisWebhookPath: webhookPath.trim() },
+      (req as any).user,
+    );
+    res.status(200).json({ ok: true, form });
+  } catch (err) {
+    next(err);
+  }
+};

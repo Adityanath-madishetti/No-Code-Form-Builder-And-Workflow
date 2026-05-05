@@ -29,6 +29,9 @@ router.delete('/:formId', verifyToken, controller.deleteForm);
 // Publish
 router.post('/:formId/publish', verifyToken, controller.publishForm);
 
+// Fluxoris integration
+router.put('/:formId/fluxoris-webhook', verifyToken, controller.saveFluxorisWebhookPath);
+
 // Public form access
 router.get('/:formId/public', optionalAuth, controller.getPublicForm);
 

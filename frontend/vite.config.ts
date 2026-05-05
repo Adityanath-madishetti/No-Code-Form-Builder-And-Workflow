@@ -17,7 +17,8 @@ export default defineConfig({
       name: 'submission_provider',
       filename: 'remoteEntry.js',
       exposes: {
-        './SubmissionView': './src/microfrontend/SubmissionViewModule.tsx',
+        './SubmissionView':
+          './src/modules/submissions/microFrontends/submission-viewer/SubmissionViewModule.tsx',
       },
       // shared: ['react', 'react-dom'],
       remotes: {
@@ -25,19 +26,15 @@ export default defineConfig({
       },
       shared: {
         react: {
-          singleton: true,
           requiredVersion: false,
         },
         'react-dom': {
-          singleton: true,
           requiredVersion: false,
         },
         'react/jsx-runtime': {
-          singleton: true,
           requiredVersion: false,
         },
         'react/jsx-dev-runtime': {
-          singleton: true,
           requiredVersion: false,
         },
       },

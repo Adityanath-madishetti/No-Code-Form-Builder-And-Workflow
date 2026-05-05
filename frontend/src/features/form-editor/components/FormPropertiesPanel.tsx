@@ -1,0 +1,303 @@
+import { useMemo, useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useFormStore, formSelectors } from '@/features/form/stores/form.store';
+import { Input } from '@/shared/components/ui/input';
+import { Button } from '@/shared/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select';
+import { DeleteFormDialog } from '@/shared/components/DeleteFormDialog';
+import { useNavigate } from 'react-router-dom';
+import { RichTextEditor } from '@/shared/components/RichTextEditor';
+
+import { EmailChipsField } from '@/shared/components/EmailChipsField';
+
+function toLocalDateTime(iso: string | null): string {
+  if (!iso) return '';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const y = date.getFullYear();
+  const m = pad(date.getMonth() + 1);
+  const d = pad(date.getDate());
+  const h = pad(date.getHours());
+  const min = pad(date.getMinutes());
+  return `${y}-${m}-${d}T${h}:${min}`;
+}
+
+function fromLocalDateTime(value: string): string | null {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString();
+}
+
+export function FormPropertiesPanel() {
+  const form = useFormStore(formSelectors.form);
+  const updateFormName = useFormStore((s) => s.updateFormName);
+  const updateFormMetadata = useFormStore((s) => s.updateFormMetadata);
+  const updateFormAccess = useFormStore((s) => s.updateFormAccess);
+  const updateFormSettings = useFormStore((s) => s.updateFormSettings);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean;
+    formId: string;
+    formTitle: string;
+  }>({ isOpen: false, formId: '', formTitle: '' });
+
+  const ownerLabel = useMemo(() => {
+    if (!form) return '';
+    if (!form.metadata.authorId) return user?.email || 'Unknown';
+    if (user?.uid === form.metadata.authorId) {
+      return `${user.email} (You)`;
+    }
+    return form.metadata.authorId;
+  }, [form, user?.uid, user?.email]);
+
+  if (!form) {
+    return (
+      <p className="text-center text-xs text-muted-foreground">
+        No form loaded.
+      </p>
+    );
+  }
+
+  return (
+    <>
+      <div className="mb-10 flex flex-col gap-5 p-4">
+        <Field label="Form Name">
+          <Input
+            value={form.name}
+            onChange={(e) => updateFormName(e.target.value)}
+            placeholder="Untitled Form"
+            className="text-sm"
+          />
+        </Field>
+
+        <Field label="Description">
+          {/* <textarea
+            value={form.metadata.description ?? ''}
+            onChange={(e) =>
+              updateFormMetadata({ description: e.target.value })
+            }
+            placeholder="Describe what this form is for..."
+            rows={3}
+            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+          /> */}
+          <RichTextEditor
+            value={form.metadata.description ?? ''}
+            placeholder="Description"
+            onChange={(newHTML) => updateFormMetadata({ description: newHTML })}
+          />
+        </Field>
+
+        <Field label="Owner">
+          <Input value={ownerLabel} readOnly className="text-sm" />
+        </Field>
+
+        <Field label="Editors">
+          <EmailChipsField
+            entries={form.access.editors}
+            onChange={(editors) => updateFormAccess({ editors })}
+          />
+        </Field>
+
+        <Field label="Reviewers">
+          <EmailChipsField
+            entries={form.access.reviewers}
+            onChange={(reviewers) => updateFormAccess({ reviewers })}
+          />
+        </Field>
+
+        <Field label="Viewers">
+          <EmailChipsField
+            entries={form.access.viewers}
+            onChange={(viewers) => updateFormAccess({ viewers })}
+          />
+        </Field>
+
+        <Field label="Who Can Fill">
+          <Select
+            value={form.access.visibility}
+            onValueChange={(value: 'public' | 'private' | 'link-only') =>
+              updateFormAccess({ visibility: value })
+            }
+          >
+            <SelectTrigger className="w-full text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="private">Private</SelectItem>
+              <SelectItem value="link-only">Link-only (allowlisted)</SelectItem>
+              <SelectItem value="public">Public</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+
+        <Field label="Response Limit">
+          <Input
+            type="number"
+            placeholder="Unlimited"
+            min={0}
+            className="text-sm"
+            value={form.settings.submissionLimit ?? ''}
+            onChange={(e) =>
+              updateFormSettings({
+                submissionLimit: e.target.value ? Number(e.target.value) : null,
+              })
+            }
+          />
+        </Field>
+
+        <Field label="Deadline">
+          <Input
+            type="datetime-local"
+            value={toLocalDateTime(form.settings.closeDate)}
+            onChange={(e) =>
+              updateFormSettings({
+                closeDate: fromLocalDateTime(e.target.value),
+              })
+            }
+            className="text-sm"
+          />
+        </Field>
+
+        <Field label="Collect Email">
+          <Select
+            value={form.settings.collectEmailMode}
+            onValueChange={(value: 'none' | 'optional' | 'required') =>
+              updateFormSettings({ collectEmailMode: value })
+            }
+          >
+            <SelectTrigger className="w-full text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Anonymous</SelectItem>
+              <SelectItem value="optional">Optional</SelectItem>
+              <SelectItem value="required">Required</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+
+        <Field label="Submission Policy">
+          <Select
+            value={form.settings.submissionPolicy}
+            onValueChange={(
+              value:
+                | 'none'
+                | 'edit_only'
+                | 'resubmit_only'
+                | 'edit_and_resubmit'
+            ) => {
+              updateFormSettings({ submissionPolicy: value });
+              if (value === 'edit_only' || value === 'edit_and_resubmit') {
+                updateFormSettings({ canViewOwnSubmission: true });
+              }
+            }}
+          >
+            <SelectTrigger className="w-full text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Submit once (no edit)</SelectItem>
+              <SelectItem value="edit_only">Edit existing only</SelectItem>
+              <SelectItem value="resubmit_only">Submit again only</SelectItem>
+              <SelectItem value="edit_and_resubmit">
+                Edit existing and submit again
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+
+        <Field label="Can Viewer View Their Submission">
+          <Select
+            value={form.settings.canViewOwnSubmission ? 'yes' : 'no'}
+            onValueChange={(value) => {
+              updateFormSettings({ canViewOwnSubmission: value === 'yes' });
+              if (
+                value === 'no' &&
+                form.settings.submissionPolicy === 'edit_only'
+              ) {
+                updateFormSettings({ submissionPolicy: 'none' });
+              } else if (
+                value === 'no' &&
+                form.settings.submissionPolicy === 'edit_and_resubmit'
+              ) {
+                updateFormSettings({ submissionPolicy: 'resubmit_only' });
+              }
+            }}
+          >
+            <SelectTrigger className="w-full text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="yes">Yes</SelectItem>
+              <SelectItem value="no">No</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+
+        <Field label="Confirmation Message">
+          <textarea
+            value={form.settings.confirmationMessage}
+            onChange={(e) =>
+              updateFormSettings({ confirmationMessage: e.target.value })
+            }
+            rows={2}
+            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+          />
+        </Field>
+        <Button
+          size="icon"
+          variant="destructive"
+          className="w-30"
+          onClick={() =>
+            setDeleteDialog({
+              isOpen: true,
+              formId: form.id,
+              formTitle: form.name,
+            })
+          }
+        >
+          Delete Form
+        </Button>
+      </div>
+      {/* Delete Form Dialog */}
+      <DeleteFormDialog
+        formId={deleteDialog.formId}
+        formName={deleteDialog.formTitle}
+        open={deleteDialog.isOpen}
+        onOpenChange={(isOpen) =>
+          setDeleteDialog((prev) => ({ ...prev, isOpen }))
+        }
+        onSuccess={async () => {
+          await navigate('/dashboard');
+        }}
+      />
+    </>
+  );
+}
+
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="text-xs font-medium text-muted-foreground">
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}

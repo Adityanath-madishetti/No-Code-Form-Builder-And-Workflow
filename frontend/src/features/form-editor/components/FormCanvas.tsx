@@ -1,0 +1,185 @@
+// src/pages/FormEditor/components/FormCanvas.tsx
+import { useShallow } from 'zustand/react/shallow';
+import { useDroppable } from '@dnd-kit/react';
+import { LayoutGrid } from 'lucide-react';
+
+import {
+  FormModeProvider,
+  FormThemeProvider,
+  formSelectors,
+  useFormStore,
+  RenderPage,
+  SelectablePage,
+  DRAG_CATALOG_COMPONENT_ID,
+  DRAG_COMPONENT_ID,
+  DRAG_PAGE_ID,
+  DRAG_CATALOG_GROUP_ID,
+} from '@/features/form';
+
+import { sharedProseClasses } from '@/shared/components/RichTextEditor';
+import { Card, CardContent, CardHeader } from '@/shared/components/ui/card';
+import { Separator } from '@/shared/components/ui/separator';
+
+interface FormCanvasProps {
+  currentPageIndex: number;
+}
+
+function EmptyPageDrop({ pageId }: { pageId: string }) {
+  const { ref } = useDroppable({
+    id: `content-drop-${pageId}`,
+    accept: [
+      DRAG_COMPONENT_ID,
+      DRAG_CATALOG_COMPONENT_ID,
+      DRAG_CATALOG_GROUP_ID,
+    ],
+    data: { type: DRAG_PAGE_ID, pageId },
+  });
+
+  return (
+    <SelectablePage pageId={pageId}>
+      <div
+        ref={ref}
+        className={`flex min-h-[200px] w-full items-center justify-center border-2 transition-colors`}
+      >
+        <div className="flex flex-col items-center gap-2 text-center">
+          <LayoutGrid className="h-6 w-6 opacity-40" />
+          <p className="text-xs font-medium">Drop components here</p>
+        </div>
+      </div>
+    </SelectablePage>
+  );
+}
+
+export function FormCanvas({ currentPageIndex }: FormCanvasProps) {
+  const form = useFormStore((s) => s.form);
+  const pages = useFormStore(useShallow((s) => s.pages));
+  const globalTheme = useFormStore(formSelectors.formTheme);
+
+  if (!form) {
+    return (
+      <div className="flex h-full items-center justify-center text-muted-foreground">
+        <p className="text-xs">No form found.</p>
+      </div>
+    );
+  }
+
+  const hasPages = form.pages.length > 0;
+  const pageId = form.pages[currentPageIndex];
+  const page = pageId ? pages[pageId] : null;
+  const hasComponents = (page?.children ?? []).length > 0;
+
+  return (
+    <FormThemeProvider globalTheme={globalTheme}>
+      <FormModeProvider value="edit">
+        <div className="mx-auto min-h-screen w-full max-w-3xl px-8 py-6">
+          {/* Editable form title on first page */}
+          <FormHeader />
+          <Separator className="mt-5" />
+
+          {!hasPages ? (
+            <div className="flex h-[50vh] items-center justify-center text-muted-foreground">
+              <div className="flex flex-col items-center gap-2 text-center">
+                <LayoutGrid className="h-8 w-8 opacity-15" />
+                <p className="text-xs">Add a page to get started</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              <PageHeader pageId={pageId} />
+
+              {!hasComponents ? (
+                <EmptyPageDrop pageId={pageId} />
+              ) : (
+                <RenderPage pageId={pageId} />
+              )}
+            </>
+          )}
+        </div>
+      </FormModeProvider>
+    </FormThemeProvider>
+  );
+}
+
+function FormHeader() {
+  const formName = useFormStore((s) => s.form?.name ?? '');
+  // const updateFormName = useFormStore((s) => s.updateFormName);
+  const formDescription = useFormStore(
+    (s) => s.form?.metadata.description ?? ''
+  );
+  // const updateFormMetadata = useFormStore((s) => s.updateFormMetadata);
+  // const updateFormDescription = (description: string) => {
+  //   updateFormMetadata({ description: description });
+  // };
+
+  return (
+    <div>
+      <Card>
+        <CardHeader>
+          <div className="w-full bg-transparent text-5xl font-bold tracking-tight text-foreground outline-none">
+            <h1>{formName}</h1>
+          </div>
+        </CardHeader>
+        {formDescription && (
+          <CardContent>
+            <div
+              className={sharedProseClasses}
+              dangerouslySetInnerHTML={{
+                __html: formDescription,
+              }}
+            />
+          </CardContent>
+        )}
+      </Card>
+      {/* <input
+        value={formName}
+        onChange={(e) => updateFormName(e.target.value)}
+        placeholder="Untitled Form"
+        className="w-full bg-transparent text-2xl font-bold tracking-tight text-foreground outline-none placeholder:text-muted-foreground/20"
+      />
+      <RichTextEditor
+        value={formDescription}
+        placeholder="Description"
+        onChange={(newHTML) => updateFormDescription(newHTML)}
+      /> */}
+      {/* <textarea
+        value={formDescription}
+        onChange={(e) => updateFormDescription(e.target.value)}
+        placeholder="Description"
+        className="text-md h-auto w-full bg-transparent tracking-tight text-foreground placeholder:text-muted-foreground/20"
+      /> */}
+    </div>
+  );
+}
+
+function PageHeader({ pageId }: { pageId: string }) {
+  const page = useFormStore((s) => s.pages[pageId]);
+  const setActivePage = useFormStore((s) => s.setActivePage);
+  const setActiveComponent = useFormStore((s) => s.setActiveComponent);
+
+  return (
+    <div className="mt-5 mb-5">
+      {(page?.title || page?.description) && (
+        <Card
+          onClick={(e) => {
+            e.stopPropagation();
+            setActivePage(pageId);
+            setActiveComponent(null);
+          }}
+        >
+          <CardHeader>
+            <div className="text-4xl font-semibold tracking-tight text-foreground">
+              {page?.title}
+            </div>
+          </CardHeader>
+          {page?.description && (
+            <CardContent>
+              <div className={`tracking-tight ${sharedProseClasses}`}>
+                {page?.description}
+              </div>
+            </CardContent>
+          )}
+        </Card>
+      )}
+    </div>
+  );
+}

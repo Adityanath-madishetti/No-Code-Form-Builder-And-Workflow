@@ -1,12 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Clock3, FileText, Inbox, Loader2 } from 'lucide-react';
-import { api } from '@/lib/api';
+import { api } from '@/services/api';
 
 // shadcn components
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/shared/components/ui/button';
+import { Badge } from '@/shared/components/ui/badge';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/shared/components/ui/card';
 
 interface FormHeader {
   formId: string;
@@ -107,7 +112,7 @@ export default function ActivityPage() {
     });
 
   return (
-    <div className="min-h-screen h-auto bg-neutral-100 dark:bg-neutral-900">
+    <div className="h-auto min-h-screen bg-neutral-100 dark:bg-neutral-900">
       <div className="mx-auto w-full max-w-3xl px-6 py-8">
         <div className="mb-6">
           <Button

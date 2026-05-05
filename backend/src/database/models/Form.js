@@ -1,112 +1,118 @@
 // backend/src/models/Form.js
 
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const { Schema } = mongoose;
 
 /* ──────────────── WORKFLOW TRANSITION ──────────────── */
 
 const WorkflowTransitionSchema = new Schema(
-    {
-        id: {
-            type: String,
-            required: true,
-        },
-        from: {
-            type: String,
-            required: true,
-        },
-        to: {
-            type: String,
-            required: true,
-        },
-        condition: {
-            type: String,
-            default: "",
-        },
-        roles: {
-            type: [String],
-            default: [],
-        },
-        label: {
-            type: String,
-            default: "",
-        },
+  {
+    id: {
+      type: String,
+      required: true,
     },
-    { _id: false }
+    from: {
+      type: String,
+      required: true,
+    },
+    to: {
+      type: String,
+      required: true,
+    },
+    condition: {
+      type: String,
+      default: '',
+    },
+    roles: {
+      type: [String],
+      default: [],
+    },
+    label: {
+      type: String,
+      default: '',
+    },
+  },
+  { _id: false },
 );
 
 /* ──────────────── WORKFLOW ──────────────── */
 
 const WorkflowSchema = new Schema(
-    {
-        enabled: {
-            type: Boolean,
-            default: false,
-        },
-        states: {
-            type: [String],
-            default: [],
-        },
-        initialState: {
-            type: String,
-            default: "",
-        },
-        transitions: {
-            type: [WorkflowTransitionSchema],
-            default: [],
-        },
+  {
+    enabled: {
+      type: Boolean,
+      default: false,
     },
-    { _id: false }
+    states: {
+      type: [String],
+      default: [],
+    },
+    initialState: {
+      type: String,
+      default: '',
+    },
+    transitions: {
+      type: [WorkflowTransitionSchema],
+      default: [],
+    },
+  },
+  { _id: false },
 );
 
 /* ──────────────── FORM ──────────────── */
 
 const FormSchema = new Schema(
-    {
-        formId: {
-            type: String,
-            required: true,
-            unique: true,
-            index: true,
-        },
+  {
+    formId: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+    },
 
-        title: {
-            type: String,
-            default: "Untitled Form",
-            trim: true,
-        },
+    title: {
+      type: String,
+      default: 'Untitled Form',
+      trim: true,
+    },
 
-        currentVersion: {
-            type: Number,
-            required: true,
-            default: 1,
-        },
+    currentVersion: {
+      type: Number,
+      required: true,
+      default: 1,
+    },
 
-        isActive: {
-            type: Boolean,
-            default: false,
-        },
+    isActive: {
+      type: Boolean,
+      default: false,
+    },
 
-        isDeleted: {
-            type: Boolean,
-            default: false,
-        },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
 
-        createdBy: {
-            type: String,
-            required: true,
-            index: true,
-        },
+    createdBy: {
+      type: String,
+      required: true,
+      index: true,
+    },
 
-/*
+    // Fluxoris integration — persisted webhook path for server-side trigger
+    fluxorisWebhookPath: {
+      type: String,
+      default: '',
+    },
+
+    /*
         workflow: {
             type: WorkflowSchema,
             default: null,
         },
 */
-    },
-    { timestamps: true }
+  },
+  { timestamps: true },
 );
 
-export default mongoose.model("Form", FormSchema);
+export default mongoose.model('Form', FormSchema);
