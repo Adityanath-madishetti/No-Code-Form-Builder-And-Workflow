@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Bell, BellRing, Mail } from 'lucide-react';
 
 // shadcn components
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/shared/components/ui/button';
+import { Checkbox } from '@/shared/components/ui/checkbox';
+import { Label } from '@/shared/components/ui/label';
 import {
   Card,
   CardContent,
@@ -13,7 +13,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '@/shared/components/ui/card';
 
 const STORAGE_KEY = 'user_notification_settings';
 
@@ -44,7 +44,7 @@ export default function NotificationSettingsPage() {
     }
     return defaultSettings;
   });
-  
+
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {

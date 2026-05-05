@@ -1,16 +1,24 @@
 import { useEffect, useMemo, useState } from 'react';
-import { api } from '@/lib/api';
+import { api } from '@/services/api';
 import { Link, useSearchParams } from 'react-router-dom';
-import { getCookie, setCookie } from '@/lib/cookies';
+import { getCookie, setCookie } from '@/utils/cookies';
 import '@fluxoris/partner-mfe/style.css';
 
-// shadcn/ui imports
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/shared/components/ui/card';
+import { Input } from '@/shared/components/ui/input';
+import { Button } from '@/shared/components/ui/button';
+import { Label } from '@/shared/components/ui/label';
+import { Textarea } from '@/shared/components/ui/textarea';
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from '@/shared/components/ui/alert';
 import { AlertCircle, Info } from 'lucide-react';
 
 type RemoteModule = typeof import('fluxorisPartnerMfe/PartnerIntegration');
@@ -95,48 +103,43 @@ function inferSchemaForComponent(
   return { type: 'string' };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function deriveSchemaFromFormVersion(
-  versionPayload: Record<string, unknown> | null
-): Record<string, unknown> | null {
-  const version = (versionPayload?.version ?? versionPayload) as
-    | Record<string, unknown>
-    | undefined;
-  if (!version || typeof version !== 'object') return null;
-  const pages = Array.isArray(version.pages) ? version.pages : [];
-
-  const properties: Record<string, unknown> = {};
-  const nonDataComponentTypes = new Set([
-    'heading',
-    'section-divider',
-    'page-break',
-  ]);
-
-  for (const page of pages) {
-    const pageObj = page as Record<string, unknown>;
-    const components = Array.isArray(pageObj.components)
-      ? pageObj.components
-      : [];
-    for (const comp of components) {
-      const compObj = comp as Record<string, unknown>;
-      const componentId = String(compObj.componentId || '').trim();
-      const componentType = String(compObj.componentType || '')
-        .trim()
-        .toLowerCase();
-      if (!componentId || nonDataComponentTypes.has(componentType)) continue;
-      properties[componentId] = inferSchemaForComponent(componentType);
-    }
-  }
-
-  const required = Object.keys(properties);
-
-  return {
-    type: 'object',
-    properties,
-    required,
-    additionalProperties: false,
-  };
-}
+// function deriveSchemaFromFormVersion(
+//   versionPayload: Record<string, unknown> | null
+// ): Record<string, unknown> | null {
+//   const version = (versionPayload?.version ?? versionPayload) as
+//     | Record<string, unknown>
+//     | undefined;
+//   if (!version || typeof version !== 'object') return null;
+//   const pages = Array.isArray(version.pages) ? version.pages : [];
+//   const properties: Record<string, unknown> = {};
+//   const nonDataComponentTypes = new Set([
+//     'heading',
+//     'section-divider',
+//     'page-break',
+//   ]);
+//   for (const page of pages) {
+//     const pageObj = page as Record<string, unknown>;
+//     const components = Array.isArray(pageObj.components)
+//       ? pageObj.components
+//       : [];
+//     for (const comp of components) {
+//       const compObj = comp as Record<string, unknown>;
+//       const componentId = String(compObj.componentId || '').trim();
+//       const componentType = String(compObj.componentType || '')
+//         .trim()
+//         .toLowerCase();
+//       if (!componentId || nonDataComponentTypes.has(componentType)) continue;
+//       properties[componentId] = inferSchemaForComponent(componentType);
+//     }
+//   }
+//   const required = Object.keys(properties);
+//   return {
+//     type: 'object',
+//     properties,
+//     required,
+//     additionalProperties: false,
+//   };
+// }
 
 function slugifyFieldKey(value: string, fallback: string): string {
   const slug = String(value || '')

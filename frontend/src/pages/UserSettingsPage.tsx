@@ -1,17 +1,17 @@
 import { useEffect, type ComponentType } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTheme } from '@/components/theme-provider';
+import { useTheme } from '@/shared/components/theme-provider';
 
 // shadcn components
-import { Button } from '@/components/ui/button';
+import { Button } from '@/shared/components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '@/shared/components/ui/card';
 
 // Icons
 import {
